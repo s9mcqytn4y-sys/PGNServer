@@ -227,6 +227,10 @@ git check-ignore .env .env.example vendor node_modules
 gh auth status
 gh repo view s9mcqytn4y-sys/PGNServer
 gh repo edit s9mcqytn4y-sys/PGNServer --description "Laravel RESTful API backend untuk PGNServer dengan PostgreSQL dan Docker local environment"
+git add .
+git commit -m "Inisialisasi Laravel REST API PGNServer"
+git branch -M main
+git push -u origin main
 ```
 
 ## 12. Hasil Nyata Command Penting
@@ -267,15 +271,27 @@ Status:
 - protocol git dari GH CLI: `https`
 - repo target `s9mcqytn4y-sys/PGNServer` dapat dibaca
 - deskripsi repo berhasil diperbarui
+- `gh repo set-default s9mcqytn4y-sys/PGNServer`: berhasil
 
-## 15. Risiko Dan Catatan Lanjutan
+## 15. Status Git Dan Push
+
+- `git init`: berhasil
+- `git check-ignore .env .env.example vendor node_modules`: berhasil, `.env`, `vendor`, dan `node_modules` ter-ignore, `.env.example` tidak
+- `git commit -m "Inisialisasi Laravel REST API PGNServer"`: berhasil
+- hash commit awal: `3ff7499`
+- `git branch -M main`: berhasil
+- `git push -u origin main`: berhasil
+- remote aktif: `https://github.com/s9mcqytn4y-sys/PGNServer.git`
+- branch tracking: `main -> origin/main`
+
+## 16. Risiko Dan Catatan Lanjutan
 
 - Environment lokal ini memiliki warning PHP global bahwa beberapa extension dimuat ganda: `openssl`, `mbstring`, `pdo_mysql`, `curl`, `fileinfo`. Warning ini tidak berasal dari patch aplikasi, tetapi sebaiknya dibersihkan dari konfigurasi PHP CLI lokal.
 - Wrapper Sail di Windows membutuhkan WSL. Repo sudah siap, tetapi host ini belum memenuhi prasyarat tersebut.
 - Docker Desktop Linux engine belum aktif, sehingga verifikasi container belum bisa dibuktikan di host ini.
 - `node_modules` lama masih tertinggal sebagian di workspace karena ada file yang terkunci oleh Windows, tetapi folder itu sudah di-ignore dan tidak mempengaruhi hasil commit.
 
-## 16. Checklist Definition Of Done
+## 17. Checklist Definition Of Done
 
 - [x] Laravel 13 project siap REST API only
 - [x] Tidak ada Blade/frontend demo yang relevan di entry point aplikasi
@@ -289,9 +305,9 @@ Status:
 - [x] README setup lokal tersedia
 - [x] Test health check hijau di host
 - [ ] Verifikasi Sail hijau
-- [ ] Repo berhasil dipush ke `main`
+- [x] Repo berhasil dipush ke `main`
 
-## 17. Catatan Selisih Dari Request
+## 18. Catatan Selisih Dari Request
 
 - Remote Git sementara memakai HTTPS agar selaras dengan autentikasi aktif `gh auth status`. Jika diperlukan mutlak SSH, remote bisa diganti ke `git@github.com:s9mcqytn4y-sys/PGNServer.git` setelah kunci SSH pada mesin ini dipastikan siap.
 - Verifikasi container belum tuntas karena blocker environment host, bukan karena error kode aplikasi.
