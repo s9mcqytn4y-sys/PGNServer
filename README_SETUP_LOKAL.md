@@ -7,6 +7,7 @@ Dokumen ini fokus pada setup development lokal untuk backend REST API PGNServer.
 - PHP 8.5
 - Composer 2.x
 - Docker Desktop
+- Runtime container lokal memakai PHP 8.4
 - Untuk Windows dengan Sail wrapper:
   - WSL terpasang
   - minimal satu distribusi Linux aktif
@@ -22,7 +23,6 @@ APP_DEBUG=true
 APP_URL=http://localhost:8000
 APP_TIMEZONE=Asia/Jakarta
 APP_PORT=8000
-FORWARD_DB_PORT=54320
 WWWUSER=1000
 WWWGROUP=1000
 
@@ -75,10 +75,10 @@ Jika database belum aktif, respons `503` tetap JSON dan itu normal untuk fase se
 ## Catatan Docker
 
 - Aplikasi diekspos di port `8000`
-- PostgreSQL host port default `54320`
+- PostgreSQL tidak diekspos ke host. Gunakan service `pgsql` melalui network internal Compose.
 - Service database bernama `pgsql`
 - Image database: `postgres:17-alpine`
-- Volume database persisten: `sail-pgsql`
+- Volume database persisten: `pgnserver-pgsql-data`
 
 ## Troubleshooting Singkat
 
@@ -88,6 +88,7 @@ Penyebab umum:
 
 - WSL belum diinstal
 - distribusi Linux belum diinstal
+- default shell WSL tidak menyediakan `/bin/bash`
 
 Periksa:
 

@@ -1,23 +1,21 @@
 services:
   laravel.test:
     build:
-      context: ./vendor/laravel/sail/runtimes/8.5
-      dockerfile: Dockerfile
-      args:
-        WWWGROUP: ${WWWGROUP}
-    image: sail-8.5/app
-    extra_hosts:
-      - host.docker.internal:host-gateway
+      context: .
+      dockerfile: docker/laravel/Dockerfile
+    image: pgnserver-app
     ports:
-      - ${APP_PORT:-8000}:80
+      - ${APP_PORT:-8000}:8000
     environment:
-      WWWUSER: ${WWWUSER}
-      LARAVEL_SAIL: 1
-      XDEBUG_MODE: ${SAIL_XDEBUG_MODE:-off}
-      XDEBUG_CONFIG: ${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}
-      IGNITION_LOCAL_SITES_PATH: ${PWD}
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
       DB_HOST: pgsql
       DB_PORT: 5432
+      DB_CONNECTION: ${DB_CONNECTION:-pgsql}
+      DB_DATABASE: ${DB_DATABASE:-pgn_server}
+      DB_USERNAME: ${DB_USERNAME:-pgn_server}
+      DB_PASSWORD: ${DB_PASSWORD:-password_lokal_dev}
     volumes:
       - .:/var/www/html
     networks:
@@ -28,15 +26,13 @@ services:
 
   pgsql:
     image: postgres:17-alpine
-    ports:
-      - ${FORWARD_DB_PORT:-54320}:5432
     environment:
       PGPASSWORD: ${DB_PASSWORD:-password_lokal_dev}
       POSTGRES_DB: ${DB_DATABASE:-pgn_server}
       POSTGRES_USER: ${DB_USERNAME:-pgn_server}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password_lokal_dev}
     volumes:
-      - sail-pgsql:/var/lib/postgresql/data
+      - pgnserver-pgsql-data:/var/lib/postgresql/data
       - ./vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql
     networks:
       - sail
@@ -53,5 +49,5 @@ networks:
     driver: bridge
 
 volumes:
-  sail-pgsql:
+  pgnserver-pgsql-data:
     driver: local

@@ -5,7 +5,8 @@ Backend monolith Laravel 13 untuk RESTful API yang disiapkan untuk dikonsumsi ol
 ## Fondasi Teknologi
 
 - Laravel 13
-- PHP 8.5
+- PHP 8.5 untuk tooling host
+- PHP 8.4 untuk runtime container lokal
 - PostgreSQL 17
 - Laravel Sanctum untuk fondasi API auth
 - Laravel Sail untuk local container workflow
@@ -123,7 +124,9 @@ curl http://localhost:8000/api/v1/kesehatan
 Catatan penting untuk Windows:
 
 - Wrapper `./vendor/bin/sail` membutuhkan WSL terpasang.
-- Jika WSL belum tersedia, gunakan `docker compose` langsung setelah Docker Desktop Linux engine aktif.
+- Pada host ini wrapper `./vendor/bin/sail` masih gagal karena default shell WSL mengarah ke `docker-desktop` yang tidak menyediakan `/bin/bash`.
+- Gunakan `docker compose` langsung setelah Docker Desktop Linux engine aktif.
+- PostgreSQL tidak dipublish ke host; koneksi aplikasi tetap memakai service internal `pgsql`.
 - Dokumen detail ada di `README_SETUP_LOKAL.md`.
 
 ## Verifikasi Host

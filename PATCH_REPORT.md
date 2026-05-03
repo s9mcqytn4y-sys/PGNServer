@@ -2,26 +2,30 @@
 
 ## 1. Ringkasan Perubahan
 
-- Mengubah skeleton Laravel 13 standar menjadi fondasi REST API only untuk PGNServer.
-- Menambahkan route versioning awal di `/api/v1`.
-- Menambahkan endpoint `GET /api/v1/kesehatan` dengan controller, request, resource, service aplikasi, model domain, dan pemeriksa koneksi database.
-- Menambahkan envelope respons JSON terpusat melalui `App\Support\Api\ResponApi`.
-- Menambahkan kode kesalahan API terpusat melalui `App\Support\Errors\KodeKesalahanApi`.
-- Memaksa error route `/api/*` tetap JSON dari `bootstrap/app.php`.
-- Menambahkan Laravel Sail dan menyiapkan `compose.yaml` berbasis `postgres:17-alpine`.
-- Merapikan `.env.example`, `.gitignore`, `.editorconfig`, dan `composer.json`.
-- Menghapus sisa frontend skeleton yang tidak relevan untuk backend API only.
-- Menambahkan dokumentasi `README.md` dan `README_SETUP_LOKAL.md`.
+- Merapikan fondasi Laravel 13 menjadi backend REST API only untuk PGNServer.
+- Menjaga struktur Clean Architecture pragmatis dengan pemisahan `Domain`, `Application`, `Infrastructure`, dan layer HTTP API.
+- Menambahkan endpoint `GET /api/v1/kesehatan` dengan service aplikasi, controller, request, resource, dan pemeriksa koneksi database ringan.
+- Menstandarkan envelope respons JSON melalui `App\Support\Api\ResponApi`.
+- Menstandarkan kode kesalahan API melalui `App\Support\Errors\KodeKesalahanApi`.
+- Memaksa route `/api/*` selalu mengembalikan JSON aman melalui konfigurasi exception di `bootstrap/app.php`.
+- Membersihkan artefak frontend skeleton Laravel yang tidak relevan untuk proyek API only.
+- Mengganti runtime container lokal ke image PHP resmi agar verifikasi Docker lokal stabil di mesin ini.
+- Menyiapkan `compose.yaml` dengan PostgreSQL 17, volume persisten, healthcheck database, dan port aplikasi `8000`.
+- Merapikan `README.md`, `README_SETUP_LOKAL.md`, `.env.example`, `.gitignore`, dan `.editorconfig`.
 
 ## 2. Versi Stack Terdeteksi
 
-- Laravel: `13.7.0`
-- PHP: `8.5.4`
-- Composer: `2.9.5`
+- Laravel host: `13.7.0`
+- Laravel container: `13.7.0`
+- PHP host: `8.5.4`
+- PHP container: `8.4.20`
+- Composer host: `2.9.5`
+- Composer container: `2.9.7`
 - Laravel Boost: `2.4.6`
 - Laravel Sail: `1.58.0`
 - Laravel Sanctum: `4.3.1`
 - PostgreSQL image: `postgres:17-alpine`
+- Runtime image aplikasi lokal: `php:8.4-cli-bookworm`
 
 ## 3. File Yang Dibuat
 
@@ -34,6 +38,7 @@
 - `app/Infrastructure/Kesehatan/PemeriksaKoneksiDatabase.php`
 - `app/Support/Api/ResponApi.php`
 - `app/Support/Errors/KodeKesalahanApi.php`
+- `docker/laravel/Dockerfile`
 - `README_SETUP_LOKAL.md`
 - `PATCH_REPORT.md`
 
@@ -88,6 +93,8 @@ app/
   Support/
     Api/
     Errors/
+docker/
+  laravel/
 routes/
   api.php
   web.php
@@ -106,6 +113,7 @@ Catatan:
 
 - `POST /_boost/browser-logs` muncul di environment lokal karena `laravel/boost` adalah dev dependency.
 - `GET /sanctum/csrf-cookie` tersedia dari Sanctum.
+- Route storage lokal bawaan framework masih terdaftar di environment ini.
 
 ## 8. Format JSON Response Final
 
@@ -143,7 +151,7 @@ Respons gagal:
 
 ## 9. Cara Menjalankan Lokal
 
-Dengan Sail:
+Jalur standar sesuai permintaan:
 
 ```bash
 cp .env.example .env
@@ -155,12 +163,14 @@ php artisan key:generate
 curl http://localhost:8000/api/v1/kesehatan
 ```
 
-Fallback bila wrapper Sail gagal di Windows:
+Fallback yang terverifikasi di mesin ini:
 
 ```bash
-docker compose up -d
-docker compose exec laravel.test php artisan migrate
-docker compose exec laravel.test php artisan test
+docker compose up -d --force-recreate
+docker compose exec -T laravel.test php artisan migrate
+docker compose exec -T laravel.test php artisan test --compact
+docker compose exec -T laravel.test php artisan route:list
+curl http://127.0.0.1:8000/api/v1/kesehatan
 ```
 
 ## 10. Cara Menjalankan Test
@@ -175,12 +185,13 @@ vendor/bin/pint --dirty --format agent
 Container:
 
 ```bash
-./vendor/bin/sail artisan test
+docker compose exec -T laravel.test php artisan test --compact
+docker compose exec -T laravel.test vendor/bin/pint --dirty --format agent
 ```
 
-## 11. Command Yang Sudah Dieksekusi
+## 11. Command Yang Dipakai
 
-Dokumentasi resmi dan inspeksi:
+Dokumentasi dan inspeksi:
 
 ```text
 php artisan list --raw
@@ -189,7 +200,7 @@ php artisan help sail:install
 composer show laravel/sail --all
 ```
 
-Setup:
+Setup awal:
 
 ```text
 composer require laravel/sail --dev
@@ -211,11 +222,24 @@ vendor/bin/pint --dirty --format agent
 php artisan optimize:clear
 ```
 
-Verifikasi HTTP lokal:
+Verifikasi Docker Compose:
 
 ```text
-php artisan serve --host=127.0.0.1 --port=8001
-curl -H "Accept: application/json" http://127.0.0.1:8001/api/v1/kesehatan
+docker --version
+docker context show
+docker info --format "{{.ServerVersion}}"
+wsl.exe --status
+docker compose up -d --force-recreate
+docker compose ps -a
+docker compose exec -T laravel.test php artisan route:list
+docker compose exec -T laravel.test php artisan migrate --force
+docker compose exec -T laravel.test php artisan migrate:status --database=pgsql
+docker compose exec -T laravel.test php artisan test --compact
+docker compose exec -T laravel.test php artisan config:clear
+docker compose exec -T laravel.test php artisan optimize:clear
+docker compose exec -T laravel.test vendor/bin/pint --dirty --format agent
+docker compose exec -T laravel.test php artisan about
+curl.exe -i -H "Accept: application/json" http://127.0.0.1:8000/api/v1/kesehatan
 ```
 
 Git dan GitHub:
@@ -226,6 +250,7 @@ git status --short --branch
 git check-ignore .env .env.example vendor node_modules
 gh auth status
 gh repo view s9mcqytn4y-sys/PGNServer
+gh repo set-default s9mcqytn4y-sys/PGNServer
 gh repo edit s9mcqytn4y-sys/PGNServer --description "Laravel RESTful API backend untuk PGNServer dengan PostgreSQL dan Docker local environment"
 git add .
 git commit -m "Inisialisasi Laravel REST API PGNServer"
@@ -241,28 +266,29 @@ git push -u origin main
 - `php artisan test --compact`: berhasil, `5` test lulus, `44` assertion
 - `vendor/bin/pint --dirty --format agent`: berhasil
 - `php artisan optimize:clear`: berhasil
-- `curl http://127.0.0.1:8001/api/v1/kesehatan`: berhasil mengembalikan JSON `503` dengan kode `DATABASE_TIDAK_TERHUBUNG`
+- `docker compose ps -a`: berhasil, `laravel.test` dan `pgsql` berstatus `Up`, database `healthy`
+- `docker compose exec -T laravel.test php artisan route:list`: berhasil, `GET /api/v1/kesehatan` terdaftar
+- `docker compose exec -T laravel.test php artisan migrate:status --database=pgsql`: berhasil, tiga migrasi awal berstatus `Ran`
+- `docker compose exec -T laravel.test php artisan test --compact`: berhasil, `5` test lulus, `44` assertion
+- `docker compose exec -T laravel.test php artisan config:clear`: berhasil
+- `docker compose exec -T laravel.test php artisan optimize:clear`: berhasil
+- `docker compose exec -T laravel.test vendor/bin/pint --dirty --format agent`: berhasil
+- `curl.exe -i -H "Accept: application/json" http://127.0.0.1:8000/api/v1/kesehatan`: berhasil, HTTP `200`, `Content-Type: application/json`, database `terhubung`
 
 ## 13. Status Verifikasi Sail / Docker
 
-Percobaan command yang diminta:
+Status saat ini:
 
-```text
-./vendor/bin/sail up -d
-docker compose up -d
-docker compose ps
-```
+- `docker compose` berhasil dipakai end-to-end untuk menjalankan aplikasi dan PostgreSQL 17.
+- Service `pgsql` memakai image `postgres:17-alpine` dengan healthcheck aktif.
+- Port aplikasi diekspos ke host pada `http://127.0.0.1:8000`.
+- PostgreSQL tidak dipublish ke host. Akses database untuk aplikasi tetap melalui service internal `pgsql`.
 
-Status:
+Catatan kompatibilitas:
 
-- `./vendor/bin/sail up -d`: gagal karena environment Windows ini belum memiliki distribusi WSL terpasang.
-- `docker compose up -d`: gagal karena Docker Desktop Linux engine tidak aktif, pipe `dockerDesktopLinuxEngine` tidak tersedia.
-- Akibatnya command container berikut belum bisa diverifikasi secara nyata di mesin ini:
-  - `./vendor/bin/sail artisan route:list`
-  - `./vendor/bin/sail artisan test`
-  - `./vendor/bin/sail artisan migrate:status`
-  - `./vendor/bin/sail artisan config:clear`
-  - `./vendor/bin/sail artisan optimize:clear`
+- Wrapper `./vendor/bin/sail` di host Windows ini masih gagal karena WSL default shell mengarah ke `docker-desktop` yang tidak menyediakan `/bin/bash`.
+- Karena itu, jalur operasional lokal yang benar-benar terverifikasi pada mesin ini adalah `docker compose`, bukan wrapper Sail.
+- Ini bukan blocker untuk kode aplikasi, tetapi tetap perlu dicatat agar setup tim tidak membingungkan.
 
 ## 14. Status GH CLI
 
@@ -277,37 +303,36 @@ Status:
 
 - `git init`: berhasil
 - `git check-ignore .env .env.example vendor node_modules`: berhasil, `.env`, `vendor`, dan `node_modules` ter-ignore, `.env.example` tidak
-- `git commit -m "Inisialisasi Laravel REST API PGNServer"`: berhasil
-- hash commit awal: `3ff7499`
-- `git branch -M main`: berhasil
-- `git push -u origin main`: berhasil
+- commit awal dan update lanjutan sudah berhasil dipush ke `main`
 - remote aktif: `https://github.com/s9mcqytn4y-sys/PGNServer.git`
 - branch tracking: `main -> origin/main`
 
 ## 16. Risiko Dan Catatan Lanjutan
 
-- Environment lokal ini memiliki warning PHP global bahwa beberapa extension dimuat ganda: `openssl`, `mbstring`, `pdo_mysql`, `curl`, `fileinfo`. Warning ini tidak berasal dari patch aplikasi, tetapi sebaiknya dibersihkan dari konfigurasi PHP CLI lokal.
-- Wrapper Sail di Windows membutuhkan WSL. Repo sudah siap, tetapi host ini belum memenuhi prasyarat tersebut.
-- Docker Desktop Linux engine belum aktif, sehingga verifikasi container belum bisa dibuktikan di host ini.
-- `node_modules` lama masih tertinggal sebagian di workspace karena ada file yang terkunci oleh Windows, tetapi folder itu sudah di-ignore dan tidak mempengaruhi hasil commit.
+- PHP CLI host masih memunculkan warning extension ganda seperti `openssl`, `mbstring`, `pdo_mysql`, `curl`, dan `fileinfo`. Ini berasal dari konfigurasi PHP lokal host, bukan dari repo.
+- Wrapper Sail di Windows belum usable di mesin ini selama WSL default shell tidak menyediakan `/bin/bash`.
+- Runtime container lokal saat ini memakai image PHP resmi `8.4` agar build stabil. Sementara itu, tooling host masih berada di PHP `8.5`. Perbedaan minor ini aman untuk fondasi sekarang, tetapi sebaiknya diseragamkan saat image PHP resmi atau base runtime yang diinginkan sudah siap.
+- Route dev dari package seperti Boost, Sanctum, dan storage masih muncul pada environment lokal. Tidak ada route bisnis yang tidak disengaja, tetapi ini tetap perlu dipahami saat membaca `route:list`.
 
 ## 17. Checklist Definition Of Done
 
 - [x] Laravel 13 project siap REST API only
-- [x] Tidak ada Blade/frontend demo yang relevan di entry point aplikasi
+- [x] Tidak ada Blade atau frontend demo yang relevan di entry point aplikasi
 - [x] API route `/api/v1/kesehatan` tersedia
 - [x] Response health check JSON konsisten
 - [x] Error API tidak bocor sebagai HTML untuk route `/api/*`
-- [x] `compose.yaml` memakai PostgreSQL 17
+- [x] PostgreSQL 17 berjalan via Docker Compose
 - [x] `.env.example` lengkap untuk development lokal
 - [x] `.gitignore` aman
 - [x] `.editorconfig` dirapikan
 - [x] README setup lokal tersedia
-- [x] Test health check hijau di host
-- [ ] Verifikasi Sail hijau
+- [x] Test health check hijau
+- [x] Verifikasi container lokal hijau melalui `docker compose`
 - [x] Repo berhasil dipush ke `main`
+- [x] `PATCH_REPORT.md` lengkap
 
 ## 18. Catatan Selisih Dari Request
 
-- Remote Git sementara memakai HTTPS agar selaras dengan autentikasi aktif `gh auth status`. Jika diperlukan mutlak SSH, remote bisa diganti ke `git@github.com:s9mcqytn4y-sys/PGNServer.git` setelah kunci SSH pada mesin ini dipastikan siap.
-- Verifikasi container belum tuntas karena blocker environment host, bukan karena error kode aplikasi.
+- Dokumentasi resmi dan struktur Laravel tetap diikuti, tetapi verifikasi container praktis pada host ini memakai `docker compose` langsung karena wrapper Sail gagal akibat konfigurasi WSL host.
+- Port PostgreSQL sengaja tidak dipublish ke host untuk menghindari konflik lokal dan menjaga setup tetap minimal. Aplikasi tetap terkoneksi normal melalui network internal Compose.
+- Request menyebut PostgreSQL 17 via Sail. Implementasi akhirnya tetap memakai artefak Sail untuk SQL init testing database, tetapi orkestrasi harian yang terverifikasi menggunakan `docker compose`.
