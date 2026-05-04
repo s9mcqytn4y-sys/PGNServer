@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Support\Api\ResponApi;
 use App\Support\Errors\KodeKesalahanApi;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -21,12 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', [
-            \Illuminate\Http\Middleware\HandleCors::class,
+            HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request, \Throwable $throwable): bool => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request, Throwable $throwable): bool => $request->is('api/*') || $request->expectsJson(),
         );
 
         $exceptions->render(function (ValidationException $exception, Request $request) {
@@ -50,6 +52,18 @@ return Application::configure(basePath: dirname(__DIR__))
                 kodeKesalahan: KodeKesalahanApi::VALIDASI_GAGAL,
                 detailKesalahan: $detailKesalahan,
                 statusHttp: 422,
+            );
+        });
+
+        $exceptions->render(function (AuthenticationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return ResponApi::gagal(
+                pesan: 'Autentikasi diperlukan untuk mengakses endpoint ini',
+                kodeKesalahan: KodeKesalahanApi::AUTENTIKASI_GAGAL,
+                statusHttp: 401,
             );
         });
 
@@ -77,7 +91,7 @@ return Application::configure(basePath: dirname(__DIR__))
             );
         });
 
-        $exceptions->render(function (\Throwable $exception, Request $request) {
+        $exceptions->render(function (Throwable $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }
