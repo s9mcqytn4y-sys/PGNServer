@@ -64,8 +64,8 @@ test('response master data memiliki part', function () {
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data')
         ->assertSuccessful()
-        ->assertJsonCount(10, 'data.part')
-        ->assertJsonPath('metadata.jumlahPart', 10);
+        ->assertJsonCount(18, 'data.part')
+        ->assertJsonPath('metadata.jumlahPart', 18);
 });
 
 test('response master data memiliki jenis defect', function () {
@@ -74,8 +74,8 @@ test('response master data memiliki jenis defect', function () {
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data')
         ->assertSuccessful()
-        ->assertJsonCount(23, 'data.jenisDefect')
-        ->assertJsonPath('metadata.jumlahJenisDefect', 23);
+        ->assertJsonCount(27, 'data.jenisDefect')
+        ->assertJsonPath('metadata.jumlahJenisDefect', 27);
 });
 
 test('response master data memiliki relasi part defect', function () {
@@ -84,8 +84,55 @@ test('response master data memiliki relasi part defect', function () {
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data')
         ->assertSuccessful()
-        ->assertJsonCount(80, 'data.relasiPartDefect')
-        ->assertJsonPath('metadata.jumlahRelasiPartDefect', 80);
+        ->assertJsonCount(160, 'data.relasiPartDefect')
+        ->assertJsonPath('metadata.jumlahRelasiPartDefect', 160);
+});
+
+test('master data test kriteria lengkap sesuai dokumen target', function () {
+    $token = tokenAutentikasiHeadQc($this);
+
+    $respon = $this->withHeader('Authorization', 'Bearer '.$token)
+        ->getJson('/api/v1/qcontrol/master-data');
+        
+    $respon->assertSuccessful();
+
+    // 3. response memiliki line PRESS dan SEWING.
+    $respon->assertJsonFragment(['kodeLine' => 'PRESS']);
+    $respon->assertJsonFragment(['kodeLine' => 'SEWING']);
+
+    // 4. response memiliki part SEWING Felt Seat Back.
+    // 5. response memiliki part SEWING Cover FR Seat Hinge.
+    // 6. response memiliki part Protector RR Seat Back RH/LH.
+    $respon->assertJsonFragment(['kodeUnikPart' => 'FSB', 'namaPart' => 'Felt Seat Back']);
+    $respon->assertJsonFragment(['kodeUnikPart' => 'CFRSH', 'namaPart' => 'Cover FR Seat Hinge']);
+    $respon->assertJsonFragment(['kodeUnikPart' => 'PRSB_RH_070', 'namaPart' => 'Protector RR Seat Back RH']);
+    $respon->assertJsonFragment(['kodeUnikPart' => 'PRSB_LH_080', 'namaPart' => 'Protector RR Seat Back LH']);
+
+    // 7. response memiliki jenis defect SPUNBOND_TIDAK_MEREKAT.
+    // 8. response memiliki jenis defect BACKSTITCH_KURANG_DARI_15MM.
+    $respon->assertJsonFragment(['kodeDefect' => 'SPUNBOND_TIDAK_MEREKAT']);
+    $respon->assertJsonFragment(['kodeDefect' => 'BACKSTITCH_KURANG_DARI_15MM']);
+
+    // 9. response relasiPartDefect memiliki field kodeTampilanDefect.
+    $relasiFSB_A = collect($respon->json('data.relasiPartDefect'))
+        ->where('kodeUnikPart', 'FSB')
+        ->where('kodeTampilanDefect', 'A')
+        ->first();
+    expect($relasiFSB_A)->not->toBeNull();
+    expect($relasiFSB_A['kodeTampilanDefect'])->toBe('A');
+    expect($relasiFSB_A['kodeDefect'])->toBe('SOBEK');
+
+    // 10. relasi Felt Seat Back memiliki kode tampilan A sampai L.
+    $relasiFSB = collect($respon->json('data.relasiPartDefect'))
+        ->where('kodeUnikPart', 'FSB');
+    expect($relasiFSB->count())->toBe(12);
+    expect($relasiFSB->pluck('kodeTampilanDefect')->sort()->values()->all())->toBe(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']);
+
+    // 11. relasi Protector memiliki kode tampilan A sampai M.
+    $relasiPRSB = collect($respon->json('data.relasiPartDefect'))
+        ->where('kodeUnikPart', 'PRSB_RH_070');
+    expect($relasiPRSB->count())->toBe(13);
+    expect($relasiPRSB->pluck('kodeTampilanDefect')->sort()->values()->all())->toBe(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']);
 });
 
 test('tidak ada peran selain HeadQC yang dibuat', function () {

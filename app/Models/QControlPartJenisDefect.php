@@ -28,6 +28,7 @@ final class QControlPartJenisDefect extends Model
     protected $fillable = [
         'part_id',
         'jenis_defect_id',
+        'kode_tampilan_defect',
         'urutan_tampil',
         'aktif',
     ];

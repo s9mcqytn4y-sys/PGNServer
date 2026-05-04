@@ -83,7 +83,7 @@ final class MasterDataQControlSeeder extends Seeder
             );
         }
 
-        foreach ($this->daftarRelasiPartJenisDefect() as $urutan => [$kodePart, $kodeDefect]) {
+        foreach ($this->daftarRelasiPartJenisDefect() as $urutan => [$kodePart, $kodeDefect, $kodeTampilan]) {
             $this->simpanModel(
                 QControlPartJenisDefect::class,
                 [
@@ -91,6 +91,7 @@ final class MasterDataQControlSeeder extends Seeder
                     'jenis_defect_id' => $jenisDefect[$kodeDefect]->id,
                 ],
                 [
+                    'kode_tampilan_defect' => $kodeTampilan,
                     'urutan_tampil' => $urutan + 1,
                     'aktif' => true,
                 ],
@@ -202,29 +203,36 @@ final class MasterDataQControlSeeder extends Seeder
     private function daftarJenisDefect(): array
     {
         return [
-            ['kode_defect' => 'DENT', 'nama_defect' => 'DENT', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'GALER', 'nama_defect' => 'GALER', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'CARPET_TIPIS', 'nama_defect' => 'CARPET TIPIS', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'CARPET_BERJAMUR', 'nama_defect' => 'CARPET BERJAMUR', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'BELANG', 'nama_defect' => 'BELANG', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'HOLE_TA', 'nama_defect' => 'HOLE TA', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'OVERCUTTING', 'nama_defect' => 'OVERCUTTING', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'SOBEK', 'nama_defect' => 'SOBEK', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'BRUDUL', 'nama_defect' => 'BRUDUL', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'TERBALIK', 'nama_defect' => 'TERBALIK', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'KOTOR', 'nama_defect' => 'KOTOR', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'TERDAPAT_BENDA_ASING', 'nama_defect' => 'TERDAPAT BENDA ASING', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'LAMINATING_BERKERUT', 'nama_defect' => 'LAMINATING BERKERUT', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINATING_BOLONG', 'nama_defect' => 'LAMINATING BOLONG', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINATING_TIDAK_MATANG', 'nama_defect' => 'LAMINATING TIDAK MATANG', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINATING_TERSOBEK', 'nama_defect' => 'LAMINATING TERSOBEK', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'MATERIAL_TIPIS', 'nama_defect' => 'MATERIAL TIPIS', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'DIMENSI_OUT_STANDARD', 'nama_defect' => 'DIMENSI OUT STANDARD', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'UKURAN_TIDAK_SESUAI', 'nama_defect' => 'UKURAN TIDAK SESUAI', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'SEWING_MIRING', 'nama_defect' => 'SEWING MIRING', 'kode_kategori' => 'PROSES_SEWING'],
-            ['kode_defect' => 'SPUNBOND_TIDAK_MEREKAT', 'nama_defect' => 'SPUNBOND TIDAK MEREKAT', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'SPUNBOND_TERLIPAT', 'nama_defect' => 'SPUNBOND TERLIPAT', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'POTONGAN_TIDAK_RATA', 'nama_defect' => 'POTONGAN TIDAK RATA', 'kode_kategori' => 'PROSES_PRESS'],
+            // PRESS
+            ['kode_defect' => 'LAMINASI_BERKERUT', 'nama_defect' => 'Laminasi Berkerut', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_BOLONG', 'nama_defect' => 'Laminasi Bolong', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_TIDAK_MATANG', 'nama_defect' => 'Laminasi Tidak Matang', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'TERDAPAT_BENDA_ASING', 'nama_defect' => 'Terdapat Benda Asing', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'BAHAN_TIPIS', 'nama_defect' => 'Bahan Tipis', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'POTONGAN_BERLEBIH', 'nama_defect' => 'Potongan Berlebih', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_TERSOBEK', 'nama_defect' => 'Laminasi Tersobek', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'DIMENSI_TIDAK_SESUAI', 'nama_defect' => 'Dimensi Tidak Sesuai', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'PENYOK', 'nama_defect' => 'Penyok', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'KARPET_BERJAMUR', 'nama_defect' => 'Karpet Berjamur', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'KARPET_TIPIS', 'nama_defect' => 'Karpet Tipis', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'SOBEK', 'nama_defect' => 'Sobek', 'kode_kategori' => 'PROSES_PRESS'],
+
+            // SEWING
+            ['kode_defect' => 'BRUDUL', 'nama_defect' => 'Brudul', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_TIDAK_MEREKAT', 'nama_defect' => 'Spunbond Tidak Merekat', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_TERLIPAT', 'nama_defect' => 'Spunbond Terlipat', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_HARDEN', 'nama_defect' => 'Spunbond Harden', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_KOTOR', 'nama_defect' => 'Spunbond Kotor', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'SPUNBOND_TERPOTONG', 'nama_defect' => 'Spunbond Terpotong', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'LAMINATING_TIDAK_MATANG', 'nama_defect' => 'Laminating Tidak Matang', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'LAMINATING_BOLONG', 'nama_defect' => 'Laminating Bolong', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'TERBALIK', 'nama_defect' => 'Terbalik', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'OVERCUTTING', 'nama_defect' => 'Overcutting', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SEWING_MIRING', 'nama_defect' => 'Sewing Miring', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'MARGIN_SEWING', 'nama_defect' => 'Margin Sewing', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'MARGIN_OUT_DIMENSI', 'nama_defect' => 'Margin Out Dimensi', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'BACKSTITCH_KURANG_DARI_15MM', 'nama_defect' => 'Backstitch Kurang dari 15mm', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'DENT', 'nama_defect' => 'Dent', 'kode_kategori' => 'PROSES_PRESS'],
         ];
     }
 
@@ -245,7 +253,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'CL7',
@@ -256,7 +264,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'BT136',
@@ -267,7 +275,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'BT137',
@@ -278,7 +286,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'BT144',
@@ -289,7 +297,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'BM7',
@@ -300,7 +308,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'BM8',
@@ -311,7 +319,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'CB9',
@@ -322,7 +330,7 @@ final class MasterDataQControlSeeder extends Seeder
                 'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'FJ0',
@@ -331,9 +339,9 @@ final class MasterDataQControlSeeder extends Seeder
                 'material_id' => $material['FUJISEAT']->id,
                 'kode_proyek' => 'D14N',
                 'jumlah_item_per_kanban' => null,
-                'line_default_id' => $lineProduksi['SEWING']->id,
+                'line_default_id' => $lineProduksi['PRESS']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Press.xlsx',
             ],
             [
                 'kode_unik_part' => 'FJ1',
@@ -342,47 +350,205 @@ final class MasterDataQControlSeeder extends Seeder
                 'material_id' => $material['FUJISEAT']->id,
                 'kode_proyek' => 'D14N',
                 'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['PRESS']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Press.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'FSB',
+                'nama_part' => 'Felt Seat Back',
+                'nomor_part' => '79977-BZO20',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
                 'line_default_id' => $lineProduksi['SEWING']->id,
                 'aktif' => true,
-                'sumber_data' => 'audit_drive_curated',
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'CFRSH',
+                'nama_part' => 'Cover FR Seat Hinge',
+                'nomor_part' => '71831-BZ150',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_RH_070',
+                'nama_part' => 'Protector RR Seat Back RH',
+                'nomor_part' => '71695-VT070',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_LH_080',
+                'nama_part' => 'Protector RR Seat Back LH',
+                'nomor_part' => '71695-VT080',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_RH_090',
+                'nama_part' => 'Protector RR Seat Back RH',
+                'nomor_part' => '71695-VT090',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_LH_100',
+                'nama_part' => 'Protector RR Seat Back LH',
+                'nomor_part' => '71695-VT100',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_RH_110',
+                'nama_part' => 'Protector RR Seat Back RH',
+                'nomor_part' => '71695-VT110',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
+            ],
+            [
+                'kode_unik_part' => 'PRSB_LH_120',
+                'nama_part' => 'Protector RR Seat Back LH',
+                'nomor_part' => '71695-VT120',
+                'material_id' => $material['LAINNYA']->id,
+                'kode_proyek' => null,
+                'jumlah_item_per_kanban' => null,
+                'line_default_id' => $lineProduksi['SEWING']->id,
+                'aktif' => true,
+                'sumber_data' => 'Daily NG Sewing.xlsx',
             ],
         ];
     }
 
     /**
-     * @return list<array{0: string, 1: string}>
+     * @return list<array{0: string, 1: string, 2: string}>
      */
     private function daftarRelasiPartJenisDefect(): array
     {
         $daftarRelasi = [];
 
-        foreach (['CR6', 'CL7', 'CB9'] as $kodePart) {
-            foreach ([
-                'DENT',
-                'GALER',
-                'CARPET_TIPIS',
-                'CARPET_BERJAMUR',
-                'BELANG',
-                'HOLE_TA',
-                'OVERCUTTING',
-                'SOBEK',
-            ] as $kodeDefect) {
-                $daftarRelasi[] = [$kodePart, $kodeDefect];
+        // PRESS CB9
+        $defectsCB9 = [
+            'A' => 'TERDAPAT_BENDA_ASING',
+            'B' => 'PENYOK',
+            'C' => 'KARPET_BERJAMUR',
+            'D' => 'KARPET_TIPIS',
+            'E' => 'POTONGAN_BERLEBIH',
+            'F' => 'SOBEK',
+            'G' => 'DIMENSI_TIDAK_SESUAI',
+        ];
+        foreach (['CB9'] as $kodePart) {
+            foreach ($defectsCB9 as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
             }
         }
 
+        // PRESS BT136, BT137, BT144, BM7, BM8, FJ0, FJ1
+        $defectsPressLain = [
+            'A' => 'LAMINASI_BERKERUT',
+            'B' => 'LAMINASI_BOLONG',
+            'C' => 'LAMINASI_TIDAK_MATANG',
+            'D' => 'TERDAPAT_BENDA_ASING',
+            'E' => 'BAHAN_TIPIS',
+            'F' => 'POTONGAN_BERLEBIH',
+            'G' => 'LAMINASI_TERSOBEK',
+            'H' => 'DIMENSI_TIDAK_SESUAI',
+        ];
         foreach (['BT136', 'BT137', 'BT144', 'BM7', 'BM8', 'FJ0', 'FJ1'] as $kodePart) {
-            foreach ([
-                'LAMINATING_BERKERUT',
-                'LAMINATING_BOLONG',
-                'LAMINATING_TIDAK_MATANG',
-                'TERDAPAT_BENDA_ASING',
-                'MATERIAL_TIPIS',
-                'OVERCUTTING',
-                'LAMINATING_TERSOBEK',
-                'DIMENSI_OUT_STANDARD',
-            ] as $kodeDefect) {
-                $daftarRelasi[] = [$kodePart, $kodeDefect];
+            foreach ($defectsPressLain as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
+            }
+        }
+
+        // SEWING Felt Seat Back
+        $defectsFSB = [
+            'A' => 'SOBEK',
+            'B' => 'BRUDUL',
+            'C' => 'SPUNBOND_TIDAK_MEREKAT',
+            'D' => 'SPUNBOND_TERLIPAT',
+            'E' => 'LAMINATING_TIDAK_MATANG',
+            'F' => 'LAMINATING_BOLONG',
+            'G' => 'SPUNBOND_TERPOTONG',
+            'H' => 'TERBALIK',
+            'I' => 'OVERCUTTING',
+            'J' => 'SEWING_MIRING',
+            'K' => 'MARGIN_OUT_DIMENSI',
+            'L' => 'BACKSTITCH_KURANG_DARI_15MM',
+        ];
+        foreach (['FSB'] as $kodePart) {
+            foreach ($defectsFSB as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
+            }
+        }
+
+        // SEWING Cover FR Seat Hinge
+        $defectsCFRSH = [
+            'A' => 'SOBEK',
+            'B' => 'BRUDUL',
+            'C' => 'TERDAPAT_BENDA_ASING',
+            'D' => 'KARPET_BERJAMUR',
+            'E' => 'TERBALIK',
+            'F' => 'OVERCUTTING',
+            'G' => 'SEWING_MIRING',
+        ];
+        foreach (['CFRSH'] as $kodePart) {
+            foreach ($defectsCFRSH as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
+            }
+        }
+
+        // SEWING Protector RR Seat Back RH/LH semua part number
+        $defectsProtector = [
+            'A' => 'SOBEK',
+            'B' => 'BRUDUL',
+            'C' => 'SPUNBOND_TIDAK_MEREKAT',
+            'D' => 'SPUNBOND_TERLIPAT',
+            'E' => 'SPUNBOND_HARDEN',
+            'F' => 'TERDAPAT_BENDA_ASING',
+            'G' => 'SPUNBOND_KOTOR',
+            'H' => 'LAMINATING_BOLONG',
+            'I' => 'SPUNBOND_TERPOTONG',
+            'J' => 'TERBALIK',
+            'K' => 'OVERCUTTING',
+            'L' => 'SEWING_MIRING',
+            'M' => 'MARGIN_SEWING',
+        ];
+        $partProtectors = [
+            'PRSB_RH_070',
+            'PRSB_LH_080',
+            'PRSB_RH_090',
+            'PRSB_LH_100',
+            'PRSB_RH_110',
+            'PRSB_LH_120',
+        ];
+        foreach ($partProtectors as $kodePart) {
+            foreach ($defectsProtector as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
             }
         }
 

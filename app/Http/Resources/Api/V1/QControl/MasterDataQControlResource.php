@@ -97,6 +97,7 @@ final class MasterDataQControlResource extends JsonResource
                 'kodeUnikPart' => $relasiPartDefect->partTerkait?->kode_unik_part,
                 'jenisDefectId' => $relasiPartDefect->jenis_defect_id,
                 'kodeDefect' => $relasiPartDefect->jenisDefectTerkait?->kode_defect,
+                'kodeTampilanDefect' => $relasiPartDefect->kode_tampilan_defect,
                 'urutanTampil' => $relasiPartDefect->urutan_tampil,
                 'aktif' => $relasiPartDefect->aktif,
             ])->values()->all(),
