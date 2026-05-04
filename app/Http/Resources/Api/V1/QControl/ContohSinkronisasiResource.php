@@ -12,6 +12,7 @@ final class ContohSinkronisasiResource extends JsonResource
     /**
      * @return array{
      *     diterima: bool,
+     *     duplikat: bool,
      *     idempotencyKey: string,
      *     endpoint: string,
      *     mode: string
@@ -21,6 +22,7 @@ final class ContohSinkronisasiResource extends JsonResource
     {
         /** @var array{
          *     diterima: bool,
+         *     duplikat: bool,
          *     idempotencyKey: string,
          *     endpoint: string,
          *     mode: string
@@ -30,6 +32,7 @@ final class ContohSinkronisasiResource extends JsonResource
 
         return [
             'diterima' => $data['diterima'],
+            'duplikat' => $data['duplikat'],
             'idempotencyKey' => $data['idempotencyKey'],
             'endpoint' => $data['endpoint'],
             'mode' => $data['mode'],

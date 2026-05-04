@@ -43,4 +43,18 @@ final class PenerimaanContohSinkronisasiRequest extends FormRequest
 
         return is_array($payloadDiterima) ? $payloadDiterima : [];
     }
+
+    public function hashPayload(): string
+    {
+        $payloadJson = json_encode(
+            $this->payloadDiterima(),
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+
+        if (! is_string($payloadJson)) {
+            $payloadJson = '[]';
+        }
+
+        return hash('sha256', $payloadJson);
+    }
 }
