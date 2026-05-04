@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Autentikasi\KeluarSesiController;
 use App\Http\Controllers\Api\V1\Autentikasi\MasukSesiController;
 use App\Http\Controllers\Api\V1\Autentikasi\ProfilSayaController;
 use App\Http\Controllers\Api\V1\PemeriksaanKesehatanController;
+use App\Http\Controllers\Api\V1\QControl\MembacaMasterDataQControlController;
 use App\Http\Controllers\Api\V1\QControl\PenerimaanContohSinkronisasiController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,11 @@ Route::prefix('v1')->group(function (): void {
     Route::prefix('qcontrol')->name('api.v1.qcontrol.')->group(function (): void {
         Route::post('/contoh', PenerimaanContohSinkronisasiController::class)
             ->name('contoh-sinkronisasi');
+
+        Route::middleware('auth:sanctum')->group(function (): void {
+            Route::get('/master-data', MembacaMasterDataQControlController::class)
+                ->name('master-data');
+        });
     });
 
     Route::post('/login', MasukSesiController::class)
