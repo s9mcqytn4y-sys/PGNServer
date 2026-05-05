@@ -33,81 +33,28 @@ Controller hanya menerima request, memanggil service aplikasi, lalu mengembalika
 
 ## Endpoint Saat Ini
 
-- `GET /api/v1/kesehatan`
+### Umum
+- `GET /api/v1/kesehatan`: Pemeriksaan kesehatan server dan database.
 
-Contoh respons sukses:
+### Autentikasi (HeadQC Only)
+- `POST /api/v1/login`: Masuk ke sistem dan mendapatkan token Sanctum.
+- `POST /api/v1/logout`: Keluar dan mencabut token aktif.
+- `GET /api/v1/profil-saya`: Mengambil data profil HeadQC yang sedang login.
 
-```json
-{
-  "berhasil": true,
-  "pesan": "Server berjalan normal",
-  "data": {
-    "status": "sehat",
-    "namaAplikasi": "PGNServer",
-    "versiApi": "v1",
-    "waktuServer": "2026-05-03T10:15:30+07:00",
-    "zonaWaktu": "Asia/Jakarta",
-    "koneksiDatabase": {
-      "status": "terhubung",
-      "driver": "pgsql"
-    }
-  },
-  "metadata": null,
-  "kesalahan": null
-}
-```
+### QControl Integrasi
+- `POST /api/v1/qcontrol/contoh`: Endpoint contoh untuk pengujian integrasi.
+- `GET /api/v1/qcontrol/master-data`: Mengambil data Master (Part, Jenis Defect, Material) sebagai Source of Truth.
 
-Contoh respons saat database belum tersedia:
+## Fase Aktif
+**Fase 2D-R3**: Rekonsiliasi PRESS dan SEWING. Fokus pada sinkronisasi template defect per part dan penggunaan `kodeTampilanDefect`.
 
-```json
-{
-  "berhasil": false,
-  "pesan": "Server berjalan, tetapi koneksi database belum tersedia",
-  "data": {
-    "status": "terganggu",
-    "namaAplikasi": "PGNServer",
-    "versiApi": "v1",
-    "waktuServer": "2026-05-03T10:15:30+07:00",
-    "zonaWaktu": "Asia/Jakarta",
-    "koneksiDatabase": {
-      "status": "tidakTerhubung",
-      "driver": "pgsql"
-    }
-  },
-  "metadata": null,
-  "kesalahan": {
-    "kode": "DATABASE_TIDAK_TERHUBUNG",
-    "detail": []
-  }
-}
-```
-
-## Kontrak Kotlin
-
-```kotlin
-@Serializable
-data class ResponApi<T>(
-    val berhasil: Boolean,
-    val pesan: String,
-    val data: T? = null,
-    val metadata: JsonObject? = null,
-    val kesalahan: KesalahanApi? = null
-)
-
-@Serializable
-data class KesalahanApi(
-    val kode: String,
-    val detail: List<DetailKesalahanApi> = emptyList()
-)
-
-@Serializable
-data class DetailKesalahanApi(
-    val field: String? = null,
-    val pesan: String
-)
-```
+## Aturan Pengembangan
+- **Role**: Hanya ada role **HeadQC**. Jangan membuat role lain.
+- **Bahasa**: Wajib menggunakan **Bahasa Indonesia** untuk kode (variabel, fungsi, komentar) dan log.
+- **Data**: Server adalah sumber kebenaran data (*Source of Truth*).
 
 ## Menjalankan Lokal
+... (sisanya tetap)
 
 Ringkasan cepat:
 
