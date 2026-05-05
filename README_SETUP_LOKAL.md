@@ -2,6 +2,10 @@
 
 Dokumen ini fokus pada setup development lokal untuk backend REST API PGNServer.
 
+## Fase Aktif
+
+**PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal**
+
 ## Prasyarat
 
 - PHP 8.5
@@ -32,6 +36,8 @@ DB_PORT=5432
 DB_DATABASE=pgn_server
 DB_USERNAME=pgn_server
 DB_PASSWORD=password_lokal_dev
+QCONTROL_HEADQC_EMAIL=headqc@pgn.local
+QCONTROL_HEADQC_PASSWORD=HeadQC@12345
 ```
 
 ## Jalur Standar Dengan Sail
@@ -57,9 +63,24 @@ Jika `./vendor/bin/sail` gagal karena WSL belum ada, aktifkan Docker Desktop Lin
 ```bash
 docker compose up -d
 docker compose exec laravel.test php artisan migrate
-docker compose exec laravel.test php artisan test
-docker compose exec laravel.test php artisan route:list
+docker compose exec laravel.test php artisan qcontrol:pastikan-headqc
+docker compose exec laravel.test php artisan db:seed --class=MasterDataQControlSeeder
+docker compose exec laravel.test php artisan test --compact
+docker compose exec laravel.test php artisan route:list --path=api
 docker compose exec laravel.test php artisan migrate:status
+```
+
+Workflow ini penting karena volume PostgreSQL bersifat persisten. Saat `docker compose up -d`, container database bisa tetap memakai data lama dan bootstrap HeadQC tidak dijalankan otomatis.
+
+## Uji Login HeadQC
+
+Setelah bootstrap runtime lokal selesai, uji login dari `cmd.exe`:
+
+```bash
+curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/login" ^
+  -H "Accept: application/json" ^
+  -H "Content-Type: application/json" ^
+  --data-raw "{\"email\":\"headqc@pgn.local\",\"password\":\"HeadQC@12345\"}"
 ```
 
 ## Endpoint Verifikasi
@@ -113,3 +134,4 @@ Periksa:
 - container `pgsql` sudah hidup
 - kredensial di `.env` sesuai
 - migrasi sudah dijalankan
+- jalankan `docker compose exec laravel.test php artisan qcontrol:pastikan-headqc` jika login HeadQC lokal gagal

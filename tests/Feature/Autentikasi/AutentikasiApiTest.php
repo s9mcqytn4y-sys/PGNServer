@@ -14,9 +14,14 @@ beforeEach(function (): void {
 });
 
 test('HeadQC bisa login dengan email dan password yang benar', function () {
+    $emailHeadQC = (string) config('qcontrol.headqc.email');
+    $passwordHeadQC = (string) config('qcontrol.headqc.password_default');
+    $namaPenggunaHeadQC = (string) config('qcontrol.headqc.nama_pengguna');
+    $peranHeadQC = (string) config('qcontrol.headqc.peran');
+
     $this->postJson('/api/v1/login', [
-        'email' => 'headqc@pgn.local',
-        'password' => 'HeadQC@12345',
+        'email' => $emailHeadQC,
+        'password' => $passwordHeadQC,
     ])
         ->assertSuccessful()
         ->assertJson([
@@ -25,28 +30,41 @@ test('HeadQC bisa login dengan email dan password yang benar', function () {
             'metadata' => null,
             'kesalahan' => null,
         ])
-        ->assertJsonPath('data.profil.namaPengguna', 'HeadQC')
-        ->assertJsonPath('data.profil.peran', 'HeadQC');
+        ->assertJsonPath('data.profil.namaPengguna', $namaPenggunaHeadQC)
+        ->assertJsonPath('data.profil.peran', $peranHeadQC);
 });
 
 test('response login HeadQC memiliki token', function () {
+    $emailHeadQC = (string) config('qcontrol.headqc.email');
+    $passwordHeadQC = (string) config('qcontrol.headqc.password_default');
+
     $respons = $this->postJson('/api/v1/login', [
-        'email' => 'headqc@pgn.local',
-        'password' => 'HeadQC@12345',
+        'email' => $emailHeadQC,
+        'password' => $passwordHeadQC,
     ]);
 
     $respons
         ->assertSuccessful()
-        ->assertJsonPath('data.profil.peran', 'HeadQC');
+        ->assertJsonPath('data.profil.peran', config('qcontrol.headqc.peran'));
 
     expect($respons->json('data.token'))
         ->toBeString()
         ->not->toBe('');
 });
 
+test('login HeadQC berhasil dengan credential bawaan dari konfigurasi runtime', function () {
+    $this->postJson('/api/v1/login', [
+        'email' => config('qcontrol.headqc.email'),
+        'password' => config('qcontrol.headqc.password_default'),
+    ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.profil.namaPengguna', config('qcontrol.headqc.nama_pengguna'))
+        ->assertJsonPath('data.profil.peran', config('qcontrol.headqc.peran'));
+});
+
 test('login gagal dengan password yang salah', function () {
     $this->postJson('/api/v1/login', [
-        'email' => 'headqc@pgn.local',
+        'email' => config('qcontrol.headqc.email'),
         'password' => 'salah-total',
     ])
         ->assertStatus(401)
@@ -76,7 +94,7 @@ test('profil saya gagal tanpa token', function () {
 });
 
 test('profil saya berhasil dengan token', function () {
-    $pengguna = User::query()->where('email', 'headqc@pgn.local')->firstOrFail();
+    $pengguna = User::query()->where('email', config('qcontrol.headqc.email'))->firstOrFail();
     $token = $pengguna->createToken('qcontrol-desktop')->plainTextToken;
 
     $this->withHeader('Authorization', 'Bearer '.$token)
@@ -88,13 +106,13 @@ test('profil saya berhasil dengan token', function () {
             'metadata' => null,
             'kesalahan' => null,
         ])
-        ->assertJsonPath('data.namaPengguna', 'HeadQC')
-        ->assertJsonPath('data.email', 'headqc@pgn.local')
-        ->assertJsonPath('data.peran', 'HeadQC');
+        ->assertJsonPath('data.namaPengguna', config('qcontrol.headqc.nama_pengguna'))
+        ->assertJsonPath('data.email', config('qcontrol.headqc.email'))
+        ->assertJsonPath('data.peran', config('qcontrol.headqc.peran'));
 });
 
 test('logout berhasil dengan token', function () {
-    $pengguna = User::query()->where('email', 'headqc@pgn.local')->firstOrFail();
+    $pengguna = User::query()->where('email', config('qcontrol.headqc.email'))->firstOrFail();
     $token = $pengguna->createToken('qcontrol-desktop')->plainTextToken;
 
     $this->withHeader('Authorization', 'Bearer '.$token)
@@ -109,7 +127,7 @@ test('logout berhasil dengan token', function () {
 });
 
 test('setelah logout token tidak bisa dipakai lagi untuk profil saya', function () {
-    $pengguna = User::query()->where('email', 'headqc@pgn.local')->firstOrFail();
+    $pengguna = User::query()->where('email', config('qcontrol.headqc.email'))->firstOrFail();
     $token = $pengguna->createToken('qcontrol-desktop')->plainTextToken;
 
     $this->withHeader('Authorization', 'Bearer '.$token)

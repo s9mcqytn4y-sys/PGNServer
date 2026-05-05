@@ -15,13 +15,16 @@ final class HeadQCPenggunaSeeder extends Seeder
 
     public function run(): void
     {
+        /** @var array{email:string,password_default:string,nama_pengguna:string,peran:string} $konfigurasiHeadQC */
+        $konfigurasiHeadQC = config('qcontrol.headqc');
+
         User::query()->updateOrCreate(
             [
-                'email' => 'headqc@pgn.local',
+                'email' => $konfigurasiHeadQC['email'],
             ],
             [
-                'name' => 'HeadQC',
-                'password' => Hash::make('HeadQC@12345'),
+                'name' => $konfigurasiHeadQC['nama_pengguna'],
+                'password' => Hash::make($konfigurasiHeadQC['password_default']),
                 'peran' => 'HeadQC',
             ],
         );

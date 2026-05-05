@@ -46,7 +46,9 @@ Controller hanya menerima request, memanggil service aplikasi, lalu mengembalika
 - `GET /api/v1/qcontrol/master-data`: Mengambil data Master (Part, Jenis Defect, Material) sebagai Source of Truth.
 
 ## Fase Aktif
-**Fase 2D-R3**: Rekonsiliasi PRESS dan SEWING. Fokus pada sinkronisasi template defect per part dan penggunaan `kodeTampilanDefect`.
+**PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal.**
+
+Fokus fase ini adalah memastikan bootstrap pengguna HeadQC lokal tetap stabil walaupun container PostgreSQL memakai volume lama dan seeder tidak otomatis dijalankan saat `docker compose up`.
 
 ## Aturan Pengembangan
 - **Role**: Hanya ada role **HeadQC**. Jangan membuat role lain.
@@ -62,9 +64,11 @@ Ringkasan cepat:
 cp .env.example .env
 composer install
 php artisan key:generate
-./vendor/bin/sail up -d
-./vendor/bin/sail artisan migrate
-./vendor/bin/sail artisan test
+docker compose up -d
+docker compose exec laravel.test php artisan migrate
+docker compose exec laravel.test php artisan qcontrol:pastikan-headqc
+docker compose exec laravel.test php artisan db:seed --class=MasterDataQControlSeeder
+docker compose exec laravel.test php artisan test --compact
 curl http://localhost:8000/api/v1/kesehatan
 ```
 

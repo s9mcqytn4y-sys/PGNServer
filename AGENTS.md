@@ -43,7 +43,7 @@ Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara r
 ## 6. Batasan & Kebijakan
 - **Bahasa**: Wajib Bahasa Indonesia untuk semua kode baru.
 - **Data**: Server adalah **Source of Truth**. QControl Desktop hanya melakukan cache.
-- **Fase Saat Ini**: **2D-R3** (Rekonsiliasi PRESS dan SEWING).
+- **Fase Saat Ini**: **PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal**.
 - **Larangan Keras**:
   - Jangan mengimpor Excel secara otomatis tanpa instruksi fase khusus.
   - Jangan mengizinkan transaksi harian sebelum kontrak/template disetujui.
