@@ -1,6 +1,6 @@
 # AGENTS - PGNServer
 
-Instruksi terpusat untuk agen AI (Codex, Gemini, Claude, dll.) agar memahami konteks proyek PGNServer secara ringkas dan hemat token.
+Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara ringkas dan hemat token. File ini adalah **Source of Truth** untuk semua instruksi agent.
 
 ## 1. Identitas Repo
 - **Nama**: PGNServer
@@ -17,7 +17,7 @@ Instruksi terpusat untuk agen AI (Codex, Gemini, Claude, dll.) agar memahami kon
 - **Testing**: Pest PHP
 - **Linting**: Laravel Pint
 
-## 3. Arsitektur
+## 3. Arsitektur & Panduan Laravel
 - **Pola**: Clean Architecture pragmatis.
 - **Folder Utama**:
   - `app/Domain`: Logic bisnis murni, entity, value object.
@@ -25,10 +25,11 @@ Instruksi terpusat untuk agen AI (Codex, Gemini, Claude, dll.) agar memahami kon
   - `app/Infrastructure`: Implementasi database, client API eksternal.
   - `app/Http/Controllers/Api/V1`: Layer entry point API.
   - `app/Http/Resources/Api/V1`: Transformasi JSON response.
+- **Panduan Khusus**: Untuk instruksi Laravel Boost dan konvensi framework yang mendalam, lihat [docs/LARAVEL_BOOST_GUIDELINES.md](file:///c:/Software/PGNServer/docs/LARAVEL_BOOST_GUIDELINES.md).
 
 ## 4. Aturan Role & Auth
 - **Role Tunggal**: **HeadQC**.
-- **Larangan**: Jangan membuat role baru seperti Admin, QC Inspector, QC Leader, Viewer, atau QA Manager.
+- **Larangan**: Jangan membuat role baru (Admin, QC Inspector, QC Leader, Viewer, atau QA Manager).
 - **Auth**: HeadQC login via `/api/v1/login` untuk mendapatkan token Sanctum.
 
 ## 5. Endpoint Penting
@@ -59,12 +60,12 @@ docker compose exec laravel.test php artisan route:list --path=api
 ## 8. Format Patch Report Wajib
 Setiap perubahan wajib dilaporkan dengan format:
 ```text
-PATCH REPORT - PGNServer - AgentOps
+PATCH REPORT - PGNServer - AgentOps-R1
 
 1. Ringkasan keputusan teknis
 2. File dibuat
 3. File diubah
-4. Isi ringkas setiap file agent
+4. Koreksi penting yang dilakukan
 5. Command yang dijalankan
 6. Hasil verifikasi
 7. Risiko tersisa

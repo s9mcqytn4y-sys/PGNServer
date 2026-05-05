@@ -1,18 +1,12 @@
 # CODEX - PGNServer Context
 
-Identitas: PGNServer (Backend REST API Laravel 13).
-Stack: PHP 8.3+, PostgreSQL 17, Sanctum, Docker.
+Repo: PGNServer (Laravel 13, PostgreSQL 17).
 Role: HeadQC (Tunggal).
-Bahasa: Bahasa Indonesia penuh untuk semua elemen kode.
-Fase: 2D-R3 (Rekonsiliasi PRESS & SEWING).
+Bahasa: Bahasa Indonesia Penuh.
+Fase: 2D-R3.
 
-## Aturan Utama:
-1. Semua penamaan (variabel, fungsi, file) wajib Bahasa Indonesia.
-2. HeadQC adalah satu-satunya role.
-3. Master data di server adalah source of truth.
-4. Verifikasi dengan:
-   - `docker compose exec laravel.test vendor/bin/pint --dirty --format agent`
-   - `docker compose exec laravel.test php artisan test --compact`
+**INSTRUKSI UTAMA**:
+Seluruh panduan teknis, arsitektur, dan aturan role wajib merujuk ke **AGENTS.md**. Gunakan Bahasa Indonesia untuk semua identitas kode.
 
-## Patch Report:
-Gunakan format "PATCH REPORT - PGNServer - AgentOps" di setiap akhir tugas.
+## Verifikasi:
+`docker compose exec laravel.test php artisan test --compact`
