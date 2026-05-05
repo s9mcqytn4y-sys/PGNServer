@@ -25,7 +25,7 @@ Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara r
   - `app/Infrastructure`: Implementasi database, client API eksternal.
   - `app/Http/Controllers/Api/V1`: Layer entry point API.
   - `app/Http/Resources/Api/V1`: Transformasi JSON response.
-- **Panduan Khusus**: Untuk instruksi Laravel Boost dan konvensi framework yang mendalam, lihat [docs/LARAVEL_BOOST_GUIDELINES.md](file:///c:/Software/PGNServer/docs/LARAVEL_BOOST_GUIDELINES.md).
+- **Panduan Khusus**: Untuk instruksi Laravel Boost dan konvensi framework yang mendalam, lihat [docs/LARAVEL_BOOST_GUIDELINES.md](docs/LARAVEL_BOOST_GUIDELINES.md).
 
 ## 4. Aturan Role & Auth
 - **Role Tunggal**: **HeadQC**.
