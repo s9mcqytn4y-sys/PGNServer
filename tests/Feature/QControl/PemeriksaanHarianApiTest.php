@@ -164,6 +164,18 @@ test('payload valid PRESS berhasil diterima', function () {
     expect(QControlPemeriksaanHarian::query()->count())->toBe(1);
     expect(QControlPemeriksaanPart::query()->count())->toBe(1);
     expect(QControlPemeriksaanDefectSlot::query()->count())->toBe(1);
+
+    $pemeriksaanHarian = QControlPemeriksaanHarian::query()->firstOrFail();
+    $pemeriksaanPart = QControlPemeriksaanPart::query()->firstOrFail();
+    $defectSlot = QControlPemeriksaanDefectSlot::query()->firstOrFail();
+
+    expect($pemeriksaanHarian->kode_line_snapshot)->toBe('PRESS');
+    expect($pemeriksaanHarian->nama_line_snapshot)->toBe('PRESS');
+    expect($pemeriksaanPart->kode_unik_part_snapshot)->toBe('CB9');
+    expect($pemeriksaanPart->nama_part_snapshot)->toBe('Carpet Console Box');
+    expect($defectSlot->kode_tampilan_defect_snapshot)->toBe('A');
+    expect($defectSlot->kode_defect_snapshot)->toBe('TERDAPAT_BENDA_ASING');
+    expect($defectSlot->label_slot_snapshot)->toBe('08.00 - 12.00');
 });
 
 test('total ok dihitung oleh server', function () {

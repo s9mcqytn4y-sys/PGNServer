@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\V1\Autentikasi\KeluarSesiController;
 use App\Http\Controllers\Api\V1\Autentikasi\MasukSesiController;
 use App\Http\Controllers\Api\V1\Autentikasi\ProfilSayaController;
 use App\Http\Controllers\Api\V1\PemeriksaanKesehatanController;
+use App\Http\Controllers\Api\V1\QControl\DaftarPemeriksaanHarianController;
+use App\Http\Controllers\Api\V1\QControl\DetailPemeriksaanHarianController;
 use App\Http\Controllers\Api\V1\QControl\MembacaMasterDataQControlController;
 use App\Http\Controllers\Api\V1\QControl\PenerimaanContohSinkronisasiController;
 use App\Http\Controllers\Api\V1\QControl\SimpanPemeriksaanHarianController;
@@ -22,6 +24,12 @@ Route::prefix('v1')->group(function (): void {
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::get('/master-data', MembacaMasterDataQControlController::class)
                 ->name('master-data');
+
+            Route::get('/pemeriksaan-harian', DaftarPemeriksaanHarianController::class)
+                ->name('daftar-pemeriksaan-harian');
+
+            Route::get('/pemeriksaan-harian/{pemeriksaanHarian}', DetailPemeriksaanHarianController::class)
+                ->name('detail-pemeriksaan-harian');
 
             Route::post('/pemeriksaan-harian', SimpanPemeriksaanHarianController::class)
                 ->name('pemeriksaan-harian');

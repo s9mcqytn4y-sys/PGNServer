@@ -45,11 +45,13 @@ Controller hanya menerima request, memanggil service aplikasi, lalu mengembalika
 - `POST /api/v1/qcontrol/contoh`: Endpoint contoh untuk pengujian integrasi.
 - `GET /api/v1/qcontrol/master-data`: Mengambil data Master (Part, Jenis Defect, Material) sebagai Source of Truth.
 - `POST /api/v1/qcontrol/pemeriksaan-harian`: Menerima dan menyimpan pemeriksaan harian QControl secara idempotent.
+- `GET /api/v1/qcontrol/pemeriksaan-harian`: Membaca daftar pemeriksaan harian QControl.
+- `GET /api/v1/qcontrol/pemeriksaan-harian/{id}`: Membaca detail pemeriksaan harian QControl dengan prioritas snapshot historis.
 
 ## Fase Aktif
-**PGNServer Fase 2E-B - Kontrak dan Penyimpanan Pemeriksaan Harian QControl.**
+**PGNServer Fase 2E-C - Snapshot Historis dan Read Endpoint Pemeriksaan Harian.**
 
-Fokus fase ini adalah membangun kontrak server untuk menerima dan menyimpan pemeriksaan harian QControl secara idempotent, tervalidasi, dan siap menjadi dasar laporan harian maupun bulanan di fase berikutnya.
+Fokus fase ini adalah mengunci snapshot historis transaksi QC dan menyediakan endpoint baca list/detail agar sinkronisasi desktop dapat diverifikasi tanpa mengubah histori lama ketika master data berubah.
 
 ## Aturan Pengembangan
 - **Role**: Hanya ada role **HeadQC**. Jangan membuat role lain.
@@ -82,6 +84,22 @@ curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian" ^
   -H "X-Idempotency-Key: pemeriksaan-harian-press-001" ^
   -H "Content-Type: application/json" ^
   --data-raw "{\"clientDraftId\":\"draft-press-001\",\"tanggalProduksi\":\"2026-05-05\",\"lineProduksiId\":\"UUID_LINE_PRESS\",\"nomorDokumen\":\"FM-QA-025\",\"revisi\":\"1\",\"catatan\":\"Pemeriksaan line PRESS\",\"daftarPart\":[{\"partId\":\"UUID_PART_CB9\",\"totalCheck\":124,\"daftarDefect\":[{\"relasiPartDefectId\":\"UUID_RELASI_CB9_A\",\"slotWaktuId\":\"UUID_SLOT_0800_1200\",\"jumlahDefect\":2}]}]}"
+```
+
+Contoh baca daftar pemeriksaan harian:
+
+```bash
+curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian?tanggalProduksi=2026-05-05&limit=20" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC"
+```
+
+Contoh baca detail pemeriksaan harian:
+
+```bash
+curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian/UUID_PEMERIKSAAN_HARIAN" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC"
 ```
 
 Catatan penting untuk Windows:

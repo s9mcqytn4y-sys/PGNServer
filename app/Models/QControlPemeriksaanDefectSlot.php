@@ -28,8 +28,15 @@ final class QControlPemeriksaanDefectSlot extends Model
     protected $fillable = [
         'pemeriksaan_part_id',
         'relasi_part_defect_id',
+        'kode_tampilan_defect_snapshot',
         'jenis_defect_id',
+        'kode_defect_snapshot',
+        'nama_defect_snapshot',
         'slot_waktu_id',
+        'kode_slot_snapshot',
+        'label_slot_snapshot',
+        'jam_mulai_snapshot',
+        'jam_selesai_snapshot',
         'jumlah_defect',
     ];
 

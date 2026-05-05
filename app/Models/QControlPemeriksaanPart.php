@@ -29,6 +29,10 @@ final class QControlPemeriksaanPart extends Model
     protected $fillable = [
         'pemeriksaan_harian_id',
         'part_id',
+        'kode_unik_part_snapshot',
+        'nomor_part_snapshot',
+        'nama_part_snapshot',
+        'nama_material_snapshot',
         'total_check',
         'total_ok',
         'total_defect',

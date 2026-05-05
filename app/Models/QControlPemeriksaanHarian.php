@@ -29,6 +29,8 @@ final class QControlPemeriksaanHarian extends Model
     protected $fillable = [
         'tanggal_produksi',
         'line_produksi_id',
+        'kode_line_snapshot',
+        'nama_line_snapshot',
         'nomor_dokumen',
         'revisi',
         'pengguna_headqc_id',

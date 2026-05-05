@@ -4,7 +4,7 @@ Dokumen ini fokus pada setup development lokal untuk backend REST API PGNServer.
 
 ## Fase Aktif
 
-**PGNServer Fase 2E-B - Kontrak dan Penyimpanan Pemeriksaan Harian QControl**
+**PGNServer Fase 2E-C - Snapshot Historis dan Read Endpoint Pemeriksaan Harian**
 
 ## Prasyarat
 
@@ -97,6 +97,24 @@ curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian" ^
 ```
 
 Nilai `UUID_LINE_PRESS`, `UUID_PART_CB9`, `UUID_RELASI_CB9_A`, dan `UUID_SLOT_0800_1200` diambil dari endpoint `GET /api/v1/qcontrol/master-data`.
+
+## Uji Endpoint Baca Pemeriksaan Harian
+
+Daftar pemeriksaan harian:
+
+```bash
+curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian?tanggalProduksi=2026-05-05&limit=20" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC"
+```
+
+Detail pemeriksaan harian:
+
+```bash
+curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian/UUID_PEMERIKSAAN_HARIAN" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC"
+```
 
 ## Endpoint Verifikasi
 
