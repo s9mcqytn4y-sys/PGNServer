@@ -44,11 +44,12 @@ Controller hanya menerima request, memanggil service aplikasi, lalu mengembalika
 ### QControl Integrasi
 - `POST /api/v1/qcontrol/contoh`: Endpoint contoh untuk pengujian integrasi.
 - `GET /api/v1/qcontrol/master-data`: Mengambil data Master (Part, Jenis Defect, Material) sebagai Source of Truth.
+- `POST /api/v1/qcontrol/pemeriksaan-harian`: Menerima dan menyimpan pemeriksaan harian QControl secara idempotent.
 
 ## Fase Aktif
-**PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal.**
+**PGNServer Fase 2E-B - Kontrak dan Penyimpanan Pemeriksaan Harian QControl.**
 
-Fokus fase ini adalah memastikan bootstrap pengguna HeadQC lokal tetap stabil walaupun container PostgreSQL memakai volume lama dan seeder tidak otomatis dijalankan saat `docker compose up`.
+Fokus fase ini adalah membangun kontrak server untuk menerima dan menyimpan pemeriksaan harian QControl secara idempotent, tervalidasi, dan siap menjadi dasar laporan harian maupun bulanan di fase berikutnya.
 
 ## Aturan Pengembangan
 - **Role**: Hanya ada role **HeadQC**. Jangan membuat role lain.
@@ -70,6 +71,17 @@ docker compose exec laravel.test php artisan qcontrol:pastikan-headqc
 docker compose exec laravel.test php artisan db:seed --class=MasterDataQControlSeeder
 docker compose exec laravel.test php artisan test --compact
 curl http://localhost:8000/api/v1/kesehatan
+```
+
+Contoh kirim pemeriksaan harian dari `cmd.exe`:
+
+```bash
+curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC" ^
+  -H "X-Idempotency-Key: pemeriksaan-harian-press-001" ^
+  -H "Content-Type: application/json" ^
+  --data-raw "{\"clientDraftId\":\"draft-press-001\",\"tanggalProduksi\":\"2026-05-05\",\"lineProduksiId\":\"UUID_LINE_PRESS\",\"nomorDokumen\":\"FM-QA-025\",\"revisi\":\"1\",\"catatan\":\"Pemeriksaan line PRESS\",\"daftarPart\":[{\"partId\":\"UUID_PART_CB9\",\"totalCheck\":124,\"daftarDefect\":[{\"relasiPartDefectId\":\"UUID_RELASI_CB9_A\",\"slotWaktuId\":\"UUID_SLOT_0800_1200\",\"jumlahDefect\":2}]}]}"
 ```
 
 Catatan penting untuk Windows:

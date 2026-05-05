@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class QControlSlotWaktu extends Model
 {
@@ -44,5 +45,13 @@ final class QControlSlotWaktu extends Model
             'urutan_tampil' => 'integer',
             'aktif' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<QControlPemeriksaanDefectSlot, $this>
+     */
+    public function daftarPemeriksaanDefectSlot(): HasMany
+    {
+        return $this->hasMany(QControlPemeriksaanDefectSlot::class, 'slot_waktu_id');
     }
 }

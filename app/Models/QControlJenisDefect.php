@@ -58,4 +58,12 @@ final class QControlJenisDefect extends Model
     {
         return $this->hasMany(QControlPartJenisDefect::class, 'jenis_defect_id');
     }
+
+    /**
+     * @return HasMany<QControlPemeriksaanDefectSlot, $this>
+     */
+    public function daftarPemeriksaanDefectSlot(): HasMany
+    {
+        return $this->hasMany(QControlPemeriksaanDefectSlot::class, 'jenis_defect_id');
+    }
 }

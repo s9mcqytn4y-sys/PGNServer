@@ -39,11 +39,12 @@ Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara r
 - `GET /api/v1/profil-saya`: Data user aktif.
 - `POST /api/v1/qcontrol/contoh`: Endpoint dummy/contoh integrasi.
 - `GET /api/v1/qcontrol/master-data`: Source of truth untuk Part, Defect, dan Material.
+- `POST /api/v1/qcontrol/pemeriksaan-harian`: Penerimaan transaksi pemeriksaan harian QControl.
 
 ## 6. Batasan & Kebijakan
 - **Bahasa**: Wajib Bahasa Indonesia untuk semua kode baru.
 - **Data**: Server adalah **Source of Truth**. QControl Desktop hanya melakukan cache.
-- **Fase Saat Ini**: **PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal**.
+- **Fase Saat Ini**: **PGNServer Fase 2E-B - Kontrak dan Penyimpanan Pemeriksaan Harian QControl**.
 - **Larangan Keras**:
   - Jangan mengimpor Excel secara otomatis tanpa instruksi fase khusus.
   - Jangan mengizinkan transaksi harian sebelum kontrak/template disetujui.

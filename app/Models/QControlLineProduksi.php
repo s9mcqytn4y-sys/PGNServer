@@ -50,4 +50,12 @@ final class QControlLineProduksi extends Model
     {
         return $this->hasMany(QControlPart::class, 'line_default_id');
     }
+
+    /**
+     * @return HasMany<QControlPemeriksaanHarian, $this>
+     */
+    public function daftarPemeriksaanHarian(): HasMany
+    {
+        return $this->hasMany(QControlPemeriksaanHarian::class, 'line_produksi_id');
+    }
 }

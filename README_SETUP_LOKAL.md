@@ -4,7 +4,7 @@ Dokumen ini fokus pada setup development lokal untuk backend REST API PGNServer.
 
 ## Fase Aktif
 
-**PGNServer Fase 2E-A - Hardening Bootstrap HeadQC dan Runtime Lokal**
+**PGNServer Fase 2E-B - Kontrak dan Penyimpanan Pemeriksaan Harian QControl**
 
 ## Prasyarat
 
@@ -82,6 +82,21 @@ curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/login" ^
   -H "Content-Type: application/json" ^
   --data-raw "{\"email\":\"headqc@pgn.local\",\"password\":\"HeadQC@12345\"}"
 ```
+
+## Uji Endpoint Pemeriksaan Harian
+
+Setelah login berhasil dan token HeadQC tersedia, uji endpoint pemeriksaan harian dari `cmd.exe`:
+
+```bash
+curl.exe -i -X POST "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC" ^
+  -H "X-Idempotency-Key: pemeriksaan-harian-press-001" ^
+  -H "Content-Type: application/json" ^
+  --data-raw "{\"clientDraftId\":\"draft-press-001\",\"tanggalProduksi\":\"2026-05-05\",\"lineProduksiId\":\"UUID_LINE_PRESS\",\"nomorDokumen\":\"FM-QA-025\",\"revisi\":\"1\",\"catatan\":\"Pemeriksaan line PRESS\",\"daftarPart\":[{\"partId\":\"UUID_PART_CB9\",\"totalCheck\":124,\"daftarDefect\":[{\"relasiPartDefectId\":\"UUID_RELASI_CB9_A\",\"slotWaktuId\":\"UUID_SLOT_0800_1200\",\"jumlahDefect\":2}]}]}"
+```
+
+Nilai `UUID_LINE_PRESS`, `UUID_PART_CB9`, `UUID_RELASI_CB9_A`, dan `UUID_SLOT_0800_1200` diambil dari endpoint `GET /api/v1/qcontrol/master-data`.
 
 ## Endpoint Verifikasi
 

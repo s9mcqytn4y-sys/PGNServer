@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-final class QControlPartJenisDefect extends Model
+final class QControlPemeriksaanPart extends Model
 {
     use HasUuids;
 
@@ -17,7 +17,7 @@ final class QControlPartJenisDefect extends Model
 
     public const UPDATED_AT = 'diperbarui_pada';
 
-    protected $table = 'qcontrol_part_jenis_defect';
+    protected $table = 'qcontrol_pemeriksaan_part';
 
     public $incrementing = false;
 
@@ -27,11 +27,13 @@ final class QControlPartJenisDefect extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'pemeriksaan_harian_id',
         'part_id',
-        'jenis_defect_id',
-        'kode_tampilan_defect',
+        'total_check',
+        'total_ok',
+        'total_defect',
+        'rasio_defect',
         'urutan_tampil',
-        'aktif',
     ];
 
     /**
@@ -40,9 +42,20 @@ final class QControlPartJenisDefect extends Model
     protected function casts(): array
     {
         return [
+            'total_check' => 'integer',
+            'total_ok' => 'integer',
+            'total_defect' => 'integer',
+            'rasio_defect' => 'decimal:2',
             'urutan_tampil' => 'integer',
-            'aktif' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsTo<QControlPemeriksaanHarian, $this>
+     */
+    public function pemeriksaanHarian(): BelongsTo
+    {
+        return $this->belongsTo(QControlPemeriksaanHarian::class, 'pemeriksaan_harian_id');
     }
 
     /**
@@ -54,18 +67,10 @@ final class QControlPartJenisDefect extends Model
     }
 
     /**
-     * @return BelongsTo<QControlJenisDefect, $this>
-     */
-    public function jenisDefectTerkait(): BelongsTo
-    {
-        return $this->belongsTo(QControlJenisDefect::class, 'jenis_defect_id');
-    }
-
-    /**
      * @return HasMany<QControlPemeriksaanDefectSlot, $this>
      */
-    public function daftarPemeriksaanDefectSlot(): HasMany
+    public function daftarDefectSlot(): HasMany
     {
-        return $this->hasMany(QControlPemeriksaanDefectSlot::class, 'relasi_part_defect_id');
+        return $this->hasMany(QControlPemeriksaanDefectSlot::class, 'pemeriksaan_part_id');
     }
 }
