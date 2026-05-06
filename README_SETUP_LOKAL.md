@@ -4,7 +4,7 @@ Dokumen ini fokus pada setup development lokal untuk backend REST API PGNServer.
 
 ## Fase Aktif
 
-**PGNServer Fase 2E-C - Snapshot Historis dan Read Endpoint Pemeriksaan Harian**
+**PGNServer Fase 2F-A - Schema Final Daily QC, Validasi Seeder, dan Fondasi Monthly Report**
 
 ## Prasyarat
 
@@ -65,6 +65,7 @@ docker compose up -d
 docker compose exec laravel.test php artisan migrate
 docker compose exec laravel.test php artisan qcontrol:pastikan-headqc
 docker compose exec laravel.test php artisan db:seed --class=MasterDataQControlSeeder
+docker compose exec laravel.test php artisan qcontrol:validasi-master-data
 docker compose exec laravel.test php artisan test --compact
 docker compose exec laravel.test php artisan route:list --path=api
 docker compose exec laravel.test php artisan migrate:status
@@ -116,12 +117,22 @@ curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/pemeriksaan-harian/UUI
   -H "Authorization: Bearer TOKEN_HEADQC"
 ```
 
+## Uji Endpoint Monthly Recording Defect
+
+```bash
+curl.exe -i -X GET "http://127.0.0.1:8000/api/v1/qcontrol/laporan-bulanan/recording-defect?bulan=5&tahun=2026&lineProduksiId=UUID_LINE_PRESS" ^
+  -H "Accept: application/json" ^
+  -H "Authorization: Bearer TOKEN_HEADQC"
+```
+
+Monthly report dibentuk dari agregasi transaksi daily. Jangan seed atau input manual data bulanan.
+
 ## Endpoint Verifikasi
 
 Health check:
 
 ```bash
-curl http://localhost:8000/api/v1/kesehatan
+curl http://127.0.0.1:8000/api/v1/kesehatan
 ```
 
 Jika database belum aktif, respons `503` tetap JSON dan itu normal untuk fase setup awal.
@@ -133,6 +144,8 @@ Jika database belum aktif, respons `503` tetap JSON dan itu normal untuk fase se
 - Service database bernama `pgsql`
 - Image database: `postgres:17-alpine`
 - Volume database persisten: `pgnserver-pgsql-data`
+- Untuk QControl Desktop di Windows, gunakan base URL `http://127.0.0.1:8000`.
+- `localhost` masih layak untuk browser, tetapi `127.0.0.1` lebih stabil untuk client desktop dan uji manual API.
 
 ## Troubleshooting Singkat
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 uses(RefreshDatabase::class);
@@ -44,7 +45,7 @@ test('HeadQC login lalu bisa mengambil master data', function () {
             'pesan' => 'Master data QControl berhasil dimuat',
             'kesalahan' => null,
         ])
-        ->assertJsonPath('data.versiMasterData', '2026.05.2D');
+        ->assertJsonPath('data.versiMasterData', '2026.05.2F-A');
 });
 
 test('response master data memiliki line produksi', function () {
@@ -74,8 +75,8 @@ test('response master data memiliki jenis defect', function () {
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data')
         ->assertSuccessful()
-        ->assertJsonCount(27, 'data.jenisDefect')
-        ->assertJsonPath('metadata.jumlahJenisDefect', 27);
+        ->assertJsonCount(34, 'data.jenisDefect')
+        ->assertJsonPath('metadata.jumlahJenisDefect', 34);
 });
 
 test('response master data memiliki relasi part defect', function () {
@@ -84,8 +85,8 @@ test('response master data memiliki relasi part defect', function () {
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data')
         ->assertSuccessful()
-        ->assertJsonCount(160, 'data.relasiPartDefect')
-        ->assertJsonPath('metadata.jumlahRelasiPartDefect', 160);
+        ->assertJsonCount(181, 'data.relasiPartDefect')
+        ->assertJsonPath('metadata.jumlahRelasiPartDefect', 181);
 });
 
 test('master data test kriteria lengkap sesuai dokumen target', function () {
@@ -93,7 +94,7 @@ test('master data test kriteria lengkap sesuai dokumen target', function () {
 
     $respon = $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/qcontrol/master-data');
-        
+
     $respon->assertSuccessful();
 
     // 3. response memiliki line PRESS dan SEWING.
@@ -135,6 +136,21 @@ test('master data test kriteria lengkap sesuai dokumen target', function () {
     expect($relasiPRSB->pluck('kodeTampilanDefect')->sort()->values()->all())->toBe(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']);
 });
 
+test('pengguna non HeadQC ditolak saat mengambil master data', function () {
+    $pengguna = User::factory()->create([
+        'email' => 'operator-master@pgn.local',
+        'password' => Hash::make('password'),
+        'peran' => 'Operator',
+    ]);
+
+    $token = $pengguna->createToken('qcontrol-desktop')->plainTextToken;
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->getJson('/api/v1/qcontrol/master-data')
+        ->assertStatus(403)
+        ->assertJsonPath('kesalahan.kode', 'AKSES_DITOLAK');
+});
+
 test('tidak ada peran selain HeadQC yang dibuat', function () {
     $daftarPeran = User::query()
         ->select('peran')
@@ -151,14 +167,17 @@ test('endpoint kesehatan tetap tersedia', function () {
 });
 
 test('endpoint qcontrol contoh tetap tersedia', function () {
-    $this->postJson(
-        '/api/v1/qcontrol/contoh',
-        [
-            'contoh' => true,
-            'sumber' => 'uji-master-data',
-        ],
-        [
-            'X-Idempotency-Key' => 'qcontrol:master-data:test-001',
-        ],
-    )->assertOk();
+    $token = tokenAutentikasiHeadQc($this);
+
+    $this->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson(
+            '/api/v1/qcontrol/contoh',
+            [
+                'contoh' => true,
+                'sumber' => 'uji-master-data',
+            ],
+            [
+                'X-Idempotency-Key' => 'qcontrol:master-data:test-001',
+            ],
+        )->assertOk();
 });

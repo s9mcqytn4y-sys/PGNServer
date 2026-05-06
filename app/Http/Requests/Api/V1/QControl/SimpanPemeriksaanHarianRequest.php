@@ -6,6 +6,7 @@ namespace App\Http\Requests\Api\V1\QControl;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 final class SimpanPemeriksaanHarianRequest extends FormRequest
 {
@@ -33,6 +34,25 @@ final class SimpanPemeriksaanHarianRequest extends FormRequest
             'daftarPart.*.daftarDefect.*.relasiPartDefectId' => ['required', 'exists:qcontrol_part_jenis_defect,id'],
             'daftarPart.*.daftarDefect.*.slotWaktuId' => ['required', 'exists:qcontrol_slot_waktu,id'],
             'daftarPart.*.daftarDefect.*.jumlahDefect' => ['required', 'integer', 'min:0'],
+        ];
+    }
+
+    /**
+     * @return array<int, \Closure(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($this->idempotencyKey() !== null) {
+                    return;
+                }
+
+                $validator->errors()->add(
+                    'X-Idempotency-Key',
+                    'Header X-Idempotency-Key wajib diisi',
+                );
+            },
         ];
     }
 

@@ -32,7 +32,9 @@ final class QControlPemeriksaanPart extends Model
         'kode_unik_part_snapshot',
         'nomor_part_snapshot',
         'nama_part_snapshot',
+        'material_id_snapshot',
         'nama_material_snapshot',
+        'kategori_ng_snapshot',
         'total_check',
         'total_ok',
         'total_defect',
@@ -68,6 +70,14 @@ final class QControlPemeriksaanPart extends Model
     public function partTerkait(): BelongsTo
     {
         return $this->belongsTo(QControlPart::class, 'part_id');
+    }
+
+    /**
+     * @return BelongsTo<QControlMaterial, $this>
+     */
+    public function materialSnapshot(): BelongsTo
+    {
+        return $this->belongsTo(QControlMaterial::class, 'material_id_snapshot');
     }
 
     /**

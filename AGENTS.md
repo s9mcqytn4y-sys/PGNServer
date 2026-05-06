@@ -42,11 +42,12 @@ Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara r
 - `POST /api/v1/qcontrol/pemeriksaan-harian`: Penerimaan transaksi pemeriksaan harian QControl.
 - `GET /api/v1/qcontrol/pemeriksaan-harian`: Daftar pemeriksaan harian QControl.
 - `GET /api/v1/qcontrol/pemeriksaan-harian/{id}`: Detail pemeriksaan harian QControl.
+- `GET /api/v1/qcontrol/laporan-bulanan/recording-defect`: Read model bulanan hasil agregasi transaksi harian.
 
 ## 6. Batasan & Kebijakan
 - **Bahasa**: Wajib Bahasa Indonesia untuk semua kode baru.
 - **Data**: Server adalah **Source of Truth**. QControl Desktop hanya melakukan cache.
-- **Fase Saat Ini**: **PGNServer Fase 2E-C - Snapshot Historis dan Read Endpoint Pemeriksaan Harian**.
+- **Fase Saat Ini**: **PGNServer Fase 2F-A - Schema Final Daily QC, Validasi Seeder, dan Fondasi Monthly Report**.
 - **Larangan Keras**:
   - Jangan mengimpor Excel secara otomatis tanpa instruksi fase khusus.
   - Jangan mengizinkan transaksi harian sebelum kontrak/template disetujui.
@@ -56,6 +57,7 @@ Instruksi terpusat untuk agen AI agar memahami konteks proyek PGNServer secara r
 Gunakan command berikut di lingkungan Docker:
 ```bash
 docker compose exec laravel.test vendor/bin/pint --dirty --format agent
+docker compose exec laravel.test php artisan qcontrol:validasi-master-data
 docker compose exec laravel.test php artisan test --compact
 docker compose exec laravel.test php artisan route:list --path=api
 ```

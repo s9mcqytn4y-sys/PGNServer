@@ -13,6 +13,7 @@ use App\Models\QControlPemeriksaanPart;
 use App\Models\QControlSlotWaktu;
 use App\Models\User;
 use App\Support\Errors\KodeKesalahanApi;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as KoleksiEloquent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,7 @@ final class MenyimpanPemeriksaanHarian
         /** @var KoleksiEloquent<int, QControlPart> $koleksiPart */
         $koleksiPart = QControlPart::query()
             ->whereIn('id', $daftarPartId)
+            ->with('materialTerkait')
             ->get();
 
         /** @var KoleksiEloquent<int, QControlSlotWaktu> $koleksiSlotWaktu */
@@ -92,7 +94,7 @@ final class MenyimpanPemeriksaanHarian
         /** @var KoleksiEloquent<int, QControlPartJenisDefect> $koleksiRelasiPartDefect */
         $koleksiRelasiPartDefect = QControlPartJenisDefect::query()
             ->whereIn('id', $daftarRelasiPartDefectId)
-            ->with('jenisDefectTerkait')
+            ->with('jenisDefectTerkait.kategoriDefectTerkait')
             ->get();
 
         /** @var array<string, QControlPart> $partBerdasarkanId */
@@ -166,6 +168,7 @@ final class MenyimpanPemeriksaanHarian
                     ! $relasiPartDefect instanceof QControlPartJenisDefect
                     || ! $relasiPartDefect->aktif
                     || $relasiPartDefect->part_id !== $part->id
+                    || ! $relasiPartDefect->jenisDefectTerkait?->aktif
                 ) {
                     throw new PengecualianPemeriksaanHarian(
                         pesan: 'Template defect QControl tidak valid untuk part ini',
@@ -186,6 +189,7 @@ final class MenyimpanPemeriksaanHarian
                 $barisDefectPart[] = [
                     'relasiPartDefect' => $relasiPartDefect,
                     'slotWaktu' => $slotWaktu,
+                    'kategoriDefectSnapshot' => $relasiPartDefect->jenisDefectTerkait?->kategoriDefectTerkait?->nama_kategori,
                     'jumlahDefect' => $jumlahDefect,
                 ];
             }
@@ -205,6 +209,11 @@ final class MenyimpanPemeriksaanHarian
 
             $totalOkPart = $totalCheckPart - $totalDefectPart;
             $rasioDefectPart = $this->hitungRasioDefect($totalDefectPart, $totalCheckPart);
+            $kategoriNgSnapshot = collect($barisDefectPart)
+                ->pluck('kategoriDefectSnapshot')
+                ->filter(fn (mixed $kategori): bool => is_string($kategori) && $kategori !== '')
+                ->unique()
+                ->implode(', ');
 
             $totalCheckHarian += $totalCheckPart;
             $totalDefectHarian += $totalDefectPart;
@@ -215,6 +224,7 @@ final class MenyimpanPemeriksaanHarian
                 'totalOk' => $totalOkPart,
                 'totalDefect' => $totalDefectPart,
                 'rasioDefect' => $rasioDefectPart,
+                'kategoriNgSnapshot' => $kategoriNgSnapshot !== '' ? $kategoriNgSnapshot : null,
                 'urutanTampil' => $indeksPart + 1,
                 'daftarDefect' => $barisDefectPart,
             ];
@@ -237,9 +247,11 @@ final class MenyimpanPemeriksaanHarian
             $jumlahBarisDefect,
         ): array {
             $pemeriksaanHarianTersimpan = QControlPemeriksaanHarian::query()
-                ->with(['lineProduksi', 'daftarPemeriksaanPart.daftarDefectSlot'])
-                ->where('tanggal_produksi', $payload['tanggalProduksi'])
-                ->where('line_produksi_id', $lineProduksi->id)
+                ->with([
+                    'lineProduksi',
+                    'daftarPemeriksaanPart' => fn (Builder $query): Builder => $query->with('daftarDefectSlot'),
+                ])
+                ->where('idempotency_key', $kunciIdempotency)
                 ->lockForUpdate()
                 ->first();
 
@@ -255,17 +267,20 @@ final class MenyimpanPemeriksaanHarian
                 }
 
                 throw new PengecualianPemeriksaanHarian(
-                    pesan: 'Pemeriksaan harian untuk tanggal produksi dan line tersebut sudah ada',
-                    kodeKesalahan: KodeKesalahanApi::PEMERIKSAAN_HARIAN_SUDAH_ADA,
+                    pesan: 'Idempotency key sudah digunakan untuk payload berbeda',
+                    kodeKesalahan: KodeKesalahanApi::KONFLIK_IDEMPOTENCY,
                     detailKesalahan: [
                         [
-                            'field' => 'tanggalProduksi',
-                            'pesan' => 'Pemeriksaan harian untuk tanggal produksi dan line tersebut sudah ada',
+                            'field' => 'X-Idempotency-Key',
+                            'pesan' => 'Idempotency key sudah digunakan untuk payload berbeda',
                         ],
                     ],
                     statusHttp: 409,
                 );
             }
+
+            $namaPicSnapshot = $penggunaHeadQC->name;
+            $emailPicSnapshot = $penggunaHeadQC->email;
 
             $pemeriksaanHarian = QControlPemeriksaanHarian::query()->create([
                 'id' => (string) Str::uuid(),
@@ -273,9 +288,11 @@ final class MenyimpanPemeriksaanHarian
                 'line_produksi_id' => $lineProduksi->id,
                 'kode_line_snapshot' => $lineProduksi->kode_line,
                 'nama_line_snapshot' => $lineProduksi->nama_line,
-                'nomor_dokumen' => $payload['nomorDokumen'] ?? 'FM-QA-025',
-                'revisi' => $payload['revisi'] ?? '1',
+                'nomor_dokumen_snapshot' => $payload['nomorDokumen'] ?? 'FM-QA-025',
+                'revisi_dokumen_snapshot' => $payload['revisi'] ?? '1',
                 'pengguna_headqc_id' => $penggunaHeadQC->id,
+                'nama_pic_snapshot' => $namaPicSnapshot,
+                'email_pic_snapshot' => $emailPicSnapshot,
                 'client_draft_id' => $payload['clientDraftId'] ?? null,
                 'idempotency_key' => $kunciIdempotency,
                 'hash_payload' => $hashPayload,
@@ -285,6 +302,9 @@ final class MenyimpanPemeriksaanHarian
                 'total_defect' => $totalDefectHarian,
                 'rasio_defect' => $rasioDefectHarian,
                 'catatan' => $payload['catatan'] ?? null,
+                'disiapkan_oleh_snapshot' => $namaPicSnapshot,
+                'diperiksa_oleh_snapshot' => $namaPicSnapshot,
+                'disetujui_oleh_snapshot' => $namaPicSnapshot,
                 'diterima_pada' => Carbon::now(),
             ]);
 
@@ -296,7 +316,9 @@ final class MenyimpanPemeriksaanHarian
                     'kode_unik_part_snapshot' => $dataPart['part']->kode_unik_part,
                     'nomor_part_snapshot' => $dataPart['part']->nomor_part,
                     'nama_part_snapshot' => $dataPart['part']->nama_part,
+                    'material_id_snapshot' => $dataPart['part']->material_id,
                     'nama_material_snapshot' => $dataPart['part']->materialTerkait?->nama_material,
+                    'kategori_ng_snapshot' => $dataPart['kategoriNgSnapshot'],
                     'total_check' => $dataPart['totalCheck'],
                     'total_ok' => $dataPart['totalOk'],
                     'total_defect' => $dataPart['totalDefect'],
@@ -313,6 +335,7 @@ final class MenyimpanPemeriksaanHarian
                         'jenis_defect_id' => $dataDefect['relasiPartDefect']->jenis_defect_id,
                         'kode_defect_snapshot' => $dataDefect['relasiPartDefect']->jenisDefectTerkait?->kode_defect,
                         'nama_defect_snapshot' => $dataDefect['relasiPartDefect']->jenisDefectTerkait?->nama_defect,
+                        'kategori_defect_snapshot' => $dataDefect['kategoriDefectSnapshot'],
                         'slot_waktu_id' => $dataDefect['slotWaktu']->id,
                         'kode_slot_snapshot' => $dataDefect['slotWaktu']->kode_slot,
                         'label_slot_snapshot' => $dataDefect['slotWaktu']->label_slot,

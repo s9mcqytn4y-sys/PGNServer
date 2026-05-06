@@ -23,21 +23,7 @@ final class SimpanPemeriksaanHarianController extends Controller
 
     public function __invoke(SimpanPemeriksaanHarianRequest $permintaan): JsonResponse
     {
-        $idempotencyKey = $permintaan->idempotencyKey();
-
-        if ($idempotencyKey === null) {
-            return ResponApi::gagal(
-                pesan: 'Header X-Idempotency-Key wajib diisi',
-                kodeKesalahan: KodeKesalahanApi::VALIDASI_GAGAL,
-                detailKesalahan: [
-                    [
-                        'field' => 'X-Idempotency-Key',
-                        'pesan' => 'Header X-Idempotency-Key wajib diisi',
-                    ],
-                ],
-                statusHttp: 422,
-            );
-        }
+        $idempotencyKey = (string) $permintaan->idempotencyKey();
 
         $hasilPemeriksaanIdempotency = $this->mengelolaIdempotencyKey->periksaAtauSimpanTransaksiSerius(
             kunciIdempotency: $idempotencyKey,

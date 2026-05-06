@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\PastikanPenggunaHeadQC;
 use App\Support\Api\ResponApi;
 use App\Support\Errors\KodeKesalahanApi;
 use Illuminate\Auth\AuthenticationException;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -22,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'headqc' => PastikanPenggunaHeadQC::class,
+        ]);
+
         $middleware->appendToGroup('api', [
             HandleCors::class,
         ]);
@@ -64,6 +70,18 @@ return Application::configure(basePath: dirname(__DIR__))
                 pesan: 'Autentikasi diperlukan untuk mengakses endpoint ini',
                 kodeKesalahan: KodeKesalahanApi::AUTENTIKASI_GAGAL,
                 statusHttp: 401,
+            );
+        });
+
+        $exceptions->render(function (AccessDeniedHttpException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return ResponApi::gagal(
+                pesan: $exception->getMessage() !== '' ? $exception->getMessage() : 'Akses ditolak',
+                kodeKesalahan: KodeKesalahanApi::AKSES_DITOLAK,
+                statusHttp: 403,
             );
         });
 

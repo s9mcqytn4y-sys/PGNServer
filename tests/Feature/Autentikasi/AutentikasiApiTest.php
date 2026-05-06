@@ -79,6 +79,21 @@ test('login gagal dengan password yang salah', function () {
         ]);
 });
 
+test('login pengguna non HeadQC ditolak', function () {
+    User::factory()->create([
+        'email' => 'operator@pgn.local',
+        'password' => 'password',
+        'peran' => 'Operator',
+    ]);
+
+    $this->postJson('/api/v1/login', [
+        'email' => 'operator@pgn.local',
+        'password' => 'password',
+    ])
+        ->assertStatus(403)
+        ->assertJsonPath('kesalahan.kode', 'AKSES_DITOLAK');
+});
+
 test('profil saya gagal tanpa token', function () {
     $this->getJson('/api/v1/profil-saya')
         ->assertStatus(401)

@@ -83,8 +83,10 @@ final class MasterDataQControlSeeder extends Seeder
             );
         }
 
+        $daftarRelasiDipertahankan = [];
+
         foreach ($this->daftarRelasiPartJenisDefect() as $urutan => [$kodePart, $kodeDefect, $kodeTampilan]) {
-            $this->simpanModel(
+            $relasiPartDefect = $this->simpanModel(
                 QControlPartJenisDefect::class,
                 [
                     'part_id' => $part[$kodePart]->id,
@@ -96,7 +98,17 @@ final class MasterDataQControlSeeder extends Seeder
                     'aktif' => true,
                 ],
             );
+
+            $daftarRelasiDipertahankan[] = $relasiPartDefect->id;
         }
+
+        QControlPartJenisDefect::query()
+            ->whereIn('part_id', array_map(
+                static fn (QControlPart $part): string => (string) $part->id,
+                $part,
+            ))
+            ->whereNotIn('id', $daftarRelasiDipertahankan)
+            ->delete();
     }
 
     /**
@@ -190,9 +202,9 @@ final class MasterDataQControlSeeder extends Seeder
     private function daftarKategoriDefect(): array
     {
         return [
-            ['kode_kategori' => 'MATERIAL', 'nama_kategori' => 'Material', 'aktif' => true, 'urutan_tampil' => 1],
-            ['kode_kategori' => 'PROSES_PRESS', 'nama_kategori' => 'Proses Press', 'aktif' => true, 'urutan_tampil' => 2],
-            ['kode_kategori' => 'PROSES_SEWING', 'nama_kategori' => 'Proses Sewing', 'aktif' => true, 'urutan_tampil' => 3],
+            ['kode_kategori' => 'MATERIAL', 'nama_kategori' => 'NG Material', 'aktif' => true, 'urutan_tampil' => 1],
+            ['kode_kategori' => 'PROSES_PRESS', 'nama_kategori' => 'NG Proses Press', 'aktif' => true, 'urutan_tampil' => 2],
+            ['kode_kategori' => 'PROSES_SEWING', 'nama_kategori' => 'NG Proses Sewing', 'aktif' => true, 'urutan_tampil' => 3],
             ['kode_kategori' => 'LAINNYA', 'nama_kategori' => 'Lainnya', 'aktif' => true, 'urutan_tampil' => 4],
         ];
     }
@@ -204,26 +216,30 @@ final class MasterDataQControlSeeder extends Seeder
     {
         return [
             // PRESS
-            ['kode_defect' => 'LAMINASI_BERKERUT', 'nama_defect' => 'Laminasi Berkerut', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINASI_BOLONG', 'nama_defect' => 'Laminasi Bolong', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINASI_TIDAK_MATANG', 'nama_defect' => 'Laminasi Tidak Matang', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_BERKERUT', 'nama_defect' => 'Laminating Berkerut', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_BOLONG', 'nama_defect' => 'Laminating Bolong', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_TIDAK_MATANG', 'nama_defect' => 'Laminating Tidak Matang', 'kode_kategori' => 'PROSES_PRESS'],
             ['kode_defect' => 'TERDAPAT_BENDA_ASING', 'nama_defect' => 'Terdapat Benda Asing', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'BAHAN_TIPIS', 'nama_defect' => 'Bahan Tipis', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'POTONGAN_BERLEBIH', 'nama_defect' => 'Potongan Berlebih', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'LAMINASI_TERSOBEK', 'nama_defect' => 'Laminasi Tersobek', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'DIMENSI_TIDAK_SESUAI', 'nama_defect' => 'Dimensi Tidak Sesuai', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'PENYOK', 'nama_defect' => 'Penyok', 'kode_kategori' => 'PROSES_PRESS'],
-            ['kode_defect' => 'KARPET_BERJAMUR', 'nama_defect' => 'Karpet Berjamur', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'KARPET_TIPIS', 'nama_defect' => 'Karpet Tipis', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'BAHAN_TIPIS', 'nama_defect' => 'Material Tipis', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'POTONGAN_BERLEBIH', 'nama_defect' => 'Overcutting', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'LAMINASI_TERSOBEK', 'nama_defect' => 'Laminating Sobek', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'DIMENSI_TIDAK_SESUAI', 'nama_defect' => 'Dimensi Out Of Standard', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'PENYOK', 'nama_defect' => 'Dent', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'KARPET_BERJAMUR', 'nama_defect' => 'Carpet Berjamur', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'KARPET_TIPIS', 'nama_defect' => 'Carpet Tipis', 'kode_kategori' => 'MATERIAL'],
             ['kode_defect' => 'SOBEK', 'nama_defect' => 'Sobek', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'GALER', 'nama_defect' => 'Galer', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'BELANG', 'nama_defect' => 'Belang', 'kode_kategori' => 'MATERIAL'],
+            ['kode_defect' => 'HOLE_TA', 'nama_defect' => 'Hole T/A', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'TERLIPAT', 'nama_defect' => 'Terlipat', 'kode_kategori' => 'PROSES_PRESS'],
 
             // SEWING
             ['kode_defect' => 'BRUDUL', 'nama_defect' => 'Brudul', 'kode_kategori' => 'PROSES_SEWING'],
-            ['kode_defect' => 'SPUNBOND_TIDAK_MEREKAT', 'nama_defect' => 'Spunbond Tidak Merekat', 'kode_kategori' => 'PROSES_SEWING'],
-            ['kode_defect' => 'SPUNBOND_TERLIPAT', 'nama_defect' => 'Spunbond Terlipat', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_TIDAK_MEREKAT', 'nama_defect' => 'Spunbound Tidak Merekat', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_TERLIPAT', 'nama_defect' => 'Spunbound Terlipat', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'SPUNBOND_HARDEN', 'nama_defect' => 'Spunbond Harden', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'SPUNBOND_KOTOR', 'nama_defect' => 'Spunbond Kotor', 'kode_kategori' => 'MATERIAL'],
-            ['kode_defect' => 'SPUNBOND_TERPOTONG', 'nama_defect' => 'Spunbond Terpotong', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SPUNBOND_TERPOTONG', 'nama_defect' => 'Spunbound Terpotong', 'kode_kategori' => 'PROSES_PRESS'],
             ['kode_defect' => 'LAMINATING_TIDAK_MATANG', 'nama_defect' => 'Laminating Tidak Matang', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'LAMINATING_BOLONG', 'nama_defect' => 'Laminating Bolong', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'TERBALIK', 'nama_defect' => 'Terbalik', 'kode_kategori' => 'PROSES_SEWING'],
@@ -232,7 +248,10 @@ final class MasterDataQControlSeeder extends Seeder
             ['kode_defect' => 'MARGIN_SEWING', 'nama_defect' => 'Margin Sewing', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'MARGIN_OUT_DIMENSI', 'nama_defect' => 'Margin Out Dimensi', 'kode_kategori' => 'PROSES_SEWING'],
             ['kode_defect' => 'BACKSTITCH_KURANG_DARI_15MM', 'nama_defect' => 'Backstitch Kurang dari 15mm', 'kode_kategori' => 'PROSES_SEWING'],
-            ['kode_defect' => 'DENT', 'nama_defect' => 'Dent', 'kode_kategori' => 'PROSES_PRESS'],
+            ['kode_defect' => 'MAGIC_TAPE_TERBALIK', 'nama_defect' => 'Magic Tape Terbalik', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'SEWING_LONCAT', 'nama_defect' => 'Sewing Loncat', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'MAGIC_TAPE_MIRING', 'nama_defect' => 'Magic Tape Miring', 'kode_kategori' => 'PROSES_SEWING'],
+            ['kode_defect' => 'MAGIC_TAPE_TIDAK_TERSEWING', 'nama_defect' => 'Magic Tape Tidak Tersewing', 'kode_kategori' => 'PROSES_SEWING'],
         ];
     }
 
@@ -452,6 +471,23 @@ final class MasterDataQControlSeeder extends Seeder
     {
         $daftarRelasi = [];
 
+        // PRESS CR6, CL7
+        $defectsCarpetPress = [
+            'A' => 'PENYOK',
+            'B' => 'GALER',
+            'C' => 'KARPET_TIPIS',
+            'D' => 'BELANG',
+            'E' => 'HOLE_TA',
+            'F' => 'POTONGAN_BERLEBIH',
+            'G' => 'SOBEK',
+            'H' => 'TERLIPAT',
+        ];
+        foreach (['CR6', 'CL7'] as $kodePart) {
+            foreach ($defectsCarpetPress as $kodeT => $kodeD) {
+                $daftarRelasi[] = [$kodePart, $kodeD, $kodeT];
+            }
+        }
+
         // PRESS CB9
         $defectsCB9 = [
             'A' => 'TERDAPAT_BENDA_ASING',
@@ -513,8 +549,13 @@ final class MasterDataQControlSeeder extends Seeder
             'C' => 'TERDAPAT_BENDA_ASING',
             'D' => 'KARPET_BERJAMUR',
             'E' => 'TERBALIK',
-            'F' => 'OVERCUTTING',
+            'F' => 'POTONGAN_BERLEBIH',
             'G' => 'SEWING_MIRING',
+            'H' => 'MAGIC_TAPE_TERBALIK',
+            'I' => 'MARGIN_OUT_DIMENSI',
+            'J' => 'SEWING_LONCAT',
+            'K' => 'MAGIC_TAPE_MIRING',
+            'L' => 'MAGIC_TAPE_TIDAK_TERSEWING',
         ];
         foreach (['CFRSH'] as $kodePart) {
             foreach ($defectsCFRSH as $kodeT => $kodeD) {
@@ -530,13 +571,13 @@ final class MasterDataQControlSeeder extends Seeder
             'D' => 'SPUNBOND_TERLIPAT',
             'E' => 'SPUNBOND_HARDEN',
             'F' => 'TERDAPAT_BENDA_ASING',
-            'G' => 'SPUNBOND_KOTOR',
+            'G' => 'LAMINATING_TIDAK_MATANG',
             'H' => 'LAMINATING_BOLONG',
             'I' => 'SPUNBOND_TERPOTONG',
             'J' => 'TERBALIK',
             'K' => 'OVERCUTTING',
             'L' => 'SEWING_MIRING',
-            'M' => 'MARGIN_SEWING',
+            'M' => 'MARGIN_OUT_DIMENSI',
         ];
         $partProtectors = [
             'PRSB_RH_070',

@@ -31,9 +31,11 @@ final class QControlPemeriksaanHarian extends Model
         'line_produksi_id',
         'kode_line_snapshot',
         'nama_line_snapshot',
-        'nomor_dokumen',
-        'revisi',
+        'nomor_dokumen_snapshot',
+        'revisi_dokumen_snapshot',
         'pengguna_headqc_id',
+        'nama_pic_snapshot',
+        'email_pic_snapshot',
         'client_draft_id',
         'idempotency_key',
         'hash_payload',
@@ -43,6 +45,9 @@ final class QControlPemeriksaanHarian extends Model
         'total_defect',
         'rasio_defect',
         'catatan',
+        'disiapkan_oleh_snapshot',
+        'diperiksa_oleh_snapshot',
+        'disetujui_oleh_snapshot',
         'diterima_pada',
     ];
 

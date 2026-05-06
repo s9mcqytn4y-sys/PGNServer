@@ -3,19 +3,40 @@
 declare(strict_types=1);
 
 use App\Models\IdempotencyKey;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    $this->seed(DatabaseSeeder::class);
+});
+
+function headerAutentikasiContohQcontrol(TestCase $pengujian): array
+{
+    $responsMasuk = $pengujian->postJson('/api/v1/login', [
+        'email' => (string) config('qcontrol.headqc.email'),
+        'password' => (string) config('qcontrol.headqc.password_default'),
+    ]);
+
+    $responsMasuk->assertSuccessful();
+
+    return [
+        'Authorization' => 'Bearer '.(string) $responsMasuk->json('data.token'),
+        'Accept' => 'application/json',
+    ];
+}
+
 test('endpoint contoh sinkronisasi qcontrol menerima payload dengan idempotency key', function () {
-    $this->postJson(
+    $this->withHeaders(array_merge(
+        headerAutentikasiContohQcontrol($this),
+        ['X-Idempotency-Key' => 'qcontrol:contoh:test-001'],
+    ))->postJson(
         '/api/v1/qcontrol/contoh',
         [
             'contoh' => true,
             'sumber' => 'manual',
-        ],
-        [
-            'X-Idempotency-Key' => 'qcontrol:contoh:test-001',
         ],
     )
         ->assertSuccessful()
@@ -32,49 +53,48 @@ test('endpoint contoh sinkronisasi qcontrol menerima payload dengan idempotency 
         ->assertJsonPath('data.mode', 'kontrak_awal');
 });
 
-test('endpoint contoh sinkronisasi qcontrol menolak payload tanpa idempotency key', function () {
+test('endpoint contoh sinkronisasi qcontrol butuh autentikasi HeadQC', function () {
     $this->postJson('/api/v1/qcontrol/contoh', [
         'contoh' => true,
+    ], [
+        'X-Idempotency-Key' => 'qcontrol:contoh:tanpa-token',
     ])
-        ->assertStatus(422)
-        ->assertJson([
-            'berhasil' => false,
-            'pesan' => 'Header X-Idempotency-Key wajib diisi',
-            'metadata' => null,
-            'kesalahan' => [
-                'kode' => 'VALIDASI_GAGAL',
-                'detail' => [
-                    [
-                        'field' => 'X-Idempotency-Key',
-                        'pesan' => 'Header X-Idempotency-Key wajib diisi',
-                    ],
-                ],
-            ],
+        ->assertStatus(401)
+        ->assertJsonPath('kesalahan.kode', 'AUTENTIKASI_GAGAL');
+});
+
+test('endpoint contoh sinkronisasi qcontrol menolak payload tanpa idempotency key', function () {
+    $this->withHeaders(headerAutentikasiContohQcontrol($this))
+        ->postJson('/api/v1/qcontrol/contoh', [
+            'contoh' => true,
         ])
-        ->assertJsonPath('data.payloadDiterima.contoh', true);
+        ->assertStatus(422)
+        ->assertJsonPath('kesalahan.kode', 'VALIDASI_GAGAL')
+        ->assertJsonPath('kesalahan.detail.0.field', 'X-Idempotency-Key');
 });
 
 test('endpoint contoh sinkronisasi qcontrol mengembalikan sukses idempotent untuk duplicate request', function () {
-    $headerIdempotency = [
-        'X-Idempotency-Key' => 'qcontrol:contoh:dedupe-001',
-    ];
-
-    $responsePertama = $this->postJson(
-        '/api/v1/qcontrol/contoh',
+    $headerIdempotency = array_merge(
+        headerAutentikasiContohQcontrol($this),
         [
-            'contoh' => true,
-            'sumber' => 'fase_2b',
+            'X-Idempotency-Key' => 'qcontrol:contoh:dedupe-001',
         ],
-        $headerIdempotency,
     );
 
-    $responseKedua = $this->postJson(
+    $responsePertama = $this->withHeaders($headerIdempotency)->postJson(
         '/api/v1/qcontrol/contoh',
         [
             'contoh' => true,
             'sumber' => 'fase_2b',
         ],
-        $headerIdempotency,
+    );
+
+    $responseKedua = $this->withHeaders($headerIdempotency)->postJson(
+        '/api/v1/qcontrol/contoh',
+        [
+            'contoh' => true,
+            'sumber' => 'fase_2b',
+        ],
     );
 
     $responsePertama

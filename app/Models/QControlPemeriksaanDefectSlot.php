@@ -32,6 +32,7 @@ final class QControlPemeriksaanDefectSlot extends Model
         'jenis_defect_id',
         'kode_defect_snapshot',
         'nama_defect_snapshot',
+        'kategori_defect_snapshot',
         'slot_waktu_id',
         'kode_slot_snapshot',
         'label_slot_snapshot',

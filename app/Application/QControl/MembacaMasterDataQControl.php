@@ -14,7 +14,7 @@ use App\Models\QControlSlotWaktu;
 
 final class MembacaMasterDataQControl
 {
-    private const VERSI_MASTER_DATA = '2026.05.2D';
+    private const VERSI_MASTER_DATA = '2026.05.2F-A';
 
     /**
      * @return array{
@@ -54,7 +54,7 @@ final class MembacaMasterDataQControl
             ->get();
 
         $relasiPartDefect = QControlPartJenisDefect::query()
-            ->with(['partTerkait', 'jenisDefectTerkait'])
+            ->with(['partTerkait', 'jenisDefectTerkait.kategoriDefectTerkait'])
             ->orderBy('urutan_tampil')
             ->get();
 

@@ -171,10 +171,18 @@ test('payload valid PRESS berhasil diterima', function () {
 
     expect($pemeriksaanHarian->kode_line_snapshot)->toBe('PRESS');
     expect($pemeriksaanHarian->nama_line_snapshot)->toBe('PRESS');
+    expect($pemeriksaanHarian->nomor_dokumen_snapshot)->toBe('FM-QA-025');
+    expect($pemeriksaanHarian->revisi_dokumen_snapshot)->toBe('1');
+    expect($pemeriksaanHarian->nama_pic_snapshot)->toBe((string) config('qcontrol.headqc.nama_pengguna'));
+    expect($pemeriksaanHarian->email_pic_snapshot)->toBe((string) config('qcontrol.headqc.email'));
+    expect($pemeriksaanHarian->disiapkan_oleh_snapshot)->toBe((string) config('qcontrol.headqc.nama_pengguna'));
     expect($pemeriksaanPart->kode_unik_part_snapshot)->toBe('CB9');
     expect($pemeriksaanPart->nama_part_snapshot)->toBe('Carpet Console Box');
+    expect($pemeriksaanPart->material_id_snapshot)->not->toBeNull();
+    expect($pemeriksaanPart->kategori_ng_snapshot)->toBe('NG Material');
     expect($defectSlot->kode_tampilan_defect_snapshot)->toBe('A');
     expect($defectSlot->kode_defect_snapshot)->toBe('TERDAPAT_BENDA_ASING');
+    expect($defectSlot->kategori_defect_snapshot)->toBe('NG Material');
     expect($defectSlot->label_slot_snapshot)->toBe('08.00 - 12.00');
 });
 
@@ -297,6 +305,27 @@ test('relasi defect yang bukan milik part ditolak', function () {
         ->assertJsonPath('kesalahan.kode', 'TEMPLATE_DEFECT_TIDAK_VALID');
 });
 
+test('part beda line ditolak', function () {
+    $partSewing = QControlPart::query()
+        ->where('kode_unik_part', 'FSB')
+        ->firstOrFail();
+
+    $this->withHeaders(array_merge(
+        headerAutentikasiHeadQc($this),
+        ['X-Idempotency-Key' => 'pemeriksaan-press-005a'],
+    ))->postJson('/api/v1/qcontrol/pemeriksaan-harian', payloadPemeriksaanPress([
+        'daftarPart' => [
+            [
+                'partId' => $partSewing->id,
+                'totalCheck' => 10,
+                'daftarDefect' => [],
+            ],
+        ],
+    ]))
+        ->assertStatus(422)
+        ->assertJsonPath('kesalahan.kode', 'TEMPLATE_DEFECT_TIDAK_VALID');
+});
+
 test('slot waktu tidak aktif ditolak', function () {
     $slotWaktu = QControlSlotWaktu::query()
         ->where('kode_slot', 'SLOT_0800_1200')
@@ -380,7 +409,7 @@ test('retry idempotency key dengan payload berbeda ditolak', function () {
         ->assertJsonPath('kesalahan.kode', 'KONFLIK_IDEMPOTENCY');
 });
 
-test('tanggal dan line yang sama dengan payload berbeda ditolak', function () {
+test('tanggal dan line yang sama dengan idempotency berbeda tetap bisa disimpan', function () {
     $this->withHeaders(array_merge(
         headerAutentikasiHeadQc($this),
         ['X-Idempotency-Key' => 'pemeriksaan-press-011'],
@@ -397,8 +426,11 @@ test('tanggal dan line yang sama dengan payload berbeda ditolak', function () {
             ],
         ],
     ]))
-        ->assertStatus(409)
-        ->assertJsonPath('kesalahan.kode', 'PEMERIKSAAN_HARIAN_SUDAH_ADA');
+        ->assertSuccessful()
+        ->assertJsonPath('data.totalCheck', 999)
+        ->assertJsonPath('data.duplikat', false);
+
+    expect(QControlPemeriksaanHarian::query()->count())->toBe(2);
 });
 
 test('payload SEWING valid berhasil diterima', function () {

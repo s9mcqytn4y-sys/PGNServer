@@ -29,6 +29,14 @@ final class MasukSesiController extends Controller
             );
         }
 
+        if ($pengguna->peran !== (string) config('qcontrol.headqc.peran')) {
+            return ResponApi::gagal(
+                pesan: 'Hanya HeadQC yang diizinkan masuk ke sistem QControl',
+                kodeKesalahan: KodeKesalahanApi::AKSES_DITOLAK,
+                statusHttp: 403,
+            );
+        }
+
         $pengguna->tokens()->delete();
 
         $tokenBaru = $pengguna->createToken('qcontrol-desktop')->plainTextToken;
