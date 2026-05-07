@@ -34,6 +34,10 @@ final class SimpanPemeriksaanHarianRequest extends FormRequest
             'daftarPart.*.daftarDefect.*.relasiPartDefectId' => ['required', 'exists:qcontrol_part_jenis_defect,id'],
             'daftarPart.*.daftarDefect.*.slotWaktuId' => ['required', 'exists:qcontrol_slot_waktu,id'],
             'daftarPart.*.daftarDefect.*.jumlahDefect' => ['required', 'integer', 'min:0'],
+            'daftarProduksiTanpaNg' => ['sometimes', 'array'],
+            'daftarProduksiTanpaNg.*.partId' => ['required', 'exists:qcontrol_part,id'],
+            'daftarProduksiTanpaNg.*.totalProduksi' => ['required', 'integer', 'min:0'],
+            'daftarProduksiTanpaNg.*.catatan' => ['nullable', 'string'],
         ];
     }
 

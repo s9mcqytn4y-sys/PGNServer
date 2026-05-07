@@ -10,6 +10,7 @@ use App\Models\QControlPartJenisDefect;
 use App\Models\QControlPemeriksaanDefectSlot;
 use App\Models\QControlPemeriksaanHarian;
 use App\Models\QControlPemeriksaanPart;
+use App\Models\QControlPemeriksaanProduksiTanpaNg;
 use App\Models\QControlSlotWaktu;
 use App\Models\User;
 use App\Support\Errors\KodeKesalahanApi;
@@ -58,9 +59,14 @@ final class MenyimpanPemeriksaanHarian
         $this->validasiPartTidakDuplikat($daftarPartPayload);
         $this->validasiDefectSlotTidakDuplikat($daftarPartPayload);
 
+        $daftarProduksiTanpaNgPayload = $payload['daftarProduksiTanpaNg'] ?? [];
+        $this->validasiProduksiTanpaNgTidakDuplikat($daftarProduksiTanpaNgPayload);
+
         $daftarPartId = collect($daftarPartPayload)
             ->pluck('partId')
+            ->merge(collect($daftarProduksiTanpaNgPayload)->pluck('partId'))
             ->filter(fn (mixed $partId): bool => is_string($partId))
+            ->unique()
             ->values()
             ->all();
 
@@ -233,11 +239,49 @@ final class MenyimpanPemeriksaanHarian
         $totalOkHarian = $totalCheckHarian - $totalDefectHarian;
         $rasioDefectHarian = $this->hitungRasioDefect($totalDefectHarian, $totalCheckHarian);
 
+        $ringkasanProduksiTanpaNg = [];
+        foreach ($daftarProduksiTanpaNgPayload as $indeksTanpaNg => $dataTanpaNg) {
+            $part = $partBerdasarkanId[$dataTanpaNg['partId']] ?? null;
+
+            if (! $part instanceof QControlPart || ! $part->aktif) {
+                throw new PengecualianPemeriksaanHarian(
+                    pesan: 'Part QControl tidak aktif atau tidak tersedia (Seksi Tanpa NG)',
+                    kodeKesalahan: KodeKesalahanApi::VALIDASI_GAGAL,
+                    detailKesalahan: [
+                        [
+                            'field' => "daftarProduksiTanpaNg.$indeksTanpaNg.partId",
+                            'pesan' => 'Part QControl tidak aktif atau tidak tersedia',
+                        ],
+                    ],
+                );
+            }
+
+            if ($part->line_default_id !== $lineProduksi->id) {
+                throw new PengecualianPemeriksaanHarian(
+                    pesan: 'Part tidak sesuai dengan line produksi yang dipilih (Seksi Tanpa NG)',
+                    kodeKesalahan: KodeKesalahanApi::TEMPLATE_DEFECT_TIDAK_VALID,
+                    detailKesalahan: [
+                        [
+                            'field' => "daftarProduksiTanpaNg.$indeksTanpaNg.partId",
+                            'pesan' => 'Part tidak sesuai dengan line produksi yang dipilih',
+                        ],
+                    ],
+                );
+            }
+
+            $ringkasanProduksiTanpaNg[] = [
+                'part' => $part,
+                'totalProduksi' => (int) $dataTanpaNg['totalProduksi'],
+                'catatan' => $dataTanpaNg['catatan'] ?? null,
+            ];
+        }
+
         return DB::transaction(function () use (
             $payload,
             $penggunaHeadQC,
             $lineProduksi,
             $ringkasanPart,
+            $ringkasanProduksiTanpaNg,
             $kunciIdempotency,
             $hashPayload,
             $totalCheckHarian,
@@ -346,6 +390,19 @@ final class MenyimpanPemeriksaanHarian
                 }
             }
 
+            foreach ($ringkasanProduksiTanpaNg as $dataTanpaNg) {
+                QControlPemeriksaanProduksiTanpaNg::query()->create([
+                    'id' => (string) Str::uuid(),
+                    'pemeriksaan_harian_id' => $pemeriksaanHarian->id,
+                    'part_id' => $dataTanpaNg['part']->id,
+                    'uniq_no_part' => $dataTanpaNg['part']->kode_unik_part,
+                    'nomor_part_snapshot' => $dataTanpaNg['part']->nomor_part,
+                    'nama_part_snapshot' => $dataTanpaNg['part']->nama_part,
+                    'total_produksi' => $dataTanpaNg['totalProduksi'],
+                    'catatan' => $dataTanpaNg['catatan'],
+                ]);
+            }
+
             $pemeriksaanHarian->load('lineProduksi');
 
             return [
@@ -410,6 +467,33 @@ final class MenyimpanPemeriksaanHarian
 
                 $kombinasiYangSudahAda[$kombinasi] = true;
             }
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $daftarProduksiTanpaNgPayload
+     */
+    private function validasiProduksiTanpaNgTidakDuplikat(array $daftarProduksiTanpaNgPayload): void
+    {
+        $partYangSudahAda = [];
+
+        foreach ($daftarProduksiTanpaNgPayload as $indeksTanpaNg => $dataTanpaNg) {
+            $partId = (string) $dataTanpaNg['partId'];
+
+            if (array_key_exists($partId, $partYangSudahAda)) {
+                throw new PengecualianPemeriksaanHarian(
+                    pesan: 'Part duplikat tidak diizinkan dalam seksi Produksi Tanpa NG',
+                    kodeKesalahan: KodeKesalahanApi::VALIDASI_GAGAL,
+                    detailKesalahan: [
+                        [
+                            'field' => "daftarProduksiTanpaNg.$indeksTanpaNg.partId",
+                            'pesan' => 'Part duplikat tidak diizinkan dalam seksi Produksi Tanpa NG',
+                        ],
+                    ],
+                );
+            }
+
+            $partYangSudahAda[$partId] = true;
         }
     }
 

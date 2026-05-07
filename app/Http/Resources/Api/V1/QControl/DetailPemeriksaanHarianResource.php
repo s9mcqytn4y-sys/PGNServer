@@ -44,6 +44,8 @@ final class DetailPemeriksaanHarianResource extends JsonResource
             'rasioDefect' => round((float) $pemeriksaanHarian->rasio_defect, 2),
             'daftarPart' => DetailPemeriksaanPartResource::collection($pemeriksaanHarian->daftarPemeriksaanPart)
                 ->resolve($request),
+            'daftarProduksiTanpaNg' => PemeriksaanProduksiTanpaNgResource::collection($pemeriksaanHarian->daftarProduksiTanpaNg)
+                ->resolve($request),
         ];
     }
 }

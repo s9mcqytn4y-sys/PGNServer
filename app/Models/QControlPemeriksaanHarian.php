@@ -89,4 +89,12 @@ final class QControlPemeriksaanHarian extends Model
     {
         return $this->hasMany(QControlPemeriksaanPart::class, 'pemeriksaan_harian_id');
     }
+
+    /**
+     * @return HasMany<QControlPemeriksaanProduksiTanpaNg, $this>
+     */
+    public function daftarProduksiTanpaNg(): HasMany
+    {
+        return $this->hasMany(QControlPemeriksaanProduksiTanpaNg::class, 'pemeriksaan_harian_id');
+    }
 }
