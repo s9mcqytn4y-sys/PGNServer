@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pgn_db
+    restart: always
+    # Menggunakan file .env lebih aman daripada hardcode di sini
+    environment:
+      POSTGRES_DB: ${DB_NAME:-pgn_db}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Optimasi: Postgres membutuhkan shared memory yang cukup untuk query berat
+    shm_size: '128mb'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-pgn_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  backend_network:
+    driver: bridge
