@@ -44,28 +44,25 @@ func HubungkanDatabase() {
 		log.Fatalf("Gagal mendapatkan objek sqlDB: %v", err)
 	}
 
-	// Konfigurasi Connection Pool untuk mencegah memory leak dan timeout
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	// Melakukan migrasi database berdasarkan skema
+	// Melakukan migrasi database berdasarkan skema baru
 	err = db.AutoMigrate(
 		&model.User{},
 		&model.Customer{},
 		&model.Supplier{},
 		&model.LiniProduksi{},
-		&model.Produk{},
 		&model.Material{},
-		&model.KategoriDefect{},
-		&model.MasterDefect{},
-		&model.MasterMesin{},
+		&model.Produk{},
 		&model.BillOfMaterial{},
+		&model.DefectMaster{},
 		&model.InspeksiHarian{},
-		&model.ChecksheetHeader{},
-		&model.ChecksheetDetail{},
 		&model.LogInspeksi{},
 		&model.BukuBesarDefectMaterial{},
+		&model.ChecksheetHeader{},
+		&model.ChecksheetDetail{},
 	)
 	if err != nil {
 		log.Fatalf("Gagal melakukan migrasi database: %v", err)

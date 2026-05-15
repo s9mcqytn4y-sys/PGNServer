@@ -6,68 +6,90 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // JalankanSeeder memasukkan data master awal ke database
 func JalankanSeeder(db *gorm.DB) {
 	slog.Info("Memulai proses seeding data master...")
 
-	// 1. Seed Users
+	// 1. User
 	hash, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	user := model.User{
 		NIP:      "2211019",
-		Nama:     "Leader QC",
-		Role:     "Leader_QC",
+		Nama:     "Leader QC System",
+		Role:     "Leader QC",
 		Password: string(hash),
 	}
-	db.Where(model.User{NIP: "2211019"}).FirstOrCreate(&user)
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "nip"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "role", "password"}),
+	}).Create(&user)
 
-	// 2. Seed Lini Produksi
-	lini := []model.LiniProduksi{
-		{ID: "L01", NamaLini: "Lini Press"},
-		{ID: "L02", NamaLini: "Lini Cutting"},
-		{ID: "L03", NamaLini: "Lini Sewing"},
+	// 2. Customers
+	customers := []model.Customer{
+		{ID: "CUST-001", NamaCustomer: "BONECOM TRICOM"},
+		{ID: "CUST-002", NamaCustomer: "RAJAWALI MITRA PRATAMA"},
+		{ID: "CUST-003", NamaCustomer: "RAVALIA INTI MANDIRI"},
 	}
-	for _, l := range lini {
-		db.Where(model.LiniProduksi{ID: l.ID}).FirstOrCreate(&l)
-	}
-
-	// 3. Seed Master Mesin
-	mesin := []model.MasterMesin{
-		{ID: "M-PR-01", NamaMesin: "AIDA 200T", TipeMesin: "Press"},
-		{ID: "M-PR-02", NamaMesin: "KOMATSU 110T", TipeMesin: "Press"},
-		{ID: "M-CT-01", NamaMesin: "Band Saw A", TipeMesin: "Cutting"},
-		{ID: "M-CT-02", NamaMesin: "Laser Cut X1", TipeMesin: "Cutting"},
-		{ID: "M-SW-01", NamaMesin: "JUKI Lockstitch", TipeMesin: "Sewing"},
-		{ID: "M-SW-02", NamaMesin: "Brother Overlock", TipeMesin: "Sewing"},
-	}
-	for _, m := range mesin {
-		db.Where(model.MasterMesin{ID: m.ID}).FirstOrCreate(&m)
+	for _, c := range customers {
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&c)
 	}
 
-	// 4. Seed Kategori Defect
-	kategori := []model.KategoriDefect{
-		{ID: "K01", NamaKategori: "Material"},
-		{ID: "K02", NamaKategori: "Sewing"},
-		{ID: "K03", NamaKategori: "Press"},
+	// 3. Suppliers
+	suppliers := []model.Supplier{
+		{ID: "SUP-001", NamaSupplier: "PT. ARTHA LANGGENG MULYA"},
+		{ID: "SUP-002", NamaSupplier: "PT. BONECOM"},
+		{ID: "SUP-003", NamaSupplier: "PT. HASIL DAMAI TEXTILE"},
 	}
-	for _, k := range kategori {
-		db.Where(model.KategoriDefect{ID: k.ID}).FirstOrCreate(&k)
+	for _, s := range suppliers {
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&s)
 	}
 
-	// 5. Seed Master Defect
-	defects := []model.MasterDefect{
-		{ID: "D01", KategoriID: "K01", NamaNG: "Crack"},
-		{ID: "D02", KategoriID: "K01", NamaNG: "Rust"},
-		{ID: "D03", KategoriID: "K01", NamaNG: "Scratch"},
-		{ID: "D04", KategoriID: "K02", NamaNG: "Puckering"},
-		{ID: "D05", KategoriID: "K02", NamaNG: "Broken Stitch"},
-		{ID: "D06", KategoriID: "K02", NamaNG: "Oil Stain"},
-		{ID: "D07", KategoriID: "K03", NamaNG: "Burry"},
-		{ID: "D08", KategoriID: "K03", NamaNG: "Dent"},
+	// 4. Production Lines
+	lines := []model.LiniProduksi{
+		{ID: "PRESS", NamaLini: "PRESS"},
+		{ID: "SEWING", NamaLini: "SEWING"},
+		{ID: "PASSTROUGH", NamaLini: "PASSTROUGH"},
+		{ID: "MATERIAL", NamaLini: "MATERIAL"},
+		{ID: "CUTTING", NamaLini: "CUTTING"},
+	}
+	for _, l := range lines {
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&l)
+	}
+
+	// 5. Materials
+	materials := []model.Material{
+		{ID: "BC2", NamaPart: "Laminasi LDPE 200 Gsm", Satuan: "Roll", SupplierID: "SUP-001"},
+		{ID: "9Y8_MAT", NamaPart: "HARDFELT 375", Satuan: "Roll", SupplierID: "SUP-001"},
+		{ID: "CB9_MAT", NamaPart: "Carpet CB-III", Satuan: "Roll", SupplierID: "SUP-001"},
+		{ID: "EPDM1", NamaPart: "EPDM Rubber", Satuan: "Pcs", SupplierID: "SUP-001"},
+	}
+	for _, m := range materials {
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&m)
+	}
+
+	// 6. Products
+	assy1 := "ASSY-CONSOLE"
+	products := []model.Produk{
+		{ID: "PROD-001", NomorPart: "58815-KK010-00", NomorUnik: "CB9", NamaPart: "CARPET CONSOLE BOX", CustomerID: "CUST-001", LineID: "PRESS", AssyName: &assy1},
+		{ID: "PROD-002", NomorPart: "71695-VT070", NomorUnik: "B35", NamaPart: "PROTECTOR RR SEAT BACK", CustomerID: "CUST-001", LineID: "SEWING", AssyName: nil},
+	}
+	for _, p := range products {
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&p)
+	}
+
+	// 7. Defect Master
+	defects := []model.DefectMaster{
+		{ID: "DEF-MAT-001", Kategori: "MATERIAL", NamaNG: "CARPET TIPIS"},
+		{ID: "DEF-MAT-002", Kategori: "MATERIAL", NamaNG: "BELANG"},
+		{ID: "DEF-MAT-003", Kategori: "MATERIAL", NamaNG: "BRUDUL"},
+		{ID: "DEF-PROC-001", Kategori: "PROCESS", NamaNG: "DENT"},
+		{ID: "DEF-PROC-002", Kategori: "PROCESS", NamaNG: "GALER"},
+		{ID: "DEF-PROC-003", Kategori: "PROCESS", NamaNG: "OVERCUTTING"},
 	}
 	for _, d := range defects {
-		db.Where(model.MasterDefect{ID: d.ID}).FirstOrCreate(&d)
+		db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&d)
 	}
 
 	slog.Info("Seeding data master selesai.")

@@ -9,16 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.pgn.co.id/support",
-            "email": "support@pgn.co.id"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -57,6 +48,55 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengunggah file gambar ke folder penyimpanan",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload Media",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "File gambar",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utilitas.ResponsAPI"
                         }
@@ -210,7 +250,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Menyimpan data checksheet (Header \u0026 Detail) dalam satu transaksi",
+                "description": "Menyimpan data checksheet (Header \u0026 Detail) serta mencatat log defect secara otomatis",
                 "consumes": [
                     "application/json"
                 ],
@@ -218,9 +258,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QC"
+                    "QC-Checksheet"
                 ],
-                "summary": "Simpan Checksheet QC",
+                "summary": "Simpan Checksheet QC \u0026 Log NG",
                 "parameters": [
                     {
                         "description": "Data Checksheet",
@@ -247,12 +287,119 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/qc/form-checksheet/{produk_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil potensi defect material (via BOM) dan defect proses secara paralel",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QC-Checksheet"
+                ],
+                "summary": "Ambil Form Checksheet Dinamis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Produk",
+                        "name": "produk_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "model.BillOfMaterial": {
+            "type": "object",
+            "properties": {
+                "material": {
+                    "$ref": "#/definitions/model.Material"
+                },
+                "material_id": {
+                    "type": "string"
+                },
+                "produk_id": {
+                    "type": "string"
+                },
+                "usage_qty": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.DefectMaster": {
+            "type": "object",
+            "properties": {
+                "dibuat_pada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kategori": {
+                    "description": "MATERIAL or PROCESS",
+                    "type": "string"
+                },
+                "nama_ng": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Material": {
+            "type": "object",
+            "properties": {
+                "dibuat_pada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nama_part": {
+                    "type": "string"
+                },
+                "nomor_unik": {
+                    "type": "string"
+                },
+                "potensi_defect": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DefectMaster"
+                    }
+                },
+                "satuan": {
+                    "type": "string"
+                },
+                "supplier_id": {
+                    "type": "string"
+                }
+            }
+        },
         "model.Produk": {
             "type": "object",
             "properties": {
+                "assy_name": {
+                    "type": "string"
+                },
+                "bom": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.BillOfMaterial"
+                    }
+                },
                 "customer_id": {
                     "type": "string"
                 },
@@ -265,13 +412,7 @@ const docTemplate = `{
                 "line_id": {
                     "type": "string"
                 },
-                "lokasi_foto": {
-                    "type": "string"
-                },
                 "model": {
-                    "type": "string"
-                },
-                "nama_assy": {
                     "type": "string"
                 },
                 "nama_part": {
@@ -301,6 +442,20 @@ const docTemplate = `{
                             "proses"
                         ],
                         "properties": {
+                            "defects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "defect_id": {
+                                            "type": "string"
+                                        },
+                                        "jumlah": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            },
                             "keterangan": {
                                 "type": "string"
                             },
@@ -309,6 +464,7 @@ const docTemplate = `{
                                 "additionalProperties": true
                             },
                             "proses": {
+                                "description": "PRESS, SEWING, CUTTING",
                                 "type": "string"
                             }
                         }
@@ -318,16 +474,12 @@ const docTemplate = `{
                     "type": "object",
                     "required": [
                         "line_id",
-                        "mesin_id",
                         "produk_id",
                         "shift",
                         "user_id"
                     ],
                     "properties": {
                         "line_id": {
-                            "type": "string"
-                        },
-                        "mesin_id": {
                             "type": "string"
                         },
                         "produk_id": {

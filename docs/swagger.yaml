@@ -1,7 +1,55 @@
 basePath: /api/v1
 definitions:
+  model.BillOfMaterial:
+    properties:
+      material:
+        $ref: '#/definitions/model.Material'
+      material_id:
+        type: string
+      produk_id:
+        type: string
+      usage_qty:
+        type: number
+    type: object
+  model.DefectMaster:
+    properties:
+      dibuat_pada:
+        type: string
+      id:
+        type: string
+      kategori:
+        description: MATERIAL or PROCESS
+        type: string
+      nama_ng:
+        type: string
+    type: object
+  model.Material:
+    properties:
+      dibuat_pada:
+        type: string
+      id:
+        type: string
+      nama_part:
+        type: string
+      nomor_unik:
+        type: string
+      potensi_defect:
+        items:
+          $ref: '#/definitions/model.DefectMaster'
+        type: array
+      satuan:
+        type: string
+      supplier_id:
+        type: string
+    type: object
   model.Produk:
     properties:
+      assy_name:
+        type: string
+      bom:
+        items:
+          $ref: '#/definitions/model.BillOfMaterial'
+        type: array
       customer_id:
         type: string
       dibuat_pada:
@@ -10,11 +58,7 @@ definitions:
         type: string
       line_id:
         type: string
-      lokasi_foto:
-        type: string
       model:
-        type: string
-      nama_assy:
         type: string
       nama_part:
         type: string
@@ -28,12 +72,22 @@ definitions:
       details:
         items:
           properties:
+            defects:
+              items:
+                properties:
+                  defect_id:
+                    type: string
+                  jumlah:
+                    type: integer
+                type: object
+              type: array
             keterangan:
               type: string
             parameter_hasil:
               additionalProperties: true
               type: object
             proses:
+              description: PRESS, SEWING, CUTTING
               type: string
           required:
           - parameter_hasil
@@ -44,8 +98,6 @@ definitions:
         properties:
           line_id:
             type: string
-          mesin_id:
-            type: string
           produk_id:
             type: string
           shift:
@@ -54,7 +106,6 @@ definitions:
             type: integer
         required:
         - line_id
-        - mesin_id
         - produk_id
         - shift
         - user_id
@@ -83,15 +134,8 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@pgn.co.id
-    name: API Support
-    url: http://www.pgn.co.id/support
+  contact: {}
   description: API Server untuk PGN (Produk Gagal & NG) Intelligence System.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
   title: PGNServer API
   version: "1.0"
 paths:
@@ -121,6 +165,37 @@ paths:
       summary: User Login
       tags:
       - Auth
+  /media/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah file gambar ke folder penyimpanan
+      parameters:
+      - description: File gambar
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Upload Media
+      tags:
+      - Media
   /produk:
     get:
       consumes:
@@ -211,7 +286,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Menyimpan data checksheet (Header & Detail) dalam satu transaksi
+      description: Menyimpan data checksheet (Header & Detail) serta mencatat log
+        defect secara otomatis
       parameters:
       - description: Data Checksheet
         in: body
@@ -232,9 +308,31 @@ paths:
             $ref: '#/definitions/utilitas.ResponsAPI'
       security:
       - BearerAuth: []
-      summary: Simpan Checksheet QC
+      summary: Simpan Checksheet QC & Log NG
       tags:
-      - QC
+      - QC-Checksheet
+  /qc/form-checksheet/{produk_id}:
+    get:
+      description: Mengambil potensi defect material (via BOM) dan defect proses secara
+        paralel
+      parameters:
+      - description: ID Produk
+        in: path
+        name: produk_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Ambil Form Checksheet Dinamis
+      tags:
+      - QC-Checksheet
 securityDefinitions:
   BearerAuth:
     in: header

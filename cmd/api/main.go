@@ -21,15 +21,6 @@ import (
 // @title PGNServer API
 // @version 1.0
 // @description API Server untuk PGN (Produk Gagal & NG) Intelligence System.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.pgn.co.id/support
-// @contact.email support@pgn.co.id
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
 // @host localhost:8080
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
@@ -37,70 +28,53 @@ import (
 // @name Authorization
 
 func init() {
-	// Inisialisasi slog sebagai default logger
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	slog.SetDefault(slog.New(handler))
 }
 
 func main() {
-	// Memuat file konfigurasi .env
 	if err := godotenv.Load(); err != nil {
 		slog.Warn("File .env tidak ditemukan, menggunakan environment variable sistem")
 	}
 
-	// Hubungkan ke database & Jalankan Migrasi + Seeding
 	konfigurasi.HubungkanDatabase()
 
-	// Mode Gin
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// Inisialisasi router Gin
 	r := gin.New()
 
-	// --- Middleware Global ---
-	r.Use(gin.Recovery())                 // Recovery dari panic
-	r.Use(pengelola.LogSlogMiddleware())  // Structured logging
-	r.Use(pengelola.TimeoutMiddleware(60 * time.Second)) // Global timeout
-	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(200), 400)) // Rate limit
+	r.Use(gin.Recovery())
+	r.Use(pengelola.LogSlogMiddleware())
+	r.Use(pengelola.TimeoutMiddleware(60 * time.Second))
+	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(200), 400))
 
-	// Statis & Gambar
 	r.Static("/penyimpanan", "./penyimpanan")
-
-	// Swagger UI
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Routing API v1
 	v1 := r.Group("/api/v1")
 	{
-		// 1. Health check (Tanpa Auth)
+		// Health check
 		v1.GET("/kesehatan", func(c *gin.Context) {
 			c.JSON(http.StatusOK, utilitas.FormatRespons(true, "Server PGN berjalan dengan baik", gin.H{
 				"waktu_server": time.Now().Format(time.RFC3339),
 				"status":       "stabil",
-				"env":          os.Getenv("GIN_MODE"),
 			}))
 		})
 
-		// 2. Auth (Login)
+		// 1. Auth (Login)
 		v1.POST("/auth/login", pengelola.LoginHandler)
 
-		// 3. Grup Terproteksi (Wajib JWT)
+		// 2. QC Checksheet & QC Tools (Terproteksi)
 		terproteksi := v1.Group("/")
 		terproteksi.Use(pengelola.AutentikasiMiddleware())
 		{
-			// Produk
-			produk := terproteksi.Group("/produk")
-			{
-				produk.GET("/", pengelola.AmbilSemuaProduk)
-				produk.POST("/", pengelola.TambahProduk)
-			}
-
 			// QC (Checksheet)
 			qc := terproteksi.Group("/qc")
 			{
 				qc.POST("/checksheet", pengelola.TambahChecksheet)
+				qc.GET("/form-checksheet/:produk_id", pengelola.GetFormChecksheet)
 			}
 
 			// QC Tools (Analytics)
@@ -109,10 +83,15 @@ func main() {
 				tools.GET("/pareto", pengelola.GetParetoData)
 				tools.GET("/control-chart", pengelola.GetControlChartData)
 			}
+
+			// Media
+			media := terproteksi.Group("/media")
+			{
+				media.POST("/upload", pengelola.UploadHandler)
+			}
 		}
 	}
 
-	// Menjalankan server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
