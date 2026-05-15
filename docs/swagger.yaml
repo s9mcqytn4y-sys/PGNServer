@@ -23,6 +23,56 @@ definitions:
       nomor_unik:
         type: string
     type: object
+  pengelola.ChecksheetInput:
+    properties:
+      details:
+        items:
+          properties:
+            keterangan:
+              type: string
+            parameter_hasil:
+              additionalProperties: true
+              type: object
+            proses:
+              type: string
+          required:
+          - parameter_hasil
+          - proses
+          type: object
+        type: array
+      header:
+        properties:
+          line_id:
+            type: string
+          mesin_id:
+            type: string
+          produk_id:
+            type: string
+          shift:
+            type: integer
+          user_id:
+            type: integer
+        required:
+        - line_id
+        - mesin_id
+        - produk_id
+        - shift
+        - user_id
+        type: object
+    required:
+    - details
+    - header
+    type: object
+  pengelola.LoginInput:
+    properties:
+      nip:
+        type: string
+      password:
+        type: string
+    required:
+    - nip
+    - password
+    type: object
   utilitas.ResponsAPI:
     properties:
       data: {}
@@ -45,6 +95,32 @@ info:
   title: PGNServer API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login menggunakan NIP dan Password untuk mendapatkan JWT
+      parameters:
+      - description: Credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/pengelola.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      summary: User Login
+      tags:
+      - Auth
   /produk:
     get:
       consumes:
@@ -97,6 +173,68 @@ paths:
       summary: Tambah Produk Baru
       tags:
       - Produk
+  /qc-tools/control-chart:
+    get:
+      consumes:
+      - application/json
+      description: Kalkulasi paralel UCL, LCL, dan Rata-rata menggunakan Goroutine
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Ambil Data Control Chart
+      tags:
+      - QC-Tools
+  /qc-tools/pareto:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data 80/20 cacat tertinggi menggunakan Goroutine
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Ambil Data Pareto
+      tags:
+      - QC-Tools
+  /qc/checksheet:
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan data checksheet (Header & Detail) dalam satu transaksi
+      parameters:
+      - description: Data Checksheet
+        in: body
+        name: checksheet
+        required: true
+        schema:
+          $ref: '#/definitions/pengelola.ChecksheetInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Simpan Checksheet QC
+      tags:
+      - QC
 securityDefinitions:
   BearerAuth:
     in: header

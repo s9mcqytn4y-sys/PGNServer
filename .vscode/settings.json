@@ -109,5 +109,6 @@
     "editor.overviewRulerBorder": false,
     "editor.hideCursorInOverviewRuler": true,
     "editor.gotoLocation.multipleDefinitions": "peek",
-    "editor.gotoLocation.multipleDeclarations": "peek"
+    "editor.gotoLocation.multipleDeclarations": "peek",
+    "containers.containers.sortBy": "Label"
 }

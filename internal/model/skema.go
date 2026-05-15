@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 // Produk merepresentasikan data produk di aplikasi
 type Produk struct {
@@ -57,6 +61,14 @@ type MasterDefect struct {
 	Kategori   KategoriDefect `gorm:"foreignKey:KategoriID" json:"kategori"`
 }
 
+// MasterMesin merepresentasikan master mesin untuk traceability
+type MasterMesin struct {
+	ID         string    `gorm:"primaryKey;column:id" json:"id"`
+	NamaMesin  string    `gorm:"column:nama_mesin;not null" json:"nama_mesin"`
+	TipeMesin  string    `gorm:"column:tipe_mesin" json:"tipe_mesin"` // e.g., Press, Cutting, Sewing
+	DibuatPada time.Time `gorm:"column:created_at;autoCreateTime" json:"dibuat_pada"`
+}
+
 // InspeksiHarian merepresentasikan inspeksi_harian
 type InspeksiHarian struct {
 	ID              string    `gorm:"primaryKey;column:id" json:"id"`
@@ -72,6 +84,31 @@ type InspeksiHarian struct {
 	StatMinggu      int       `gorm:"column:stat_minggu" json:"stat_minggu"`
 	DibuatPada      time.Time `gorm:"column:created_at;autoCreateTime" json:"dibuat_pada"`
 	Produk          Produk    `gorm:"foreignKey:ProdukID" json:"produk"`
+}
+
+// ChecksheetHeader merepresentasikan header dari checksheet transaksi
+type ChecksheetHeader struct {
+	ID         uint      `gorm:"primaryKey;column:id" json:"id"`
+	UserID     uint      `gorm:"column:user_id" json:"user_id"`
+	LineID     string    `gorm:"column:line_id" json:"line_id"`
+	ProdukID   string    `gorm:"column:produk_id" json:"produk_id"`
+	MesinID    string    `gorm:"column:mesin_id" json:"mesin_id"`
+	Shift      int       `gorm:"column:shift" json:"shift"`
+	Status     string    `gorm:"column:status;default:'Open'" json:"status"`
+	DibuatPada time.Time `gorm:"column:created_at;autoCreateTime" json:"dibuat_pada"`
+	User       User      `gorm:"foreignKey:UserID" json:"user"`
+	Mesin      MasterMesin `gorm:"foreignKey:MesinID" json:"mesin"`
+}
+
+// ChecksheetDetail merepresentasikan detail parameter checksheet menggunakan JSONB
+type ChecksheetDetail struct {
+	ID             uint           `gorm:"primaryKey;column:id" json:"id"`
+	HeaderID       uint           `gorm:"column:header_id" json:"header_id"`
+	WaktuCek       time.Time      `gorm:"column:waktu_cek" json:"waktu_cek"`
+	Proses         string         `gorm:"column:proses" json:"proses"` // Material Cutting, Part Press, etc.
+	ParameterHasil datatypes.JSON `gorm:"column:parameter_hasil" json:"parameter_hasil"`
+	Keterangan     string         `gorm:"column:keterangan" json:"keterangan"`
+	Header         ChecksheetHeader `gorm:"foreignKey:HeaderID" json:"header"`
 }
 
 // LogInspeksi merepresentasikan log_inspeksi

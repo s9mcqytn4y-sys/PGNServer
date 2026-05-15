@@ -59,8 +59,11 @@ func HubungkanDatabase() {
 		&model.Material{},
 		&model.KategoriDefect{},
 		&model.MasterDefect{},
+		&model.MasterMesin{},
 		&model.BillOfMaterial{},
 		&model.InspeksiHarian{},
+		&model.ChecksheetHeader{},
+		&model.ChecksheetDetail{},
 		&model.LogInspeksi{},
 		&model.BukuBesarDefectMaterial{},
 	)
@@ -70,4 +73,7 @@ func HubungkanDatabase() {
 
 	DB = db
 	log.Println("Database berhasil terhubung dan dimigrasi.")
+
+	// Jalankan Seeding
+	JalankanSeeder(db)
 }

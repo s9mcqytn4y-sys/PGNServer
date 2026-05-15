@@ -2,34 +2,60 @@ package pengelola
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"pgn-server/pkg/utilitas"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/time/rate"
 )
 
-// AutentikasiMiddleware memverifikasi Bearer token dari Header
+// AutentikasiMiddleware memverifikasi Bearer JWT dari Header
 func AutentikasiMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Tidak terotorisasi, token tidak ditemukan atau format salah", nil))
+			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Tidak terotorisasi, token tidak ditemukan", nil))
 			c.Abort()
 			return
 		}
 
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		// Implementasikan validasi token sebenarnya di sini (misal: verifikasi JWT)
-		if token != "token-rahasia-pgn" {
-			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Tidak terotorisasi, token tidak valid", nil))
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		
+		jwtSecret := os.Getenv("JWT_SECRET")
+		if jwtSecret == "" {
+			jwtSecret = "pgn-secret-key-2026"
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("metode signing tidak terduga: %v", token.Header["alg"])
+			}
+			return []byte(jwtSecret), nil
+		})
+
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Token tidak valid atau kedaluwarsa", nil))
 			c.Abort()
 			return
 		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Gagal mengambil claims", nil))
+			c.Abort()
+			return
+		}
+
+		// Simpan info user ke context
+		c.Set("user_id", claims["user_id"])
+		c.Set("role", claims["role"])
 
 		c.Next()
 	}

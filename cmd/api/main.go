@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -49,8 +48,13 @@ func main() {
 		slog.Warn("File .env tidak ditemukan, menggunakan environment variable sistem")
 	}
 
-	// Hubungkan ke database
+	// Hubungkan ke database & Jalankan Migrasi + Seeding
 	konfigurasi.HubungkanDatabase()
+
+	// Mode Gin
+	if os.Getenv("GIN_MODE") == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	// Inisialisasi router Gin
 	r := gin.New()
@@ -58,8 +62,8 @@ func main() {
 	// --- Middleware Global ---
 	r.Use(gin.Recovery())                 // Recovery dari panic
 	r.Use(pengelola.LogSlogMiddleware())  // Structured logging
-	r.Use(pengelola.TimeoutMiddleware(30 * time.Second)) // Global timeout
-	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(100), 200)) // Rate limit 100 req/s
+	r.Use(pengelola.TimeoutMiddleware(60 * time.Second)) // Global timeout
+	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(200), 400)) // Rate limit
 
 	// Statis & Gambar
 	r.Static("/penyimpanan", "./penyimpanan")
@@ -70,20 +74,41 @@ func main() {
 	// Routing API v1
 	v1 := r.Group("/api/v1")
 	{
-		// Health check (Tanpa Auth)
+		// 1. Health check (Tanpa Auth)
 		v1.GET("/kesehatan", func(c *gin.Context) {
 			c.JSON(http.StatusOK, utilitas.FormatRespons(true, "Server PGN berjalan dengan baik", gin.H{
 				"waktu_server": time.Now().Format(time.RFC3339),
 				"status":       "stabil",
+				"env":          os.Getenv("GIN_MODE"),
 			}))
 		})
 
-		// Produk (Dengan Auth)
-		produk := v1.Group("/produk")
-		produk.Use(pengelola.AutentikasiMiddleware())
+		// 2. Auth (Login)
+		v1.POST("/auth/login", pengelola.LoginHandler)
+
+		// 3. Grup Terproteksi (Wajib JWT)
+		terproteksi := v1.Group("/")
+		terproteksi.Use(pengelola.AutentikasiMiddleware())
 		{
-			produk.GET("/", pengelola.AmbilSemuaProduk)
-			produk.POST("/", pengelola.TambahProduk)
+			// Produk
+			produk := terproteksi.Group("/produk")
+			{
+				produk.GET("/", pengelola.AmbilSemuaProduk)
+				produk.POST("/", pengelola.TambahProduk)
+			}
+
+			// QC (Checksheet)
+			qc := terproteksi.Group("/qc")
+			{
+				qc.POST("/checksheet", pengelola.TambahChecksheet)
+			}
+
+			// QC Tools (Analytics)
+			tools := terproteksi.Group("/qc-tools")
+			{
+				tools.GET("/pareto", pengelola.GetParetoData)
+				tools.GET("/control-chart", pengelola.GetControlChartData)
+			}
 		}
 	}
 

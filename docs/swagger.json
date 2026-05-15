@@ -18,6 +18,46 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Login menggunakan NIP dan Password untuk mendapatkan JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Login",
+                "parameters": [
+                    {
+                        "description": "Credentials",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pengelola.LoginInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
+        },
         "/produk": {
             "get": {
                 "security": [
@@ -100,6 +140,107 @@
                     }
                 }
             }
+        },
+        "/qc-tools/control-chart": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Kalkulasi paralel UCL, LCL, dan Rata-rata menggunakan Goroutine",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QC-Tools"
+                ],
+                "summary": "Ambil Data Control Chart",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
+        },
+        "/qc-tools/pareto": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil data 80/20 cacat tertinggi menggunakan Goroutine",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QC-Tools"
+                ],
+                "summary": "Ambil Data Pareto",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
+        },
+        "/qc/checksheet": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan data checksheet (Header \u0026 Detail) dalam satu transaksi",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QC"
+                ],
+                "summary": "Simpan Checksheet QC",
+                "parameters": [
+                    {
+                        "description": "Data Checksheet",
+                        "name": "checksheet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pengelola.ChecksheetInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -134,6 +275,79 @@
                     "type": "string"
                 },
                 "nomor_unik": {
+                    "type": "string"
+                }
+            }
+        },
+        "pengelola.ChecksheetInput": {
+            "type": "object",
+            "required": [
+                "details",
+                "header"
+            ],
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "parameter_hasil",
+                            "proses"
+                        ],
+                        "properties": {
+                            "keterangan": {
+                                "type": "string"
+                            },
+                            "parameter_hasil": {
+                                "type": "object",
+                                "additionalProperties": true
+                            },
+                            "proses": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "header": {
+                    "type": "object",
+                    "required": [
+                        "line_id",
+                        "mesin_id",
+                        "produk_id",
+                        "shift",
+                        "user_id"
+                    ],
+                    "properties": {
+                        "line_id": {
+                            "type": "string"
+                        },
+                        "mesin_id": {
+                            "type": "string"
+                        },
+                        "produk_id": {
+                            "type": "string"
+                        },
+                        "shift": {
+                            "type": "integer"
+                        },
+                        "user_id": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "pengelola.LoginInput": {
+            "type": "object",
+            "required": [
+                "nip",
+                "password"
+            ],
+            "properties": {
+                "nip": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }

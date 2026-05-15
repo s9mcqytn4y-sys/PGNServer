@@ -1,37 +1,47 @@
 services:
-  db:
+  pgn_db:
     image: postgres:17-alpine
     container_name: pgn_db
-    restart: always
-    # Menggunakan file .env lebih aman daripada hardcode di sini
     environment:
-      POSTGRES_DB: ${DB_NAME:-pgn_db}
-      POSTGRES_USER: ${DB_USER:-admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
-      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: pgn_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    # Optimasi: Postgres membutuhkan shared memory yang cukup untuk query berat
-    shm_size: '128mb'
+      - pgn_pgdata:/var/lib/postgresql/data
+    networks:
+      - pgn_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-pgn_db}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U admin -d pgn_db"]
+      interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - backend_network
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
 
-volumes:
-  pgdata:
-    driver: local
+  pgn_api:
+    build: .
+    container_name: pgn_api
+    ports:
+      - "8080:8080"
+    depends_on:
+      pgn_db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=pgn_db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=pgn_db
+      - APP_PORT=8080
+      - JWT_SECRET=pgn-secret-key-2026
+    networks:
+      - pgn_network
+    volumes:
+      - ./penyimpanan:/app/penyimpanan
 
 networks:
-  backend_network:
+  pgn_network:
     driver: bridge
+
+volumes:
+  pgn_pgdata:
