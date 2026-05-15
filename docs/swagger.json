@@ -1,0 +1,161 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API Server untuk PGN (Produk Gagal \u0026 NG) Intelligence System.",
+        "title": "PGNServer API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.pgn.co.id/support",
+            "email": "support@pgn.co.id"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/produk": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil semua data produk dari database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produk"
+                ],
+                "summary": "Ambil Semua Produk",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan data produk baru ke database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produk"
+                ],
+                "summary": "Tambah Produk Baru",
+                "parameters": [
+                    {
+                        "description": "Data Produk",
+                        "name": "produk",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Produk"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utilitas.ResponsAPI"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.Produk": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "dibuat_pada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "line_id": {
+                    "type": "string"
+                },
+                "lokasi_foto": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "nama_assy": {
+                    "type": "string"
+                },
+                "nama_part": {
+                    "type": "string"
+                },
+                "nomor_part": {
+                    "type": "string"
+                },
+                "nomor_unik": {
+                    "type": "string"
+                }
+            }
+        },
+        "utilitas.ResponsAPI": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "pesan": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -2,55 +2,100 @@ package main
 
 import (
 	"log"
+	"log/slog"
+	"net/http"
 	"os"
+	"time"
+
 	"pgn-server/internal/konfigurasi"
 	"pgn-server/internal/pengelola"
 	"pgn-server/pkg/utilitas"
+	_ "pgn-server/docs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"net/http"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"golang.org/x/time/rate"
 )
 
+// @title PGNServer API
+// @version 1.0
+// @description API Server untuk PGN (Produk Gagal & NG) Intelligence System.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.pgn.co.id/support
+// @contact.email support@pgn.co.id
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+func init() {
+	// Inisialisasi slog sebagai default logger
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+	slog.SetDefault(slog.New(handler))
+}
+
 func main() {
-	// 1. Memuat variabel environment dari file .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Peringatan: File .env tidak ditemukan, menggunakan environment OS")
+	// Memuat file konfigurasi .env
+	if err := godotenv.Load(); err != nil {
+		slog.Warn("File .env tidak ditemukan, menggunakan environment variable sistem")
 	}
 
-	// 2. Hubungkan ke database PostgreSQL dan jalankan migrasi
+	// Hubungkan ke database
 	konfigurasi.HubungkanDatabase()
 
-	// 3. Konfigurasi router Gin
-	r := gin.Default()
+	// Inisialisasi router Gin
+	r := gin.New()
 
-	// 4. Rute Statis untuk penyajian gambar (folder sudah dipersiapkan)
-	r.Static("/gambar", "./penyimpanan/gambar")
+	// --- Middleware Global ---
+	r.Use(gin.Recovery())                 // Recovery dari panic
+	r.Use(pengelola.LogSlogMiddleware())  // Structured logging
+	r.Use(pengelola.TimeoutMiddleware(30 * time.Second)) // Global timeout
+	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(100), 200)) // Rate limit 100 req/s
 
-	// 5. RESTful API Routes
-	// Health check (tidak perlu autentikasi)
-	r.GET("/api/v1/kesehatan", func(c *gin.Context) {
-		c.JSON(http.StatusOK, utilitas.FormatRespons(true, "Server PGN berjalan dengan baik", nil))
-	})
+	// Statis & Gambar
+	r.Static("/penyimpanan", "./penyimpanan")
 
-	// Grup API v1 dengan Middleware Autentikasi
-	api := r.Group("/api/v1")
-	// Middleware dinonaktifkan sementara untuk kemudahan testing, buka komentar untuk mengaktifkan
-	// api.Use(pengelola.AutentikasiMiddleware())
+	// Swagger UI
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// Routing API v1
+	v1 := r.Group("/api/v1")
 	{
-		api.GET("/produk", pengelola.AmbilSemuaProduk)
-		api.POST("/produk", pengelola.TambahProduk)
+		// Health check (Tanpa Auth)
+		v1.GET("/kesehatan", func(c *gin.Context) {
+			c.JSON(http.StatusOK, utilitas.FormatRespons(true, "Server PGN berjalan dengan baik", gin.H{
+				"waktu_server": time.Now().Format(time.RFC3339),
+				"status":       "stabil",
+			}))
+		})
+
+		// Produk (Dengan Auth)
+		produk := v1.Group("/produk")
+		produk.Use(pengelola.AutentikasiMiddleware())
+		{
+			produk.GET("/", pengelola.AmbilSemuaProduk)
+			produk.POST("/", pengelola.TambahProduk)
+		}
 	}
 
-	// 6. Jalankan Server
+	// Menjalankan server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("Server mulai berjalan di port %s", port)
+	slog.Info("Server PGNServer dimulai", "port", port)
 	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("Kesalahan saat menjalankan server: %v", err)
+		slog.Error("Gagal menjalankan server", "error", err)
+		os.Exit(1)
 	}
 }

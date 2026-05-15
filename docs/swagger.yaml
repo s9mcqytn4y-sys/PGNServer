@@ -1,0 +1,105 @@
+basePath: /api/v1
+definitions:
+  model.Produk:
+    properties:
+      customer_id:
+        type: string
+      dibuat_pada:
+        type: string
+      id:
+        type: string
+      line_id:
+        type: string
+      lokasi_foto:
+        type: string
+      model:
+        type: string
+      nama_assy:
+        type: string
+      nama_part:
+        type: string
+      nomor_part:
+        type: string
+      nomor_unik:
+        type: string
+    type: object
+  utilitas.ResponsAPI:
+    properties:
+      data: {}
+      pesan:
+        type: string
+      status:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@pgn.co.id
+    name: API Support
+    url: http://www.pgn.co.id/support
+  description: API Server untuk PGN (Produk Gagal & NG) Intelligence System.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: PGNServer API
+  version: "1.0"
+paths:
+  /produk:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil semua data produk dari database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Ambil Semua Produk
+      tags:
+      - Produk
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan data produk baru ke database
+      parameters:
+      - description: Data Produk
+        in: body
+        name: produk
+        required: true
+        schema:
+          $ref: '#/definitions/model.Produk'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilitas.ResponsAPI'
+      security:
+      - BearerAuth: []
+      summary: Tambah Produk Baru
+      tags:
+      - Produk
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -11,6 +11,15 @@ import (
 )
 
 // AmbilSemuaProduk mengembalikan daftar seluruh produk
+// @Summary Ambil Semua Produk
+// @Description Mengambil semua data produk dari database
+// @Tags Produk
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utilitas.ResponsAPI
+// @Failure 500 {object} utilitas.ResponsAPI
+// @Router /produk [get]
 func AmbilSemuaProduk(c *gin.Context) {
 	var daftarProduk []model.Produk
 	if err := konfigurasi.DB.Find(&daftarProduk).Error; err != nil {
@@ -22,6 +31,17 @@ func AmbilSemuaProduk(c *gin.Context) {
 }
 
 // TambahProduk menambahkan data produk baru ke database
+// @Summary Tambah Produk Baru
+// @Description Menyimpan data produk baru ke database
+// @Tags Produk
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param produk body model.Produk true "Data Produk"
+// @Success 201 {object} utilitas.ResponsAPI
+// @Failure 400 {object} utilitas.ResponsAPI
+// @Failure 500 {object} utilitas.ResponsAPI
+// @Router /produk [post]
 func TambahProduk(c *gin.Context) {
 	var input model.Produk
 	if err := c.ShouldBindJSON(&input); err != nil {

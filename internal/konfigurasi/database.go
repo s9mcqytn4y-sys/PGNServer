@@ -51,10 +51,18 @@ func HubungkanDatabase() {
 
 	// Melakukan migrasi database berdasarkan skema
 	err = db.AutoMigrate(
+		&model.User{},
+		&model.Customer{},
+		&model.Supplier{},
+		&model.LiniProduksi{},
 		&model.Produk{},
 		&model.Material{},
+		&model.KategoriDefect{},
+		&model.MasterDefect{},
 		&model.BillOfMaterial{},
-		&model.RiwayatDefect{},
+		&model.InspeksiHarian{},
+		&model.LogInspeksi{},
+		&model.BukuBesarDefectMaterial{},
 	)
 	if err != nil {
 		log.Fatalf("Gagal melakukan migrasi database: %v", err)
