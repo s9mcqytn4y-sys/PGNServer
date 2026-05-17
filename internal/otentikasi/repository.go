@@ -6,6 +6,7 @@ import "gorm.io/gorm"
 type RepositoriOtentikasi interface {
 	Daftar(pengguna *Pengguna) error
 	CariBerdasarkanSurel(surel string) (*Pengguna, error)
+	CariBerdasarkanID(id uint) (*Pengguna, error)
 	PerbaruiSandi(pengguna *Pengguna) error
 	PerbaruiTenggatSesi(id uint, tenggatSesi *gorm.DeletedAt) error // atau tipe time opsional
 }
@@ -25,6 +26,15 @@ func (r *repositoriOtentikasi) Daftar(pengguna *Pengguna) error {
 func (r *repositoriOtentikasi) CariBerdasarkanSurel(surel string) (*Pengguna, error) {
 	var pengguna Pengguna
 	err := r.db.Where("surel_kredensial = ?", surel).First(&pengguna).Error
+	if err != nil {
+		return nil, err
+	}
+	return &pengguna, nil
+}
+
+func (r *repositoriOtentikasi) CariBerdasarkanID(id uint) (*Pengguna, error) {
+	var pengguna Pengguna
+	err := r.db.First(&pengguna, id).Error
 	if err != nil {
 		return nil, err
 	}

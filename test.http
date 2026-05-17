@@ -28,6 +28,10 @@ Content-Type: application/json
     "kata_sandi": "admin"
 }
 
+### 3.5 Ambil Profil Sesi Pengguna (Memerlukan JWT)
+GET {{baseUrl}}/otentikasi/profil
+Authorization: Bearer {{token}}
+
 ### 4. Lupa Sandi
 POST {{baseUrl}}/otentikasi/lupa-sandi
 Content-Type: application/json

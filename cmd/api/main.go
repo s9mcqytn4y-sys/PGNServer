@@ -172,6 +172,7 @@ func main() {
 			auth.POST("/masuk", handlerOtentikasi.TanganiLogin)
 			auth.POST("/lupa-sandi", handlerOtentikasi.TanganiLupaSandi)
 			auth.POST("/keluar", handlerOtentikasi.TanganiLogout)
+			auth.GET("/profil", infrastruktur.PenjagaSesiJWT(), handlerOtentikasi.TanganiProfil)
 		}
 
 		// Endpoint Operasi Internal (Perlu JWT)

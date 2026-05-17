@@ -1523,6 +1523,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/otentikasi/profil": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyajikan data profil staf QC/Manajemen yang sedang aktif berdasarkan token JWT",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Otentikasi"
+                ],
+                "summary": "Data Profil Sesi Pengguna",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/readiness": {
             "get": {
                 "description": "Memvalidasi bahwa server API siap menerima trafik dengan memverifikasi koneksi database",

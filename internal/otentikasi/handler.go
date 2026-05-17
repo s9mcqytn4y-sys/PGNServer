@@ -1,6 +1,8 @@
 package otentikasi
 
 import (
+	"strings"
+
 	"pgn-server/pkg/respon"
 
 	"github.com/gin-gonic/gin"
@@ -198,4 +200,64 @@ func (p *PenangananOtentikasi) TanganiLogout(k *gin.Context) {
 	// Karena menggunakan JWT (stateless), logout dilakukan di klien dengan menghapus token.
 	// Kami memberikan konfirmasi sukses.
 	respon.Sukses(k, "Berhasil keluar. Silakan hapus token di sisi klien.", nil)
+}
+
+// TanganiProfil menyajikan data profil sesi pengguna yang masuk.
+// @Summary Data Profil Sesi Pengguna
+// @Description Menyajikan data profil staf QC/Manajemen yang sedang aktif berdasarkan token JWT
+// @Tags Otentikasi
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Failure 401 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/otentikasi/profil [get]
+func (p *PenangananOtentikasi) TanganiProfil(k *gin.Context) {
+	idVal, exists := k.Get("id_pengguna")
+	if !exists {
+		respon.Galat_TidakSah(k, "Akses ditolak: Sesi tidak memiliki konteks pengguna")
+		return
+	}
+
+	var id uint
+	switch v := idVal.(type) {
+	case float64:
+		id = uint(v)
+	case uint:
+		id = v
+	case int:
+		id = uint(v)
+	default:
+		respon.Galat_TidakSah(k, "Akses ditolak: Format ID pengguna tidak valid")
+		return
+	}
+
+	pengguna, err := p.layanan.AmbilProfilBerdasarkanID(id)
+	if err != nil {
+		respon.Galat_TidakSah(k, "Sesi tidak valid atau akun tidak terdaftar")
+		return
+	}
+
+	namaLengkap := strings.Split(pengguna.SurelKredensial, "@")[0]
+	if pengguna.PeranOtorisasi == "LEADER" {
+		namaLengkap = "Leader QC"
+	} else if pengguna.PeranOtorisasi == "OPERATOR" {
+		namaLengkap = "Operator QC"
+	}
+
+	nip := strings.Split(pengguna.SurelKredensial, "@")[0]
+
+	respon.Sukses(k, "Profil berhasil diambil", gin.H{
+		"id":         pengguna.ID,
+		"surel":      pengguna.SurelKredensial,
+		"peran":      pengguna.PeranOtorisasi,
+		"nama":       namaLengkap,
+		"nip":        nip,
+		"dibuatPada": pengguna.DibuatPada,
+		"diubahPada": pengguna.DiubahPada,
+		// Legacy fields untuk retro-kompatibilitas
+		"email":      pengguna.SurelKredensial,
+		"role":       pengguna.PeranOtorisasi,
+		"fullName":   namaLengkap,
+	})
 }

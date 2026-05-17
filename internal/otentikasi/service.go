@@ -13,6 +13,7 @@ type LayananOtentikasi interface {
 	Registrasi(surel string, sandi string, peran string) (*Pengguna, error)
 	Login(surel string, sandi string) (string, error)
 	LupaSandi(surel string, sandiBaru string) error
+	AmbilProfilBerdasarkanID(id uint) (*Pengguna, error)
 }
 
 type layananOtentikasi struct {
@@ -95,4 +96,8 @@ func (l *layananOtentikasi) LupaSandi(surel string, sandiBaru string) error {
 
 	pengguna.KataSandiTerenskripsi = string(sandiEnkripsi)
 	return l.repositori.PerbaruiSandi(pengguna)
+}
+
+func (l *layananOtentikasi) AmbilProfilBerdasarkanID(id uint) (*Pengguna, error) {
+	return l.repositori.CariBerdasarkanID(id)
 }

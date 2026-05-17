@@ -28,6 +28,14 @@ func (m *RepositoriMock) CariBerdasarkanSurel(surel string) (*Pengguna, error) {
 	return nil, args.Error(1)
 }
 
+func (m *RepositoriMock) CariBerdasarkanID(id uint) (*Pengguna, error) {
+	args := m.Called(id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*Pengguna), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *RepositoriMock) PerbaruiSandi(pengguna *Pengguna) error {
 	args := m.Called(pengguna)
 	return args.Error(0)
@@ -81,6 +89,39 @@ func TestLogin(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, "kredensial_tidak_valid", err.Error())
 		assert.Empty(t, token)
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestAmbilProfilBerdasarkanID(t *testing.T) {
+	repo := new(RepositoriMock)
+	layanan := KonstruksiLayananBaru(repo)
+
+	t.Run("Sukses", func(t *testing.T) {
+		dummyUser := &Pengguna{
+			ID:              12,
+			SurelKredensial: "tester@pgn.com",
+			PeranOtorisasi:  "LEADER",
+		}
+		repo.On("CariBerdasarkanID", uint(12)).Return(dummyUser, nil).Once()
+
+		pengguna, err := layanan.AmbilProfilBerdasarkanID(12)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, pengguna)
+		assert.Equal(t, uint(12), pengguna.ID)
+		assert.Equal(t, "tester@pgn.com", pengguna.SurelKredensial)
+		assert.Equal(t, "LEADER", pengguna.PeranOtorisasi)
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("Gagal_TidakDitemukan", func(t *testing.T) {
+		repo.On("CariBerdasarkanID", uint(99)).Return(nil, errors.New("record not found")).Once()
+
+		pengguna, err := layanan.AmbilProfilBerdasarkanID(99)
+
+		assert.Error(t, err)
+		assert.Nil(t, pengguna)
 		repo.AssertExpectations(t)
 	})
 }
