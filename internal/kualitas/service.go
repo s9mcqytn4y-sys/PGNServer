@@ -12,6 +12,7 @@ import (
 // LayananKualitas melayani penelusuran BOM dan pencatatan komposit.
 type LayananKualitas interface {
 	RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error
+	DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error)
 }
 
 type layananKualitas struct {
@@ -25,6 +26,13 @@ func KonstruksiLayananBaru(repo RepositoriKualitas, db *gorm.DB) LayananKualitas
 
 // RekamLembarPeriksa mengatur arus logika bisnis pencatatan inspeksi fisik.
 func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
+	// Validasi TPS: Total Produksi == OK + NG
+	for _, d := range dto.Detail {
+		if d.TotalProduksi != (d.RasioTotalOK + d.RasioCacat) {
+			return errors.New("validasi_tps_gagal: total produksi harus sama dengan jumlah OK dan NG")
+		}
+	}
+
 	// Penjagaan skema atomik menggunakan transaksi
 	tx := l.db.Begin()
 	if tx.Error != nil {
@@ -72,4 +80,9 @@ func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
 
 	// Semua berhasil, aplikasikan komit mutlak.
 	return tx.Commit().Error
+}
+
+// DaftarRiwayat mengembalikan daftar riwayat lembar periksa harian.
+func (l *layananKualitas) DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error) {
+	return l.repo.DaftarRiwayat(limit, offset, tanggalMulai, tanggalSelesai, zonaLini)
 }

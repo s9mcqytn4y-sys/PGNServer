@@ -36,6 +36,10 @@ Content-Type: application/json
     "nip": "2211019"
 }
 
+### 4.5 Logout Pengguna (Memerlukan JWT)
+POST {{baseUrl}}/otentikasi/keluar
+Authorization: Bearer {{token}}
+
 ### 5. Rekam Lembar Periksa (Memerlukan JWT)
 POST {{baseUrl}}/operasi/rekam_lembar_periksa
 Content-Type: application/json
@@ -49,7 +53,8 @@ Authorization: Bearer {{token}}
         {
             "unik_material_bom_id": 1,
             "jam_periksa": "08:00",
-            "kuantitas_diperiksa": 100,
+            "total_produksi": 100,
+            "kuantitas_ok": 98,
             "kuantitas_ng": 2,
             "kode_cacat": "A",
             "catatan": "Material cacat bentuk"
@@ -57,5 +62,31 @@ Authorization: Bearer {{token}}
     ]
 }
 
+### 5.5 Riwayat Lembar Periksa (Memerlukan JWT)
+GET {{baseUrl}}/operasi/riwayat_lembar_periksa?limit=5&offset=0
+Authorization: Bearer {{token}}
+
 ### 6. Analitik Metrik Pareto Bulanan
 GET {{baseUrl}}/analitik/metrik_pareto_bulanan?bulan=5&tahun=2026
+
+### 7. Unggah Media Material (Memerlukan JWT)
+POST {{baseUrl}}/materials/1/media
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="berkas"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 8. Pratinjau Media
+GET {{baseUrl}}/media/1/pratinjau
+
+### 9. Analitik Pareto Dinamis
+GET {{baseUrl}}/analitik/pareto?start_date=2026-05-17&end_date=2026-05-17&line=Lini 1
+
+### 10. Analitik Pelacakan Akar Masalah (BOM Tracing)
+GET {{baseUrl}}/analitik/lacak?kode_cacat=LAMINATING BOLONG&parent_sku=FG-002
+

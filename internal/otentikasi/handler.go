@@ -116,3 +116,16 @@ func (p *PenangananOtentikasi) TanganiLupaSandi(k *gin.Context) {
 
 	respon.Sukses(k, "Kata sandi berhasil diperbarui", nil)
 }
+
+// TanganiLogout mengatur proses keluar pengguna.
+// @Summary Akses Keluar
+// @Description Mengakhiri sesi pengguna (Client-side token drop)
+// @Tags Otentikasi
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Router /api/v1/otentikasi/keluar [post]
+func (p *PenangananOtentikasi) TanganiLogout(k *gin.Context) {
+	// Karena menggunakan JWT (stateless), logout dilakukan di klien dengan menghapus token.
+	// Kami memberikan konfirmasi sukses.
+	respon.Sukses(k, "Berhasil keluar. Silakan hapus token di sisi klien.", nil)
+}

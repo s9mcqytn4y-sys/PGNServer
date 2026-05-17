@@ -3,28 +3,29 @@ package kualitas
 
 import "time"
 
-// DTODetailInspeksi mendefinisikan detail inspeksi dalam JSON.
+// DTODetailInspeksi mendefinisikan detail inspeksi dalam JSON dengan struktur TPS.
 type DTODetailInspeksi struct {
-	UnikPartID      uint    `json:"unik_part_id" binding:"required"`
-	KodeCacat       string  `json:"kode_cacat" binding:"required"`
-	WaktuPergeseran string  `json:"waktu_pergeseran" binding:"required"`
-	RasioCacat      float64 `json:"rasio_cacat" binding:"gte=0"`
-	RasioTotalOK    float64 `json:"rasio_total_ok" binding:"gte=0"`
+	UnikPartID      uint    `json:"unikPartId,omitempty" binding:"required"`
+	KodeCacat       string  `json:"kodeCacat,omitempty" binding:"required"`
+	WaktuPergeseran string  `json:"waktuPergeseran,omitempty" binding:"required"` // Shift
+	TotalProduksi   float64 `json:"totalProduksi,omitempty" binding:"gte=0"`
+	RasioTotalOK    float64 `json:"rasioTotalOK,omitempty" binding:"gte=0"`
+	RasioCacat      float64 `json:"rasioCacat,omitempty" binding:"gte=0"` // NG
 }
 
 // DTOLembarPeriksaKirim adalah komposit majemuk payload masuk.
 type DTOLembarPeriksaKirim struct {
-	Tanggal            string              `json:"tanggal" binding:"required"`
-	ZonaLini           string              `json:"zona_lini" binding:"required"`
-	PenggunaIDTercatat uint                `json:"pengguna_id_tercatat" binding:"required"`
-	Detail             []DTODetailInspeksi `json:"detail" binding:"required,dive"`
+	Tanggal            string              `json:"tanggal,omitempty" binding:"required"`
+	ZonaLini           string              `json:"zonaLini,omitempty" binding:"required"`
+	PenggunaIDTercatat uint                `json:"penggunaIdTercatat,omitempty" binding:"required"`
+	Detail             []DTODetailInspeksi `json:"detail,omitempty" binding:"required,dive"`
 }
 
 // LembarPeriksa merepresentasikan data utama lembar inspeksi fisik QC.
 type LembarPeriksa struct {
 	ID                 uint      `gorm:"primaryKey;column:id"`
-	Tanggal            string    `gorm:"column:tanggal;type:date"`
-	ZonaLini           string    `gorm:"column:zona_lini"`
+	Tanggal            string    `gorm:"column:tanggal;type:date;index:idx_lembar_periksa_tanggal_lini,priority:1"`
+	ZonaLini           string    `gorm:"column:zona_lini;index:idx_lembar_periksa_tanggal_lini,priority:2"`
 	PenggunaIDTercatat uint      `gorm:"column:pengguna_id_tercatat"`
 	DibuatPada         time.Time `gorm:"autoCreateTime"`
 }
@@ -32,9 +33,9 @@ type LembarPeriksa struct {
 // DetailInspeksi merepresentasikan komponen rasio cacat harian.
 type DetailInspeksi struct {
 	ID              uint    `gorm:"primaryKey;column:id"`
-	LembarPeriksaID uint    `gorm:"column:lembar_periksa_id"`
-	UnikPartID      uint    `gorm:"column:unik_part_id"`
-	KodeCacat       string  `gorm:"column:kode_cacat"`
+	LembarPeriksaID uint    `gorm:"column:lembar_periksa_id;index:idx_detail_inspeksi_lookup,priority:1"`
+	UnikPartID      uint    `gorm:"column:unik_part_id;index:idx_detail_inspeksi_lookup,priority:2"`
+	KodeCacat       string  `gorm:"column:kode_cacat;index:idx_detail_inspeksi_lookup,priority:3"`
 	WaktuPergeseran string  `gorm:"column:waktu_pergeseran"`
 	RasioCacat      float64 `gorm:"column:rasio_cacat"`
 	RasioTotalOK    float64 `gorm:"column:rasio_total_ok"`

@@ -59,3 +59,38 @@ func PenjagaSesiJWT() gin.HandlerFunc {
 		k.Next()
 	}
 }
+
+// PenjagaRole bertindak sebagai authorization gatekeeper berbasis RBAC
+func PenjagaRole(rolesLolos ...string) gin.HandlerFunc {
+	return func(k *gin.Context) {
+		peranAktif, ada := k.Get("peran")
+		if !ada {
+			respon.Galat_TidakSah(k, "Unauthorized: Sesi tidak memiliki konteks role (Missing Context)")
+			k.Abort()
+			return
+		}
+
+		peranString, ok := peranAktif.(string)
+		if !ok {
+			respon.Galat_TidakSah(k, "Unauthorized: Role korup atau tidak terbaca")
+			k.Abort()
+			return
+		}
+
+		roleValid := false
+		for _, r := range rolesLolos {
+			if peranString == r {
+				roleValid = true
+				break
+			}
+		}
+
+		if !roleValid {
+			respon.Galat_Dilarang(k, "Forbidden: Role kamu saat ini tidak memiliki privilege untuk mengakses resource ini")
+			k.Abort()
+			return
+		}
+
+		k.Next()
+	}
+}

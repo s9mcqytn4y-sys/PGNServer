@@ -9,12 +9,15 @@ import (
 // RepositoriKualitas menyediakan lapisan operasi pangkalan data spesifik kualitas.
 type RepositoriKualitas interface {
 	SimpanLembarPeriksaMassal(dto *DTOLembarPeriksaKirim, tx *gorm.DB) error
+	DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error)
 }
 
-type repositoriKualitas struct{}
+type repositoriKualitas struct{
+	db *gorm.DB
+}
 
-func KonstruksiRepositoriBaru() RepositoriKualitas {
-	return &repositoriKualitas{}
+func KonstruksiRepositoriBaru(db *gorm.DB) RepositoriKualitas {
+	return &repositoriKualitas{db: db}
 }
 
 // SimpanLembarPeriksaMassal meniadakan pola N+1 rekursif ORM dan menggunakan SQL JSON_TABLE.
@@ -35,22 +38,37 @@ func (r *repositoriKualitas) SimpanLembarPeriksaMassal(dto *DTOLembarPeriksaKiri
 		return errJSON
 	}
 
-	// 3. Transmisi tunggal seketika memanfaatkan JSON_TABLE (Fitur Terobosan Postgres 17)
-	// Kita map secara spesifik path tiap variabel untuk penyisipan atomik.
+	// 3. Transmisi tunggal seketika memanfaatkan jsonb_to_recordset (Native PostgreSQL JSON)
+	// Kita map secara spesifik path tiap variabel untuk penyisipan atomik sesuai dengan nama JSON tag.
 	kueriSQL := `
 		INSERT INTO detail_inspeksis (lembar_periksa_id, unik_part_id, kode_cacat, waktu_pergeseran, rasio_cacat, rasio_total_ok)
-		SELECT ?, unik_part_id, kode_cacat, waktu_pergeseran, rasio_cacat, rasio_total_ok
-		FROM JSON_TABLE(
-			?::jsonb,
-			'$[*]' COLUMNS (
-				unik_part_id bigint PATH '$.unik_part_id',
-				kode_cacat text PATH '$.kode_cacat',
-				waktu_pergeseran text PATH '$.waktu_pergeseran',
-				rasio_cacat numeric PATH '$.rasio_cacat',
-				rasio_total_ok numeric PATH '$.rasio_total_ok'
-			)
+		SELECT ?, "unikPartId", "kodeCacat", "waktuPergeseran", "rasioCacat", "rasioTotalOK"
+		FROM jsonb_to_recordset(?::jsonb) AS x(
+			"unikPartId" bigint,
+			"kodeCacat" text,
+			"waktuPergeseran" text,
+			"rasioCacat" numeric,
+			"rasioTotalOK" numeric,
+			"totalProduksi" numeric
 		)
 	`
 	errEksekusi := tx.Exec(kueriSQL, lembar.ID, string(dataJSON)).Error
 	return errEksekusi
+}
+
+// DaftarRiwayat melakukan paginasi dan filter historis lembar periksa.
+func (r *repositoriKualitas) DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error) {
+	var riwayat []LembarPeriksa
+	
+	query := r.db.Model(&LembarPeriksa{})
+	
+	if tanggalMulai != "" && tanggalSelesai != "" {
+		query = query.Where("tanggal >= ? AND tanggal <= ?", tanggalMulai, tanggalSelesai)
+	}
+	if zonaLini != "" {
+		query = query.Where("zona_lini = ?", zonaLini)
+	}
+
+	err := query.Limit(limit).Offset(offset).Order("tanggal DESC").Find(&riwayat).Error
+	return riwayat, err
 }

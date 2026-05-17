@@ -24,6 +24,56 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/analitik/lacak": {
+            "get": {
+                "description": "Menelusuri defects produk hingga ke level bahan baku pembentuk \u0026 supplier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Lacak Akar Masalah Defect (BOM Tracing)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Kode Defect Cacat",
+                        "name": "kode_cacat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "SKU Produk Jadi (Finished Good)",
+                        "name": "parent_sku",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analitik/metrik_pareto_bulanan": {
             "get": {
                 "description": "Mengembalikan kalkulasi Pareto 80/20 per bulan menggunakan Window Function SQL",
@@ -36,7 +86,7 @@ const docTemplate = `{
                 "tags": [
                     "Analitik"
                 ],
-                "summary": "Dapatkan Metrik Pareto",
+                "summary": "Dapatkan Metrik Pareto Bulanan",
                 "parameters": [
                     {
                         "type": "integer",
@@ -55,19 +105,159 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analitik/pareto": {
+            "get": {
+                "description": "Mengembalikan kalkulasi Pareto 80/20 berdasarkan tanggal mulai, tanggal selesai, dan lini.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Pareto Dinamis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/materials/{id}/media": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan foto atau bukti cacat terkait suatu material",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Unggah Media Material",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Material",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Berkas gambar (JPG/PNG, Maks 5MB)",
+                        "name": "berkas",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/media/{id}/pratinjau": {
+            "get": {
+                "description": "Merender berkas media ke peramban",
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Pratinjau Media",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Media",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
                         }
                     }
                 }
@@ -98,7 +288,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_kualitas.DTOLembarPeriksaKirim"
+                            "$ref": "#/definitions/kualitas.DTOLembarPeriksaKirim"
                         }
                     }
                 ],
@@ -106,19 +296,82 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/operasi/riwayat_lembar_periksa": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan daftar historis lembar periksa dengan filter kalender",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kualitas"
+                ],
+                "summary": "Riwayat Lembar Periksa",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Batas jumlah data (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset paginasi (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter tanggal mulai (YYYY-MM-DD)",
+                        "name": "tanggal_mulai",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter tanggal selesai (YYYY-MM-DD)",
+                        "name": "tanggal_selesai",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter zona lini",
+                        "name": "zona_lini",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     }
                 }
@@ -144,7 +397,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanRegistrasi"
+                            "$ref": "#/definitions/otentikasi.DataPermintaanRegistrasi"
                         }
                     }
                 ],
@@ -152,19 +405,39 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/otentikasi/keluar": {
+            "post": {
+                "description": "Mengakhiri sesi pengguna (Client-side token drop)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Otentikasi"
+                ],
+                "summary": "Akses Keluar",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     }
                 }
@@ -190,7 +463,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanLupaSandi"
+                            "$ref": "#/definitions/otentikasi.DataPermintaanLupaSandi"
                         }
                     }
                 ],
@@ -198,7 +471,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     }
                 }
@@ -224,7 +497,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanLogin"
+                            "$ref": "#/definitions/otentikasi.DataPermintaanLogin"
                         }
                     }
                 ],
@@ -232,13 +505,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                            "$ref": "#/definitions/respon.ResponStandar"
                         }
                     }
                 }
@@ -246,60 +519,66 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_kualitas.DTODetailInspeksi": {
+        "kualitas.DTODetailInspeksi": {
             "type": "object",
             "required": [
-                "kode_cacat",
-                "unik_part_id",
-                "waktu_pergeseran"
+                "kodeCacat",
+                "unikPartId",
+                "waktuPergeseran"
             ],
             "properties": {
-                "kode_cacat": {
+                "kodeCacat": {
                     "type": "string"
                 },
-                "rasio_cacat": {
+                "rasioCacat": {
+                    "description": "NG",
                     "type": "number",
                     "minimum": 0
                 },
-                "rasio_total_ok": {
+                "rasioTotalOK": {
                     "type": "number",
                     "minimum": 0
                 },
-                "unik_part_id": {
+                "totalProduksi": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "unikPartId": {
                     "type": "integer"
                 },
-                "waktu_pergeseran": {
+                "waktuPergeseran": {
+                    "description": "Shift",
                     "type": "string"
                 }
             }
         },
-        "internal_kualitas.DTOLembarPeriksaKirim": {
+        "kualitas.DTOLembarPeriksaKirim": {
             "type": "object",
             "required": [
                 "detail",
-                "pengguna_id_tercatat",
+                "penggunaIdTercatat",
                 "tanggal",
-                "zona_lini"
+                "zonaLini"
             ],
             "properties": {
                 "detail": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/internal_kualitas.DTODetailInspeksi"
+                        "$ref": "#/definitions/kualitas.DTODetailInspeksi"
                     }
                 },
-                "pengguna_id_tercatat": {
+                "penggunaIdTercatat": {
                     "type": "integer"
                 },
                 "tanggal": {
                     "type": "string"
                 },
-                "zona_lini": {
+                "zonaLini": {
                     "type": "string"
                 }
             }
         },
-        "internal_otentikasi.DataPermintaanLogin": {
+        "otentikasi.DataPermintaanLogin": {
             "type": "object",
             "required": [
                 "sandi",
@@ -314,7 +593,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_otentikasi.DataPermintaanLupaSandi": {
+        "otentikasi.DataPermintaanLupaSandi": {
             "type": "object",
             "required": [
                 "sandiBaru",
@@ -330,7 +609,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_otentikasi.DataPermintaanRegistrasi": {
+        "otentikasi.DataPermintaanRegistrasi": {
             "type": "object",
             "required": [
                 "sandi",
@@ -349,15 +628,22 @@ const docTemplate = `{
                 }
             }
         },
-        "pgn-server_pkg_respon.ResponStandar": {
+        "respon.ResponStandar": {
             "type": "object",
             "properties": {
                 "data": {},
-                "pesan": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
                     "type": "string"
                 },
-                "sukses": {
-                    "type": "boolean"
+                "status": {
+                    "description": "\"success\" atau \"fail\" atau \"error\"",
+                    "type": "string"
                 }
             }
         }

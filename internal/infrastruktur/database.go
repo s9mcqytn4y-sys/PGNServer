@@ -7,6 +7,7 @@ import (
 	"pgn-server/internal/kualitas"
 	"pgn-server/internal/manufaktur"
 	"pgn-server/internal/otentikasi"
+	"pgn-server/internal/media"
 
 	"gorm.io/gorm"
 )
@@ -18,12 +19,14 @@ func PelaksanaanAutoMigrasi(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 		&otentikasi.Pengguna{},
+		&manufaktur.Customer{},
 		&manufaktur.Pemasok{},
 		&manufaktur.Material{},
 		&manufaktur.KomposisiMaterialBOM{},
 		&kualitas.LembarPeriksa{},
 		&kualitas.DetailInspeksi{},
 		&kualitas.BukuBesarCacat{},
+		&media.AsetDigital{},
 	)
 
 	if err != nil {

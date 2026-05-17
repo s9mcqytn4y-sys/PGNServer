@@ -19,6 +19,8 @@ import (
 	"pgn-server/internal/analitik"
 	"pgn-server/internal/infrastruktur"
 	"pgn-server/internal/kualitas"
+	"pgn-server/internal/manufaktur"
+	"pgn-server/internal/media"
 	"pgn-server/internal/otentikasi"
 	"pgn-server/pkg/respon"
 )
@@ -27,17 +29,17 @@ import (
 // @version 1.0
 // @description REST API untuk ekosistem manufaktur dan kontrol kualitas PGNServer.
 // @termsOfService http://swagger.io/terms/
-
+// 
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
 // @contact.email support@swagger.io
-
+// 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
+// 
 // @host localhost:8080
 // @BasePath /
-
+// 
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
@@ -88,20 +90,31 @@ func main() {
 		log.Fatalf("Gagal melaksanakan automigrasi: %v", errMigrasi)
 	}
 
+	// Menjalankan Seeder Manufaktur
+	errSeeder := manufaktur.JalankanSeeder(db)
+	if errSeeder != nil {
+		log.Printf("Gagal menjalankan seeder: %v", errSeeder)
+	}
+
 	// Setup Dependensi Otentikasi
 	repoOtentikasi := otentikasi.EkstraksiRepositoriBaru(db)
 	layananOtentikasi := otentikasi.KonstruksiLayananBaru(repoOtentikasi)
 	handlerOtentikasi := otentikasi.KonstruksiPenangananBaru(layananOtentikasi)
 
 	// Setup Dependensi Kualitas
-	repoKualitas := kualitas.KonstruksiRepositoriBaru()
+	repoKualitas := kualitas.KonstruksiRepositoriBaru(db)
 	layananKualitas := kualitas.KonstruksiLayananBaru(repoKualitas, db)
 	handlerKualitas := kualitas.KonstruksiPenangananBaru(layananKualitas)
 
 	// Setup Dependensi Analitik
 	repoAnalitik := analitik.KonstruksiRepositoriBaru(db)
-	layananAnalitik := analitik.KonstruksiLayananBaru(repoAnalitik)
+	layananAnalitik := analitik.KonstruksiLayananBaru(repoAnalitik, db)
 	handlerAnalitik := analitik.KonstruksiPenangananBaru(layananAnalitik)
+
+	// Setup Dependensi Media
+	repoMedia := media.KonstruksiRepositoriBaru(db)
+	layananMedia := media.KonstruksiLayananBaru(repoMedia, db)
+	handlerMedia := media.KonstruksiPenangananBaru(layananMedia)
 
 	// Konfigurasi layanan router web Gin
 	if os.Getenv("GIN_MODE") == "release" {
@@ -109,11 +122,10 @@ func main() {
 	}
 	rute := gin.Default()
 	rute.SetTrustedProxies(nil) // Mengamankan peringatan 'trusted all proxies'
-	
+
 	// Middleware Keamanan Global
 	rute.Use(infrastruktur.MiddlewarePenangkapPanic())
 	rute.Use(infrastruktur.MiddlewareRateLimiter(10, 20)) // 10 rps, 20 kapasitas
-
 
 	// Rute Publik untuk Swagger
 	rute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -137,6 +149,7 @@ func main() {
 			auth.POST("/daftar", handlerOtentikasi.TanganiRegistrasi)
 			auth.POST("/masuk", handlerOtentikasi.TanganiLogin)
 			auth.POST("/lupa-sandi", handlerOtentikasi.TanganiLupaSandi)
+			auth.POST("/keluar", handlerOtentikasi.TanganiLogout)
 		}
 
 		// Endpoint Operasi Internal (Perlu JWT)
@@ -144,6 +157,7 @@ func main() {
 		operasi.Use(infrastruktur.PenjagaSesiJWT())
 		{
 			operasi.POST("/rekam_lembar_periksa", handlerKualitas.TanganiRekamLembarPeriksa)
+			operasi.GET("/riwayat_lembar_periksa", handlerKualitas.TanganiDaftarRiwayat)
 		}
 
 		// Endpoint Analitik (Terbuka/JWT)
@@ -151,6 +165,20 @@ func main() {
 		// analitikGrup.Use(infrastruktur.PenjagaSesiJWT()) // Aktifkan jika analitik butuh JWT
 		{
 			analitikGrup.GET("/metrik_pareto_bulanan", handlerAnalitik.TanganiParetoBulanan)
+			analitikGrup.GET("/pareto", handlerAnalitik.TanganiPareto)
+			analitikGrup.GET("/lacak", handlerAnalitik.TanganiLacakAkarMasalah)
+		}
+
+		// Endpoint Media
+		mediaGrup := api.Group("/media")
+		{
+			mediaGrup.GET("/:id/pratinjau", handlerMedia.TanganiPratinjauMedia)
+		}
+
+		materialGrup := api.Group("/materials")
+		materialGrup.Use(infrastruktur.PenjagaSesiJWT())
+		{
+			materialGrup.POST("/:id/media", handlerMedia.TanganiUnggahMedia)
 		}
 	}
 
