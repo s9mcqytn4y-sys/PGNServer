@@ -41,5 +41,20 @@ Semua Agent berinteraksi dengan database `pgn_db` melalui **Model Context Protoc
 - **Connection:** `postgresql://admin:admin@localhost:5432/pgn_db`.
 - **Scope:** Read/Write access ke schema `public`.
 
+## 6. Kontrak Integrasi PGNServer (RESTful API & AQL)
+Klien `QControl` wajib menaati spesifikasi berikut saat berkomunikasi dengan server `PGNServer`:
+1. **Otentikasi**: Gunakan Bearer Token (`Authorization: Bearer <token>`) yang didapat dari `POST /api/v1/otentikasi/masuk`. NIP default Leader QC: `2211019`, Password: `admin`.
+2. **Master Data CRUD Endpoints**:
+   - Pemasok: `GET /api/v1/suppliers`
+   - Bahan Baku: `GET /api/v1/materials`
+   - Pelanggan: `GET /api/v1/customers`
+   - BOM Komposisi: `GET /api/v1/boms`
+3. **Kualitas & Lembar Periksa**:
+   - Tambah Lembar Periksa: `POST /api/v1/operasi/rekam_lembar_periksa` dengan header `X-Idempotency-Key` untuk menghindari duplikasi.
+   - Total produk harus presisi sesuai Hukum TPS: `TotalProduksi == KuantitasOK + KuantitasNG`.
+4. **Analitik Pareto**:
+   - endpoint `GET /api/v1/analitik/metrik_pareto_bulanan` menyajikan proporsi cacat teratas berbasis Window Functions PostgreSQL.
+5. **Secure Middleware**: Seluruh permintaan dari klien wajib mematuhi restriksi CORS dan secure HTTP headers yang disyaratkan oleh server. IP klien harus masuk dalam Whitelist yang dikonfigurasi.
+
 ---
 *Last Updated: 2026-05-17 | PGN Quality Assurance Dept.*

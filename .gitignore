@@ -35,3 +35,7 @@ tmp/
 # Docker Postgres Data & Backups
 docker/pgdata/
 docker/backups/*.sql
+
+# Penyimpanan Media / Uploads
+penyimpanan/
+

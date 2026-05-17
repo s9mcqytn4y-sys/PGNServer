@@ -2,6 +2,8 @@ package manufaktur
 
 import (
 	"errors"
+	"time"
+
 	"pgn-server/pkg/cache"
 )
 
@@ -100,7 +102,16 @@ func (l *layananManufaktur) CariPemasokID(id uint) (*Pemasok, error) {
 }
 
 func (l *layananManufaktur) AmbilSemuaPemasok() ([]Pemasok, error) {
-	return l.repo.DaftarPemasok()
+	cacheKey := "manufaktur_semua_pemasok"
+	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
+		return cachedVal.([]Pemasok), nil
+	}
+	res, err := l.repo.DaftarPemasok()
+	if err != nil {
+		return nil, err
+	}
+	cache.GlobalCache.Set(cacheKey, res, 15*time.Minute)
+	return res, nil
 }
 
 func (l *layananManufaktur) UbahPemasok(id uint, dto *DTOPemasokSimpan) (*Pemasok, error) {
@@ -163,7 +174,16 @@ func (l *layananManufaktur) CariMaterialID(id uint) (*Material, error) {
 }
 
 func (l *layananManufaktur) AmbilSemuaMaterial() ([]Material, error) {
-	return l.repo.DaftarMaterial()
+	cacheKey := "manufaktur_semua_material"
+	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
+		return cachedVal.([]Material), nil
+	}
+	res, err := l.repo.DaftarMaterial()
+	if err != nil {
+		return nil, err
+	}
+	cache.GlobalCache.Set(cacheKey, res, 15*time.Minute)
+	return res, nil
 }
 
 func (l *layananManufaktur) UbahMaterial(id uint, dto *DTOMaterialSimpan) (*Material, error) {
@@ -225,7 +245,16 @@ func (l *layananManufaktur) CariCustomerID(id uint) (*Customer, error) {
 }
 
 func (l *layananManufaktur) AmbilSemuaCustomer() ([]Customer, error) {
-	return l.repo.DaftarCustomer()
+	cacheKey := "manufaktur_semua_customer"
+	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
+		return cachedVal.([]Customer), nil
+	}
+	res, err := l.repo.DaftarCustomer()
+	if err != nil {
+		return nil, err
+	}
+	cache.GlobalCache.Set(cacheKey, res, 15*time.Minute)
+	return res, nil
 }
 
 func (l *layananManufaktur) UbahCustomer(id uint, dto *DTOCustomerSimpan) (*Customer, error) {
@@ -291,7 +320,16 @@ func (l *layananManufaktur) CariBOMID(id uint) (*KomposisiMaterialBOM, error) {
 }
 
 func (l *layananManufaktur) AmbilSemuaBOM() ([]KomposisiMaterialBOM, error) {
-	return l.repo.DaftarBOM()
+	cacheKey := "manufaktur_semua_bom"
+	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
+		return cachedVal.([]KomposisiMaterialBOM), nil
+	}
+	res, err := l.repo.DaftarBOM()
+	if err != nil {
+		return nil, err
+	}
+	cache.GlobalCache.Set(cacheKey, res, 15*time.Minute)
+	return res, nil
 }
 
 func (l *layananManufaktur) UbahBOM(id uint, dto *DTOBOMSimpan) (*KomposisiMaterialBOM, error) {
