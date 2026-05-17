@@ -17,8 +17,16 @@ type DTODetailInspeksi struct {
 type DTOLembarPeriksaKirim struct {
 	Tanggal            string              `json:"tanggal" example:"2026-05-17T00:00:00Z" binding:"required"` // Tanggal pemeriksaan (format ISO 8601)
 	ZonaLini           string              `json:"zonaLini" example:"Lini 1" binding:"required"`              // Zona atau Lini produksi tempat inspeksi
+	Shift              string              `json:"shift,omitempty" example:"NORMAL"`                          // Shift kerja (hanya NORMAL yang didukung)
 	PenggunaIDTercatat uint                `json:"penggunaIdTercatat" example:"1" binding:"required"`         // ID pengguna/staf QC yang merekam data
 	Detail             []DTODetailInspeksi `json:"detail" binding:"required,dive"`                            // Himpunan baris rincian inspeksi part
+}
+
+// OpsiLembarPeriksaDto mendefinisikan opsi dinamis untuk pengisian lembar periksa.
+type OpsiLembarPeriksaDto struct {
+	Shifts    []string `json:"shifts"`
+	ZonaLini  []string `json:"zonaLini"`
+	TimeSlots []string `json:"timeSlots"`
 }
 
 // LembarPeriksa merepresentasikan data utama lembar inspeksi fisik QC.

@@ -61,7 +61,7 @@ func TestRekamLembarPeriksa_ValidasiTPS_Gagal(t *testing.T) {
 			{
 				UnikPartID:      1,
 				KodeCacat:       "LAMINATING BOLONG",
-				WaktuPergeseran: "Shift-1",
+				WaktuPergeseran: "08:00-12:00",
 				TotalProduksi:   100,
 				RasioTotalOK:    80,
 				RasioCacat:      10,
@@ -73,7 +73,7 @@ func TestRekamLembarPeriksa_ValidasiTPS_Gagal(t *testing.T) {
 
 	// Validasi gerbang TPS wajib gagal & return error spesifik sebelum menyentuh DB/Transaksi
 	assert.Error(t, err)
-	assert.Equal(t, "validasi_tps_gagal: total produksi harus sama dengan jumlah OK dan NG", err.Error())
+	assert.Equal(t, "validasi_tps_gagal: total produksi harus presisi sama dengan jumlah OK dan NG", err.Error())
 	mockRepo.AssertNotCalled(t, "SimpanLembarPeriksaMassal", mock.Anything, mock.Anything)
 	assert.NoError(t, sMock.ExpectationsWereMet())
 }
@@ -92,7 +92,7 @@ func TestRekamLembarPeriksa_ValidasiTPS_Sukses(t *testing.T) {
 			{
 				UnikPartID:      1,
 				KodeCacat:       "LAMINATING BOLONG",
-				WaktuPergeseran: "Shift-1",
+				WaktuPergeseran: "08:00-12:00",
 				TotalProduksi:   100,
 				RasioTotalOK:    100,
 				RasioCacat:      0,
@@ -128,7 +128,7 @@ func TestRekamLembarPeriksa_SimpanGagal_Rollback(t *testing.T) {
 			{
 				UnikPartID:      1,
 				KodeCacat:       "LAMINATING BOLONG",
-				WaktuPergeseran: "Shift-1",
+				WaktuPergeseran: "08:00-12:00",
 				TotalProduksi:   100,
 				RasioTotalOK:    95,
 				RasioCacat:      5,

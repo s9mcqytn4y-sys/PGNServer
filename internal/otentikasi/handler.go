@@ -256,8 +256,8 @@ func (p *PenangananOtentikasi) TanganiProfil(k *gin.Context) {
 		"dibuatPada": pengguna.DibuatPada,
 		"diubahPada": pengguna.DiubahPada,
 		// Legacy fields untuk retro-kompatibilitas
-		"email":      pengguna.SurelKredensial,
-		"role":       pengguna.PeranOtorisasi,
-		"fullName":   namaLengkap,
+		"email":    pengguna.SurelKredensial,
+		"role":     pengguna.PeranOtorisasi,
+		"fullName": namaLengkap,
 	})
 }

@@ -5,7 +5,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"pgn-server/pkg/cache"
 	"pgn-server/pkg/respon"
+	"time"
 )
 
 // PenangananKualitas menjadi garda depan validasi pintu masuk.
@@ -32,6 +34,15 @@ func KonstruksiPenangananBaru(layanan LayananKualitas) *PenangananKualitas {
 func (p *PenangananKualitas) TanganiRekamLembarPeriksa(k *gin.Context) {
 	var dto DTOLembarPeriksaKirim
 
+	// Cek Idempotency Key
+	idempotencyKey := k.GetHeader("X-Idempotency-Key")
+	if idempotencyKey != "" {
+		if _, found := cache.GlobalCache.Get("idemp_" + idempotencyKey); found {
+			respon.Galat_Validasi(k, "Pencatatan duplikat ditolak: permintaan telah diproses", nil)
+			return
+		}
+	}
+
 	// Tangkap eksepsi bila permohonan antarmuka terdistorsi
 	if err := k.ShouldBindJSON(&dto); err != nil {
 		respon.Galat_Validasi(k, "Struktur laporan inspeksi cacat tidak lengkap: "+err.Error(), nil)
@@ -40,8 +51,13 @@ func (p *PenangananKualitas) TanganiRekamLembarPeriksa(k *gin.Context) {
 
 	errProses := p.layanan.RekamLembarPeriksa(&dto)
 	if errProses != nil {
-		respon.Galat_Server(k, "Gagal mencatat transmisi himpunan Lembar Periksa ke pangkalan data.", errProses)
+		respon.Galat_Server(k, "Gagal mencatat transmisi himpunan Lembar Periksa ke pangkalan data: "+errProses.Error(), errProses)
 		return
+	}
+
+	// Simpan key untuk mencegah duplikasi (misalnya selama 24 jam)
+	if idempotencyKey != "" {
+		cache.GlobalCache.Set("idemp_"+idempotencyKey, true, 24*time.Hour)
 	}
 
 	respon.Sukses(k, "Data lembar periksa harian berhasil direkam.", nil)
@@ -72,6 +88,9 @@ func (p *PenangananKualitas) TanganiDaftarRiwayat(k *gin.Context) {
 	if errL != nil {
 		limit = 10
 	}
+	if limit > 100 {
+		limit = 100
+	}
 	offset, errO := strconv.Atoi(offsetStr)
 	if errO != nil {
 		offset = 0
@@ -84,4 +103,17 @@ func (p *PenangananKualitas) TanganiDaftarRiwayat(k *gin.Context) {
 	}
 
 	respon.Sukses(k, "Berhasil memuat riwayat lembar periksa.", riwayat)
+}
+
+// TanganiOpsiLembarPeriksa mengembalikan konfigurasi statis UI.
+// @Summary Opsi Lembar Periksa
+// @Description Mengembalikan opsi dinamis untuk UI lembar periksa
+// @Tags Kualitas
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} respon.ResponStandar
+// @Router /api/v1/operasi/lembar_periksa/options [get]
+func (p *PenangananKualitas) TanganiOpsiLembarPeriksa(k *gin.Context) {
+	opsi := p.layanan.AmbilOpsiLembarPeriksa()
+	respon.Sukses(k, "Berhasil memuat opsi lembar periksa.", opsi)
 }

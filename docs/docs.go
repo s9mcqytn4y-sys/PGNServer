@@ -24,6 +24,82 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/analitik/histogram_defect": {
+            "get": {
+                "description": "Mengembalikan frekuensi defect yang dikelompokkan berdasarkan parameter tertentu.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Histogram Defect",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Grup (waktu | tanggal | kode_cacat)",
+                        "name": "group_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analitik.DTOHistogramDefect"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analitik/lacak": {
             "get": {
                 "description": "Menelusuri defects produk hingga ke level bahan baku pembentuk \u0026 supplier",
@@ -161,6 +237,292 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analitik/ringkasan_ng": {
+            "get": {
+                "description": "Mengembalikan ringkasan produksi dan defect (Total Produksi, OK, Defect, Rasio NG).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Ringkasan NG",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/analitik.DTORingkasanNG"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analitik/sinyal_kualitas": {
+            "get": {
+                "description": "Mengembalikan sinyal peringatan kualitas (KRITIS, WASPADA, STABIL) berdasarkan batas toleransi.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Sinyal Kualitas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/analitik.DTOSinyalKualitas"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analitik/stratifikasi_defect": {
+            "get": {
+                "description": "Mengembalikan stratifikasi defect (contoh: berdasarkan kode_cacat).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Stratifikasi Defect",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Cacat Spesifik",
+                        "name": "kode_cacat",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analitik.DTOStratifikasiDefect"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analitik/trend_defect": {
+            "get": {
+                "description": "Mengembalikan tren defect berdasarkan periode.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Trend Defect",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Periode (harian | mingguan | bulanan)",
+                        "name": "periode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/analitik.DTOTrendDefect"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1306,6 +1668,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/operasi/lembar_periksa/options": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan opsi dinamis untuk UI lembar periksa",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kualitas"
+                ],
+                "summary": "Opsi Lembar Periksa",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/operasi/rekam_lembar_periksa": {
             "post": {
                 "security": [
@@ -1932,6 +2319,106 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "analitik.DTOHistogramDefect": {
+            "type": "object",
+            "properties": {
+                "jumlah": {
+                    "description": "Frekuensi/jumlah defect pada kategori tersebut",
+                    "type": "number",
+                    "example": 15
+                },
+                "kategori": {
+                    "description": "Kategori grouping (contoh: slot waktu, tanggal, kode)",
+                    "type": "string",
+                    "example": "08:00-12:00"
+                }
+            }
+        },
+        "analitik.DTORingkasanNG": {
+            "type": "object",
+            "properties": {
+                "jumlah_hari": {
+                    "description": "Jumlah hari aktif produksi",
+                    "type": "integer",
+                    "example": 5
+                },
+                "rasio_ng": {
+                    "description": "Persentase NG (%)",
+                    "type": "number",
+                    "example": 5
+                },
+                "total_defect": {
+                    "description": "Total barang NG (Reject)",
+                    "type": "number",
+                    "example": 50
+                },
+                "total_ok": {
+                    "description": "Total barang OK (Lolos QC)",
+                    "type": "number",
+                    "example": 950
+                },
+                "total_produksi": {
+                    "description": "Total barang diproduksi",
+                    "type": "number",
+                    "example": 1000
+                }
+            }
+        },
+        "analitik.DTOSinyalKualitas": {
+            "type": "object",
+            "properties": {
+                "alasan": {
+                    "description": "Penjelasan status",
+                    "type": "string",
+                    "example": "Rasio NG di bawah 2%"
+                },
+                "indikator": {
+                    "description": "Metrik utama yang diukur (contoh: rasio NG)",
+                    "type": "number",
+                    "example": 1.5
+                },
+                "status": {
+                    "description": "KRITIS, WASPADA, atau STABIL",
+                    "type": "string",
+                    "example": "STABIL"
+                }
+            }
+        },
+        "analitik.DTOStratifikasiDefect": {
+            "type": "object",
+            "properties": {
+                "dimensi": {
+                    "description": "Dasar stratifikasi",
+                    "type": "string",
+                    "example": "kode_cacat"
+                },
+                "jumlah": {
+                    "description": "Jumlah defect",
+                    "type": "number",
+                    "example": 35
+                },
+                "kategori": {
+                    "description": "Nilai kategori stratifikasi",
+                    "type": "string",
+                    "example": "A"
+                }
+            }
+        },
+        "analitik.DTOTrendDefect": {
+            "type": "object",
+            "properties": {
+                "jumlah_defect": {
+                    "description": "Frekuensi defect",
+                    "type": "number",
+                    "example": 12
+                },
+                "periode": {
+                    "description": "Waktu periode (harian, mingguan, bulanan)",
+                    "type": "string",
+                    "example": "2026-05-01"
+                }
+            }
+        },
         "kualitas.DTODetailInspeksi": {
             "type": "object",
             "required": [
@@ -1995,6 +2482,11 @@ const docTemplate = `{
                     "description": "ID pengguna/staf QC yang merekam data",
                     "type": "integer",
                     "example": 1
+                },
+                "shift": {
+                    "description": "Shift kerja (hanya NORMAL yang didukung)",
+                    "type": "string",
+                    "example": "NORMAL"
                 },
                 "tanggal": {
                     "description": "Tanggal pemeriksaan (format ISO 8601)",

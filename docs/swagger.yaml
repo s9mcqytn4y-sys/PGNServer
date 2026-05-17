@@ -1,5 +1,80 @@
 basePath: /
 definitions:
+  analitik.DTOHistogramDefect:
+    properties:
+      jumlah:
+        description: Frekuensi/jumlah defect pada kategori tersebut
+        example: 15
+        type: number
+      kategori:
+        description: 'Kategori grouping (contoh: slot waktu, tanggal, kode)'
+        example: 08:00-12:00
+        type: string
+    type: object
+  analitik.DTORingkasanNG:
+    properties:
+      jumlah_hari:
+        description: Jumlah hari aktif produksi
+        example: 5
+        type: integer
+      rasio_ng:
+        description: Persentase NG (%)
+        example: 5
+        type: number
+      total_defect:
+        description: Total barang NG (Reject)
+        example: 50
+        type: number
+      total_ok:
+        description: Total barang OK (Lolos QC)
+        example: 950
+        type: number
+      total_produksi:
+        description: Total barang diproduksi
+        example: 1000
+        type: number
+    type: object
+  analitik.DTOSinyalKualitas:
+    properties:
+      alasan:
+        description: Penjelasan status
+        example: Rasio NG di bawah 2%
+        type: string
+      indikator:
+        description: 'Metrik utama yang diukur (contoh: rasio NG)'
+        example: 1.5
+        type: number
+      status:
+        description: KRITIS, WASPADA, atau STABIL
+        example: STABIL
+        type: string
+    type: object
+  analitik.DTOStratifikasiDefect:
+    properties:
+      dimensi:
+        description: Dasar stratifikasi
+        example: kode_cacat
+        type: string
+      jumlah:
+        description: Jumlah defect
+        example: 35
+        type: number
+      kategori:
+        description: Nilai kategori stratifikasi
+        example: A
+        type: string
+    type: object
+  analitik.DTOTrendDefect:
+    properties:
+      jumlah_defect:
+        description: Frekuensi defect
+        example: 12
+        type: number
+      periode:
+        description: Waktu periode (harian, mingguan, bulanan)
+        example: "2026-05-01"
+        type: string
+    type: object
   kualitas.DTODetailInspeksi:
     properties:
       kodeCacat:
@@ -45,6 +120,10 @@ definitions:
         description: ID pengguna/staf QC yang merekam data
         example: 1
         type: integer
+      shift:
+        description: Shift kerja (hanya NORMAL yang didukung)
+        example: NORMAL
+        type: string
       tanggal:
         description: Tanggal pemeriksaan (format ISO 8601)
         example: "2026-05-17T00:00:00Z"
@@ -458,6 +537,54 @@ info:
   title: PGNServer API
   version: "1.0"
 paths:
+  /api/v1/analitik/histogram_defect:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan frekuensi defect yang dikelompokkan berdasarkan parameter
+        tertentu.
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      - description: Grup (waktu | tanggal | kode_cacat)
+        in: query
+        name: group_by
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analitik.DTOHistogramDefect'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Histogram Defect
+      tags:
+      - Analitik
   /api/v1/analitik/lacak:
     get:
       consumes:
@@ -560,6 +687,184 @@ paths:
           schema:
             $ref: '#/definitions/respon.ResponStandar'
       summary: Dapatkan Pareto Dinamis
+      tags:
+      - Analitik
+  /api/v1/analitik/ringkasan_ng:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan ringkasan produksi dan defect (Total Produksi, OK,
+        Defect, Rasio NG).
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/analitik.DTORingkasanNG'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Ringkasan NG
+      tags:
+      - Analitik
+  /api/v1/analitik/sinyal_kualitas:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan sinyal peringatan kualitas (KRITIS, WASPADA, STABIL)
+        berdasarkan batas toleransi.
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/analitik.DTOSinyalKualitas'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Sinyal Kualitas
+      tags:
+      - Analitik
+  /api/v1/analitik/stratifikasi_defect:
+    get:
+      consumes:
+      - application/json
+      description: 'Mengembalikan stratifikasi defect (contoh: berdasarkan kode_cacat).'
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      - description: Kode Cacat Spesifik
+        in: query
+        name: kode_cacat
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analitik.DTOStratifikasiDefect'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Stratifikasi Defect
+      tags:
+      - Analitik
+  /api/v1/analitik/trend_defect:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan tren defect berdasarkan periode.
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      - description: Periode (harian | mingguan | bulanan)
+        in: query
+        name: periode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/analitik.DTOTrendDefect'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Trend Defect
       tags:
       - Analitik
   /api/v1/boms:
@@ -1249,6 +1554,21 @@ paths:
       summary: Pratinjau Media
       tags:
       - Media
+  /api/v1/operasi/lembar_periksa/options:
+    get:
+      description: Mengembalikan opsi dinamis untuk UI lembar periksa
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Opsi Lembar Periksa
+      tags:
+      - Kualitas
   /api/v1/operasi/rekam_lembar_periksa:
     post:
       consumes:

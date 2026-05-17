@@ -21,3 +21,38 @@ type DTOLacakAkarMasalah struct {
 	KuantitasBOM               float64 `json:"kuantitas_bom" example:"0.12"`                      // Proporsi pemakaian bahan baku dalam BOM
 	CircularDependencyDetected bool    `json:"circular_dependency_detected" example:"false"`      // Status deteksi dependensi melingkar dalam BOM
 }
+
+// DTORingkasanNG mewakili ringkasan metrik kualitas (OK vs NG).
+type DTORingkasanNG struct {
+	TotalProduksi float64 `json:"total_produksi" example:"1000"` // Total barang diproduksi
+	TotalOK       float64 `json:"total_ok" example:"950"`        // Total barang OK (Lolos QC)
+	TotalDefect   float64 `json:"total_defect" example:"50"`     // Total barang NG (Reject)
+	RasioNG       float64 `json:"rasio_ng" example:"5.0"`        // Persentase NG (%)
+	JumlahHari    int     `json:"jumlah_hari" example:"5"`       // Jumlah hari aktif produksi
+}
+
+// DTOHistogramDefect mewakili frekuensi defect berdasarkan grup tertentu.
+type DTOHistogramDefect struct {
+	Kategori string  `json:"kategori" example:"08:00-12:00"` // Kategori grouping (contoh: slot waktu, tanggal, kode)
+	Jumlah   float64 `json:"jumlah" example:"15"`            // Frekuensi/jumlah defect pada kategori tersebut
+}
+
+// DTOTrendDefect mewakili data deret waktu untuk run chart.
+type DTOTrendDefect struct {
+	Periode      string  `json:"periode" example:"2026-05-01"` // Waktu periode (harian, mingguan, bulanan)
+	JumlahDefect float64 `json:"jumlah_defect" example:"12"`   // Frekuensi defect
+}
+
+// DTOStratifikasiDefect mewakili pemilahan data defect ke dalam sub-kategori.
+type DTOStratifikasiDefect struct {
+	Dimensi  string  `json:"dimensi" example:"kode_cacat"` // Dasar stratifikasi
+	Kategori string  `json:"kategori" example:"A"`         // Nilai kategori stratifikasi
+	Jumlah   float64 `json:"jumlah" example:"35"`          // Jumlah defect
+}
+
+// DTOSinyalKualitas mewakili status kendali (Control Signal).
+type DTOSinyalKualitas struct {
+	Status    string  `json:"status" example:"STABIL"`               // KRITIS, WASPADA, atau STABIL
+	Alasan    string  `json:"alasan" example:"Rasio NG di bawah 2%"` // Penjelasan status
+	Indikator float64 `json:"indikator" example:"1.5"`               // Metrik utama yang diukur (contoh: rasio NG)
+}

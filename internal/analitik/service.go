@@ -44,6 +44,11 @@ type LayananAnalitik interface {
 	DapatkanParetoBulanan(k *gin.Context, bulan, tahun int) ([]DTOParetoMetrik, error)
 	DapatkanPareto(k *gin.Context, tanggalMulai, tanggalSelesai string, zonaLini string) ([]DTOParetoMetrik, error)
 	LacakAkarMasalah(k *gin.Context, kodeCacat string, parentSKU string) ([]DTOLacakAkarMasalah, error)
+	DapatkanRingkasanNG(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini string) (*DTORingkasanNG, error)
+	DapatkanHistogramDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, groupBy string) ([]DTOHistogramDefect, error)
+	DapatkanTrendDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, periode string) ([]DTOTrendDefect, error)
+	DapatkanStratifikasiDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat string) ([]DTOStratifikasiDefect, error)
+	DapatkanSinyalKualitas(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini string) (*DTOSinyalKualitas, error)
 }
 
 type layananAnalitik struct {
@@ -285,4 +290,64 @@ func (l *layananAnalitik) LacakAkarMasalah(k *gin.Context, kodeCacat string, par
 		kodeCacat, time.Since(waktuMulai), len(parents), hitRatio, totalCacheHit, totalCacheMiss)
 
 	return hasil, nil
+}
+
+func parseTanggalDefault(start, end string) (string, string) {
+	if start == "" && end == "" {
+		sekarang := time.Now()
+		start = time.Date(sekarang.Year(), sekarang.Month(), 1, 0, 0, 0, 0, sekarang.Location()).Format("2006-01-02")
+		end = sekarang.Format("2006-01-02")
+	}
+	return start, end
+}
+
+func (l *layananAnalitik) DapatkanRingkasanNG(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini string) (*DTORingkasanNG, error) {
+	tanggalMulai, tanggalSelesai = parseTanggalDefault(tanggalMulai, tanggalSelesai)
+	return l.repo.DapatkanRingkasanNG(tanggalMulai, tanggalSelesai, zonaLini)
+}
+
+func (l *layananAnalitik) DapatkanHistogramDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, groupBy string) ([]DTOHistogramDefect, error) {
+	tanggalMulai, tanggalSelesai = parseTanggalDefault(tanggalMulai, tanggalSelesai)
+	if groupBy == "" {
+		groupBy = "waktu" // default
+	}
+	return l.repo.DapatkanHistogramDefect(tanggalMulai, tanggalSelesai, zonaLini, groupBy)
+}
+
+func (l *layananAnalitik) DapatkanTrendDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, periode string) ([]DTOTrendDefect, error) {
+	tanggalMulai, tanggalSelesai = parseTanggalDefault(tanggalMulai, tanggalSelesai)
+	if periode == "" {
+		periode = "harian" // default
+	}
+	return l.repo.DapatkanTrendDefect(tanggalMulai, tanggalSelesai, zonaLini, periode)
+}
+
+func (l *layananAnalitik) DapatkanStratifikasiDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat string) ([]DTOStratifikasiDefect, error) {
+	tanggalMulai, tanggalSelesai = parseTanggalDefault(tanggalMulai, tanggalSelesai)
+	return l.repo.DapatkanStratifikasiDefect(tanggalMulai, tanggalSelesai, zonaLini, kodeCacat)
+}
+
+func (l *layananAnalitik) DapatkanSinyalKualitas(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini string) (*DTOSinyalKualitas, error) {
+	tanggalMulai, tanggalSelesai = parseTanggalDefault(tanggalMulai, tanggalSelesai)
+	ringkasan, err := l.repo.DapatkanRingkasanNG(tanggalMulai, tanggalSelesai, zonaLini)
+	if err != nil {
+		return nil, err
+	}
+
+	sinyal := &DTOSinyalKualitas{
+		Indikator: ringkasan.RasioNG,
+	}
+
+	if ringkasan.RasioNG >= 5.0 {
+		sinyal.Status = "KRITIS"
+		sinyal.Alasan = fmt.Sprintf("Rasio defect sangat tinggi mencapai %.2f%%, segera lakukan tindakan korektif menyeluruh.", ringkasan.RasioNG)
+	} else if ringkasan.RasioNG >= 2.0 {
+		sinyal.Status = "WASPADA"
+		sinyal.Alasan = fmt.Sprintf("Rasio defect berada di tingkat waspada (%.2f%%). Monitoring intensif diperlukan.", ringkasan.RasioNG)
+	} else {
+		sinyal.Status = "STABIL"
+		sinyal.Alasan = fmt.Sprintf("Rasio defect terkendali (%.2f%%) dan berada dalam standar toleransi.", ringkasan.RasioNG)
+	}
+
+	return sinyal, nil
 }

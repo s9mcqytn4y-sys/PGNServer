@@ -13,6 +13,7 @@ import (
 type LayananKualitas interface {
 	RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error
 	DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error)
+	AmbilOpsiLembarPeriksa() OpsiLembarPeriksaDto
 }
 
 type layananKualitas struct {
@@ -26,10 +27,43 @@ func KonstruksiLayananBaru(repo RepositoriKualitas, db *gorm.DB) LayananKualitas
 
 // RekamLembarPeriksa mengatur arus logika bisnis pencatatan inspeksi fisik.
 func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
-	// Validasi TPS: Total Produksi == OK + NG
+	// Validasi Shift (harus NORMAL atau kosong yang dianggap NORMAL)
+	if dto.Shift != "" && dto.Shift != "NORMAL" && dto.Shift != "normal" {
+		return errors.New("validasi_gagal: hanya shift NORMAL yang didukung oleh sistem")
+	}
+
+	// Validasi Tanggal
+	if dto.Tanggal == "" {
+		return errors.New("validasi_gagal: tanggal tidak boleh kosong")
+	}
+
+	// Validasi Zona Lini
+	if dto.ZonaLini == "" {
+		return errors.New("validasi_gagal: zona lini tidak boleh kosong")
+	}
+
+	// Daftar valid time slots sesuai standar PGN
+	validTimeSlots := map[string]bool{
+		"08:00-12:00":   true,
+		"13:00-15:30":   true,
+		"16:00-17:30":   true,
+		"18:30-selesai": true,
+	}
+
+	// Validasi TPS: Total Produksi == OK + NG dan cek rentang waktu
+	if len(dto.Detail) == 0 {
+		return errors.New("validasi_gagal: detail inspeksi tidak boleh kosong")
+	}
+
 	for _, d := range dto.Detail {
+		if d.TotalProduksi < 0 || d.RasioTotalOK < 0 || d.RasioCacat < 0 {
+			return errors.New("validasi_gagal: nilai produksi dan cacat tidak boleh negatif")
+		}
 		if d.TotalProduksi != (d.RasioTotalOK + d.RasioCacat) {
-			return errors.New("validasi_tps_gagal: total produksi harus sama dengan jumlah OK dan NG")
+			return errors.New("validasi_tps_gagal: total produksi harus presisi sama dengan jumlah OK dan NG")
+		}
+		if !validTimeSlots[d.WaktuPergeseran] {
+			return errors.New("validasi_gagal: waktu pergeseran (time slot) tidak valid")
 		}
 	}
 
@@ -79,4 +113,20 @@ func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
 // DaftarRiwayat mengembalikan daftar riwayat lembar periksa harian.
 func (l *layananKualitas) DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error) {
 	return l.repo.DaftarRiwayat(limit, offset, tanggalMulai, tanggalSelesai, zonaLini)
+}
+
+// AmbilOpsiLembarPeriksa mengembalikan daftar konfigurasi statis untuk pengisian QC.
+func (l *layananKualitas) AmbilOpsiLembarPeriksa() OpsiLembarPeriksaDto {
+	return OpsiLembarPeriksaDto{
+		Shifts: []string{"NORMAL"},
+		ZonaLini: []string{
+			"Lini 1", "Lini 2", "Lini 3", "Lini 4",
+		},
+		TimeSlots: []string{
+			"08:00-12:00",
+			"13:00-15:30",
+			"16:00-17:30",
+			"18:30-selesai",
+		},
+	}
 }

@@ -64,7 +64,6 @@ func SuksesDenganMetadata(k *gin.Context, pesan string, data interface{}, metada
 	})
 }
 
-
 // Galat_Server mengembalikan format respons untuk kesalahan internal server (ramah-antarmuka).
 // Stack trace error sesungguhnya HANYA di-log di sisi backend (tidak bocor ke klien).
 func Galat_Server(k *gin.Context, pesan string, err error) {
@@ -218,4 +217,3 @@ func Galat_TerlaluBanyakPermintaan(k *gin.Context, pesan string) {
 		"errors":  []string{pesan},
 	})
 }
-

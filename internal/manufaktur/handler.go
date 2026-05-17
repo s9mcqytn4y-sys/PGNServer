@@ -647,4 +647,3 @@ func (p *PenangananManufaktur) TanganiSnapshotMasterData(k *gin.Context) {
 
 	respon.SuksesDenganMetadata(k, "Snapshot master data berhasil diambil", snapshot, metadata)
 }
-

@@ -82,7 +82,7 @@ type SlotWaktuSnapshotDto struct {
 	JamMulai     *string `json:"jamMulai"`
 	JamSelesai   *string `json:"jamSelesai"`
 	Aktif        bool    `json:"aktif"`
-	UrutanTampil int    `json:"urutanTampil"`
+	UrutanTampil int     `json:"urutanTampil"`
 }
 
 // MaterialSnapshotDto merepresentasikan DTO material untuk snapshot.
@@ -165,4 +165,3 @@ type MetadataSnapshotDto struct {
 	JumlahRelasiPartDefect int `json:"jumlahRelasiPartDefect"`
 	JumlahShiftOperasional int `json:"jumlahShiftOperasional"`
 }
-

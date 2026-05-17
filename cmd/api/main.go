@@ -181,6 +181,7 @@ func main() {
 		{
 			operasi.POST("/rekam_lembar_periksa", handlerKualitas.TanganiRekamLembarPeriksa)
 			operasi.GET("/riwayat_lembar_periksa", handlerKualitas.TanganiDaftarRiwayat)
+			operasi.GET("/lembar_periksa/options", handlerKualitas.TanganiOpsiLembarPeriksa)
 		}
 
 		// Endpoint Analitik (Terbuka/JWT)
@@ -190,6 +191,11 @@ func main() {
 			analitikGrup.GET("/metrik_pareto_bulanan", handlerAnalitik.TanganiParetoBulanan)
 			analitikGrup.GET("/pareto", handlerAnalitik.TanganiPareto)
 			analitikGrup.GET("/lacak", handlerAnalitik.TanganiLacakAkarMasalah)
+			analitikGrup.GET("/ringkasan_ng", handlerAnalitik.TanganiRingkasanNG)
+			analitikGrup.GET("/histogram_defect", handlerAnalitik.TanganiHistogramDefect)
+			analitikGrup.GET("/trend_defect", handlerAnalitik.TanganiTrendDefect)
+			analitikGrup.GET("/stratifikasi_defect", handlerAnalitik.TanganiStratifikasiDefect)
+			analitikGrup.GET("/sinyal_kualitas", handlerAnalitik.TanganiSinyalKualitas)
 		}
 
 		// Endpoint Media

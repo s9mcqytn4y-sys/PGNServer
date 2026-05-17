@@ -183,4 +183,3 @@ func (r *repositoriManufaktur) AmbilSnapshotMasterData() ([]Material, error) {
 	}
 	return list, nil
 }
-

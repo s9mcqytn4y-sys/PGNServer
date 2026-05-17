@@ -417,4 +417,3 @@ func (l *layananManufaktur) AmbilSnapshotMasterData() (*MasterDataSnapshotDto, *
 
 	return snapshot, metadata, nil
 }
-

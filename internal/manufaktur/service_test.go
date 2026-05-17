@@ -153,7 +153,6 @@ func (m *MockRepositoriManufaktur) AmbilSnapshotMasterData() ([]Material, error)
 	return nil, args.Error(1)
 }
 
-
 func TestTambahPemasok_Sukses(t *testing.T) {
 	mockRepo := new(MockRepositoriManufaktur)
 	layanan := KonstruksiLayananBaru(mockRepo)
@@ -254,4 +253,3 @@ func TestAmbilSnapshotMasterData_Sukses(t *testing.T) {
 	assert.Equal(t, 3, metadata.JumlahShiftOperasional)
 	mockRepo.AssertExpectations(t)
 }
-

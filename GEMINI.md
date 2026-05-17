@@ -17,11 +17,12 @@ Gunakan perintah berikut di terminal (PowerShell/CMD) untuk menghubungkan Gemini
 npx -y @modelcontextprotocol/server-postgres "postgresql://admin:admin@localhost:5432/pgn_db"
 ```
 
-## 3. Intelligence Logic: Auto-Trace NG
+## 3. Intelligence Logic: Auto-Trace NG & TPS Core Hardening
 Gemini telah diprogram untuk memahami logika otomatisasi di PostgreSQL 17.x:
 - **Input:** Operator menginput NG pada inspection_logs.
 - **Process:** Trigger `after_inspection_log_insert` secara cerdas mencari material penyebab melalui tabel `bill_of_materials`.
 - **Output:** Jejak cacat material otomatis tercatat di `material_defect_ledger`.
+- **TPS Core Hardening:** Sistem secara ketat hanya menerima input shift "NORMAL", memvalidasi format dan ketersediaan Time Slots dari `GET /api/v1/operasi/lembar_periksa/options`, dan menuntut akurasi 100% persamaan `TotalProduksi == KuantitasOK + KuantitasNG` untuk seluruh detail QC yang diunggah.
 
 ## 4. 7 QC Tools Query Reference
 Gemini dapat langsung memanggil rute API terbuka:

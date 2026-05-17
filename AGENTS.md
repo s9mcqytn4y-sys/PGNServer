@@ -53,6 +53,8 @@ Klien `QControl` wajib menaati spesifikasi berikut saat berkomunikasi dengan ser
 4. **Kualitas & Lembar Periksa**:
    - Tambah Lembar Periksa: `POST /api/v1/operasi/rekam_lembar_periksa` dengan header `X-Idempotency-Key` untuk menghindari duplikasi.
    - Total produk harus presisi sesuai Hukum TPS: `TotalProduksi == KuantitasOK + KuantitasNG`.
+   - Single Shift Policy: Hanya melayani shift "NORMAL". Nilai lain akan ditolak sistem.
+   - Time Slots dinamis: Data time slot dan lini harus merujuk pada `GET /api/v1/operasi/lembar_periksa/options`.
 5. **Pemeriksaan Kesehatan & Kesiapan**:
    - Guna memverifikasi konektivitas, klien KMP secara berkala melakukan ping ke `/api/v1/kesehatan` (atau alias `/api/v1/health`), dan memverifikasi `/api/v1/readiness` sebelum mengirimkan antrian local Outbox.
 6. **Analitik Pareto & Histogram**:
