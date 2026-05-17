@@ -31,6 +31,8 @@ services:
     depends_on:
       pgn_db:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       - DB_HOST=pgn_db
       - DB_PORT=5432
@@ -40,6 +42,14 @@ services:
       - APP_PORT=8080
       - JWT_SECRET=pgn-rahasia-2026
       - TZ=Asia/Jakarta
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
     networks:
       - pgn_jaringan
     volumes:

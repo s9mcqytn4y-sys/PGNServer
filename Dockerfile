@@ -29,11 +29,15 @@ ENV TZ=Asia/Jakarta
 
 # Security Hardening: Menjalankan aplikasi sebagai non-root user
 RUN addgroup -S pgnteam && adduser -S pgnuser -G pgnteam
-USER pgnuser
 
+# Buat direktori kerja dan atur kepemilikan
 WORKDIR /app
+RUN mkdir -p /app/penyimpanan && chown -R pgnuser:pgnteam /app
+
 COPY --from=builder /app/pgn_api .
-COPY --from=builder /app/.env .
+
+# Berjalan sebagai non-root
+USER pgnuser
 
 # Port eksposur
 EXPOSE 8080
