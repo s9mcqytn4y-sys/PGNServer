@@ -11,7 +11,7 @@ services:
     volumes:
       - pgn_pgdata:/var/lib/postgresql/data
     networks:
-      - pgn_network
+      - pgn_jaringan
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d pgn_db"]
       interval: 5s
@@ -19,7 +19,9 @@ services:
       retries: 5
 
   pgn_api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: pgn_api
     ports:
       - "8080:8080"
@@ -33,14 +35,14 @@ services:
       - DB_PASSWORD=admin
       - DB_NAME=pgn_db
       - APP_PORT=8080
-      - JWT_SECRET=pgn-secret-key-2026
+      - JWT_SECRET=pgn-rahasia-2026
     networks:
-      - pgn_network
+      - pgn_jaringan
     volumes:
       - ./penyimpanan:/app/penyimpanan
 
 networks:
-  pgn_network:
+  pgn_jaringan:
     driver: bridge
 
 volumes:

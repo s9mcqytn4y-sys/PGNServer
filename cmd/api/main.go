@@ -1,105 +1,80 @@
 package main
 
 import (
-	"log/slog"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"time"
-
-	"pgn-server/internal/konfigurasi"
-	"pgn-server/internal/pengelola"
-	"pgn-server/pkg/utilitas"
-	_ "pgn-server/docs"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"golang.org/x/time/rate"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+
+	"pgn-server/pkg/respon"
 )
 
-// @title PGNServer API
-// @version 1.0
-// @description API Server untuk PGN (Produk Gagal & NG) Intelligence System.
-// @host localhost:8080
-// @BasePath /api/v1
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-
-func init() {
-	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-	slog.SetDefault(slog.New(handler))
-}
-
 func main() {
-	if err := godotenv.Load(); err != nil {
-		slog.Warn("File .env tidak ditemukan, menggunakan environment variable sistem")
+	// Inisialisasi pengenalan cgroup limit di Go 1.25.x
+	// Meskipun Go 1.25.x memiliki peningkatan otomatisasi, menetapkan GOMAXPROCS
+	// sesuai jumlah CPU sistem yang dialokasikan di dalam kontainer masih merupakan praktik yang baik.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Memuat konfigurasi
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Peringatan: Berkas .env tidak ditemukan, menggunakan variabel lingkungan sistem.")
 	}
 
-	konfigurasi.HubungkanDatabase()
+	// Mempersiapkan string koneksi ke PostgreSQL
+	inangDb := os.Getenv("DB_HOST")
+	penggunaDb := os.Getenv("DB_USER")
+	sandiDb := os.Getenv("DB_PASSWORD")
+	namaDb := os.Getenv("DB_NAME")
+	pelabuhanDb := os.Getenv("DB_PORT")
 
-	if os.Getenv("GIN_MODE") == "release" {
-		gin.SetMode(gin.ReleaseMode)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
+		inangDb, penggunaDb, sandiDb, namaDb, pelabuhanDb)
+
+	// Inisialisasi GORM ke PostgreSQL
+	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if errDb != nil {
+		log.Fatalf("Gagal terhubung ke pangkalan data: %v", errDb)
 	}
 
-	r := gin.New()
+	// Mendapatkan objek underlying *sql.DB untuk penyetelan lebih lanjut
+	sqlDb, errSql := db.DB()
+	if errSql == nil {
+		sqlDb.SetMaxIdleConns(10)
+		sqlDb.SetMaxOpenConns(100)
+	}
 
-	r.Use(gin.Recovery())
-	r.Use(pengelola.LogSlogMiddleware())
-	r.Use(pengelola.TimeoutMiddleware(60 * time.Second))
-	r.Use(pengelola.LimitRequestMiddleware(rate.Limit(200), 400))
+	// Konfigurasi layanan router web Gin
+	rute := gin.Default()
 
-	r.Static("/penyimpanan", "./penyimpanan")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	v1 := r.Group("/api/v1")
+	// Endpoint pemeriksaan sistem (Health Check)
+	api := rute.Group("/api/v1")
 	{
-		// Health check
-		v1.GET("/kesehatan", func(c *gin.Context) {
-			c.JSON(http.StatusOK, utilitas.FormatRespons(true, "Server PGN berjalan dengan baik", gin.H{
-				"waktu_server": time.Now().Format(time.RFC3339),
-				"status":       "stabil",
-			}))
+		api.GET("/cek_sistem", func(k *gin.Context) {
+			// Menguji ping ke pangkalan data
+			errPing := sqlDb.Ping()
+			if errPing != nil {
+				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.")
+				return
+			}
+			respon.Sukses(k, "Sistem PGNServer beroperasi secara optimal dan terhubung ke pangkalan data.", nil)
 		})
-
-		// 1. Auth (Login)
-		v1.POST("/auth/login", pengelola.LoginHandler)
-
-		// 2. QC Checksheet & QC Tools (Terproteksi)
-		terproteksi := v1.Group("/")
-		terproteksi.Use(pengelola.AutentikasiMiddleware())
-		{
-			// QC (Checksheet)
-			qc := terproteksi.Group("/qc")
-			{
-				qc.POST("/checksheet", pengelola.TambahChecksheet)
-				qc.GET("/form-checksheet/:produk_id", pengelola.GetFormChecksheet)
-			}
-
-			// QC Tools (Analytics)
-			tools := terproteksi.Group("/qc-tools")
-			{
-				tools.GET("/pareto", pengelola.GetParetoData)
-				tools.GET("/control-chart", pengelola.GetControlChartData)
-			}
-
-			// Media
-			media := terproteksi.Group("/media")
-			{
-				media.POST("/upload", pengelola.UploadHandler)
-			}
-		}
 	}
 
-	port := os.Getenv("APP_PORT")
-	if port == "" {
-		port = "8080"
+	// Menjalankan server
+	pelabuhanAplikasi := os.Getenv("APP_PORT")
+	if pelabuhanAplikasi == "" {
+		pelabuhanAplikasi = "8080"
 	}
 
-	slog.Info("Server PGNServer dimulai", "port", port)
-	if err := r.Run(":" + port); err != nil {
-		slog.Error("Gagal menjalankan server", "error", err)
-		os.Exit(1)
+	log.Printf("Memulai layanan di pelabuhan %s...", pelabuhanAplikasi)
+	if errJalan := rute.Run(":" + pelabuhanAplikasi); errJalan != nil {
+		log.Fatalf("Gagal menjalankan server: %v", errJalan)
 	}
 }

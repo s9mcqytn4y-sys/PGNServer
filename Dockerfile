@@ -1,39 +1,40 @@
-# Build stage
-FROM golang:alpine AS builder
+# Tahap Kompilasi (Build Stage)
+FROM golang:1.25-alpine AS pembangun
+
+# Setel variabel lingkungan
+ENV CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    GOEXPERIMENT=jsonv2
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache git
-
-# Copy dependency files
+# Salin modul dan unduh dependensi
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
+# Salin kode sumber
 COPY . .
 
-# Build the application
-RUN go build -o pgnserver ./cmd/api
+# Kompilasi aplikasi dengan optimasi ukuran
+RUN go build -ldflags="-s -w" -o pgn_api ./cmd/api
 
-# Final stage
+# Tahap Produksi (Final Stage)
 FROM alpine:latest
 
 WORKDIR /app
 
-# Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+# Tambahkan sertifikat SSL dan zona waktu
+RUN apk --no-cache add ca-certificates tzdata
 
-# Copy binary from builder
-COPY --from=builder /app/pgnserver .
-COPY --from=builder /app/.env .
-COPY --from=builder /app/docs ./docs
+# Salin biner hasil kompilasi
+COPY --from=pembangun /app/pgn_api .
+COPY --from=pembangun /app/.env .
+# COPY --from=pembangun /app/docs ./docs # abaikan jika belum ada
 
-# Create storage directory
+# Buat direktori penyimpanan
 RUN mkdir -p penyimpanan
 
-# Expose port
 EXPOSE 8080
 
-# Command to run
-CMD ["./pgnserver"]
+CMD ["./pgn_api"]

@@ -19,7 +19,7 @@ import (
 func AutentikasiMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		
+
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, utilitas.FormatRespons(false, "Tidak terotorisasi, token tidak ditemukan", nil))
 			c.Abort()
@@ -27,7 +27,7 @@ func AutentikasiMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		
+
 		jwtSecret := os.Getenv("JWT_SECRET")
 		if jwtSecret == "" {
 			jwtSecret = "pgn-secret-key-2026"
