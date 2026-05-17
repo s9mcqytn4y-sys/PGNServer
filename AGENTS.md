@@ -1,7 +1,4 @@
-import os
-
-# Content for AGENTS.MD
-agents_md_content = """# 🤖 PGN Intelligence Agents Definition
+# 🤖 PGN Intelligence Agents Definition
 
 Dokumen ini mendefinisikan profil dan tanggung jawab AI Agent yang beroperasi di dalam lingkungan **PGNServer**.
 
@@ -18,18 +15,21 @@ Dokumen ini mendefinisikan profil dan tanggung jawab AI Agent yang beroperasi di
 **Role:** Senior Database Engineer & Consultant.
 **Responsibilities:**
 - Mengelola integritas relasional antara `products`, `MATERIAL`, dan `bill_of_materials`.
-- Memastikan performa query analitik tetap optimal melalui indexing strategis pada kolom `STAT_WEEK`, `STAT_MONTH`, dan `STAT_YEAR`.
+- Memastikan performa query analitik tetap optimal melalui Window Functions (e.g. `SUM(...) OVER(ORDER BY...)`) untuk menghindari N+1 dan rekursi lambat di lapisan aplikasi Go.
 - Memelihara fungsi **Auto-Trace NG** (Trigger `trg_auto_trace_material_ng`) agar tidak terjadi mismatch data.
 - Menangani operasional DDL (Schema Rebuild) dan DML (Advanced Seeding) tanpa merusak integritas data transaksi.
 
-## 3. Workflow Integrasi (MCP)
+## 3. Agent: OpenAPI / API Integrator
+**Role:** Dokumentator API Ekosistem & Komunikator Antarmuka.
+**Responsibilities:**
+- Memetakan anotasi Swaggo secara presisi di seluruh modul backend (Otentikasi, Kualitas, Analitik).
+- Menjembatani skema parameter analitik Pareto untuk dipahami utuh oleh agen Frontend.
+
+## 4. Workflow Integrasi (MCP)
 Semua Agent berinteraksi dengan database `pgn_db` melalui **Model Context Protocol (MCP)**.
 - **Protocol:** JSON-RPC over Standard I/O.
 - **Connection:** `postgresql://admin:admin@localhost:5432/pgn_db`.
 - **Scope:** Read/Write access ke schema `public`.
 
 ---
-*Last Updated: 2026-05-15 | PGN Quality Assurance Dept.*
-"""
-
-# Call python to create the file
+*Last Updated: 2026-05-17 | PGN Quality Assurance Dept.*

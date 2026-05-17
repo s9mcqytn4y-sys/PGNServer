@@ -8,14 +8,37 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	_ "pgn-server/docs"
+	"pgn-server/internal/analitik"
 	"pgn-server/internal/infrastruktur"
 	"pgn-server/internal/kualitas"
 	"pgn-server/internal/otentikasi"
 	"pgn-server/pkg/respon"
 )
+
+// @title PGNServer API
+// @version 1.0
+// @description REST API untuk ekosistem manufaktur dan kontrol kualitas PGNServer.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 
 func main() {
 	// Inisialisasi pengenalan cgroup limit di Go 1.25.x
@@ -30,26 +53,26 @@ func main() {
 	}
 
 	// Mempersiapkan string koneksi ke PostgreSQL
-	inangDb := os.Getenv("DB_HOST")
-	penggunaDb := os.Getenv("DB_USER")
-	sandiDb := os.Getenv("DB_PASSWORD")
-	namaDb := os.Getenv("DB_NAME")
-	pelabuhanDb := os.Getenv("DB_PORT")
+	inangDB := os.Getenv("DB_HOST")
+	penggunaDB := os.Getenv("DB_USER")
+	sandiDB := os.Getenv("DB_PASSWORD")
+	namaDB := os.Getenv("DB_NAME")
+	pelabuhanDB := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		inangDb, penggunaDb, sandiDb, namaDb, pelabuhanDb)
+		inangDB, penggunaDB, sandiDB, namaDB, pelabuhanDB)
 
 	// Inisialisasi GORM ke PostgreSQL
-	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if errDb != nil {
-		log.Fatalf("Gagal terhubung ke pangkalan data: %v", errDb)
+	db, errDB := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if errDB != nil {
+		log.Fatalf("Gagal terhubung ke pangkalan data: %v", errDB)
 	}
 
 	// Mendapatkan objek underlying *sql.DB untuk penyetelan lebih lanjut
-	sqlDb, errSql := db.DB()
-	if errSql == nil {
-		sqlDb.SetMaxIdleConns(10)
-		sqlDb.SetMaxOpenConns(100)
+	sqlDB, errSQL := db.DB()
+	if errSQL == nil {
+		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetMaxOpenConns(100)
 	}
 
 	// Menjalankan automigrasi entitas manufaktur dan otentikasi
@@ -68,15 +91,23 @@ func main() {
 	layananKualitas := kualitas.KonstruksiLayananBaru(repoKualitas, db)
 	handlerKualitas := kualitas.KonstruksiPenangananBaru(layananKualitas)
 
+	// Setup Dependensi Analitik
+	repoAnalitik := analitik.KonstruksiRepositoriBaru(db)
+	layananAnalitik := analitik.KonstruksiLayananBaru(repoAnalitik)
+	handlerAnalitik := analitik.KonstruksiPenangananBaru(layananAnalitik)
+
 	// Konfigurasi layanan router web Gin
 	rute := gin.Default()
+
+	// Rute Publik untuk Swagger
+	rute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Kumpulan Endpoint API
 	api := rute.Group("/api/v1")
 	{
 		// Endpoint pemeriksaan sistem (Health Check)
 		api.GET("/cek_sistem", func(k *gin.Context) {
-			errPing := sqlDb.Ping()
+			errPing := sqlDB.Ping()
 			if errPing != nil {
 				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.")
 				return
@@ -97,6 +128,13 @@ func main() {
 		operasi.Use(infrastruktur.PenjagaSesiJWT())
 		{
 			operasi.POST("/rekam_lembar_periksa", handlerKualitas.TanganiRekamLembarPeriksa)
+		}
+
+		// Endpoint Analitik (Terbuka/JWT)
+		analitikGrup := api.Group("/analitik")
+		// analitikGrup.Use(infrastruktur.PenjagaSesiJWT()) // Aktifkan jika analitik butuh JWT
+		{
+			analitikGrup.GET("/metrik_pareto_bulanan", handlerAnalitik.TanganiParetoBulanan)
 		}
 	}
 

@@ -1,3 +1,4 @@
+// Package kualitas memuat fungsionalitas repository untuk inspeksi kualitas.
 package kualitas
 
 import (
@@ -7,7 +8,7 @@ import (
 
 // RepositoriKualitas menyediakan lapisan operasi pangkalan data spesifik kualitas.
 type RepositoriKualitas interface {
-	SimpanLembarPeriksaMassal(dto *DTO_LembarPeriksa_Kirim, tx *gorm.DB) error
+	SimpanLembarPeriksaMassal(dto *DTOLembarPeriksaKirim, tx *gorm.DB) error
 }
 
 type repositoriKualitas struct{}
@@ -17,7 +18,7 @@ func KonstruksiRepositoriBaru() RepositoriKualitas {
 }
 
 // SimpanLembarPeriksaMassal meniadakan pola N+1 rekursif ORM dan menggunakan SQL JSON_TABLE.
-func (r *repositoriKualitas) SimpanLembarPeriksaMassal(dto *DTO_LembarPeriksa_Kirim, tx *gorm.DB) error {
+func (r *repositoriKualitas) SimpanLembarPeriksaMassal(dto *DTOLembarPeriksaKirim, tx *gorm.DB) error {
 	// 1. Simpan baris induk ke tabel lembar_periksas
 	lembar := LembarPeriksa{
 		Tanggal:            dto.Tanggal,

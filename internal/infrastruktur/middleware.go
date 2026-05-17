@@ -1,3 +1,4 @@
+// Package infrastruktur memuat penjaga sesi dan otentikasi lapis middleware.
 package infrastruktur
 
 import (

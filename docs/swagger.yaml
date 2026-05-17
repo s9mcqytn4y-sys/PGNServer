@@ -1,4 +1,244 @@
+basePath: /
+definitions:
+  internal_kualitas.DTODetailInspeksi:
+    properties:
+      kode_cacat:
+        type: string
+      rasio_cacat:
+        minimum: 0
+        type: number
+      rasio_total_ok:
+        minimum: 0
+        type: number
+      unik_part_id:
+        type: integer
+      waktu_pergeseran:
+        type: string
+    required:
+    - kode_cacat
+    - unik_part_id
+    - waktu_pergeseran
+    type: object
+  internal_kualitas.DTOLembarPeriksaKirim:
+    properties:
+      detail:
+        items:
+          $ref: '#/definitions/internal_kualitas.DTODetailInspeksi'
+        type: array
+      pengguna_id_tercatat:
+        type: integer
+      tanggal:
+        type: string
+      zona_lini:
+        type: string
+    required:
+    - detail
+    - pengguna_id_tercatat
+    - tanggal
+    - zona_lini
+    type: object
+  internal_otentikasi.DataPermintaanLogin:
+    properties:
+      sandi:
+        type: string
+      surel:
+        type: string
+    required:
+    - sandi
+    - surel
+    type: object
+  internal_otentikasi.DataPermintaanLupaSandi:
+    properties:
+      sandiBaru:
+        minLength: 8
+        type: string
+      surel:
+        type: string
+    required:
+    - sandiBaru
+    - surel
+    type: object
+  internal_otentikasi.DataPermintaanRegistrasi:
+    properties:
+      peran:
+        type: string
+      sandi:
+        minLength: 8
+        type: string
+      surel:
+        type: string
+    required:
+    - sandi
+    - surel
+    type: object
+  pgn-server_pkg_respon.ResponStandar:
+    properties:
+      data: {}
+      pesan:
+        type: string
+      sukses:
+        type: boolean
+    type: object
+host: localhost:8080
 info:
-  contact: {}
-paths: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: REST API untuk ekosistem manufaktur dan kontrol kualitas PGNServer.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: PGNServer API
+  version: "1.0"
+paths:
+  /api/v1/analitik/metrik_pareto_bulanan:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan kalkulasi Pareto 80/20 per bulan menggunakan Window
+        Function SQL
+      parameters:
+      - description: Bulan (1-12)
+        in: query
+        name: bulan
+        type: integer
+      - description: 'Tahun (contoh: 2026)'
+        in: query
+        name: tahun
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+      summary: Dapatkan Metrik Pareto
+      tags:
+      - Analitik
+  /api/v1/operasi/rekam_lembar_periksa:
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan entri lembar periksa beserta detail inspeksinya
+      parameters:
+      - description: Payload Lembar Periksa
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_kualitas.DTOLembarPeriksaKirim'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Rekam Lembar Periksa
+      tags:
+      - Kualitas
+  /api/v1/otentikasi/daftar:
+    post:
+      consumes:
+      - application/json
+      description: Mendaftarkan kredensial staf QC/Manajemen baru
+      parameters:
+      - description: Data pendaftaran
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_otentikasi.DataPermintaanRegistrasi'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+      summary: Pendaftaran Pengguna
+      tags:
+      - Otentikasi
+  /api/v1/otentikasi/lupa-sandi:
+    post:
+      consumes:
+      - application/json
+      description: Pemulihan akun QC
+      parameters:
+      - description: Permohonan Reset
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_otentikasi.DataPermintaanLupaSandi'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+      summary: Lupa Sandi
+      tags:
+      - Otentikasi
+  /api/v1/otentikasi/masuk:
+    post:
+      consumes:
+      - application/json
+      description: Memberikan Token JWT untuk akses sesi internal
+      parameters:
+      - description: Kredensial
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_otentikasi.DataPermintaanLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pgn-server_pkg_respon.ResponStandar'
+      summary: Akses Masuk Pengguna
+      tags:
+      - Otentikasi
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

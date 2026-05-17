@@ -1,3 +1,4 @@
+// Package infrastruktur memuat fungsi dasar infrastruktur seperti koneksi DB.
 package infrastruktur
 
 import (

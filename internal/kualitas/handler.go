@@ -1,3 +1,4 @@
+// Package kualitas menangani modul pencatatan inspeksi kontrol kualitas.
 package kualitas
 
 import (
@@ -15,8 +16,19 @@ func KonstruksiPenangananBaru(layanan LayananKualitas) *PenangananKualitas {
 }
 
 // TanganiRekamLembarPeriksa menerima permintaan pencatatan dari ujung gerbang API.
+// @Summary Rekam Lembar Periksa
+// @Description Menyimpan entri lembar periksa beserta detail inspeksinya
+// @Tags Kualitas
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body DTOLembarPeriksaKirim true "Payload Lembar Periksa"
+// @Success 200 {object} respon.ResponStandar
+// @Failure 400 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/operasi/rekam_lembar_periksa [post]
 func (p *PenangananKualitas) TanganiRekamLembarPeriksa(k *gin.Context) {
-	var dto DTO_LembarPeriksa_Kirim
+	var dto DTOLembarPeriksaKirim
 
 	// Tangkap eksepsi bila permohonan antarmuka terdistorsi
 	if err := k.ShouldBindJSON(&dto); err != nil {

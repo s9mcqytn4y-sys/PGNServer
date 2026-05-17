@@ -1,7 +1,366 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "REST API untuk ekosistem manufaktur dan kontrol kualitas PGNServer.",
+        "title": "PGNServer API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
-    "paths": {}
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/analitik/metrik_pareto_bulanan": {
+            "get": {
+                "description": "Mengembalikan kalkulasi Pareto 80/20 per bulan menggunakan Window Function SQL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Metrik Pareto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bulan (1-12)",
+                        "name": "bulan",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tahun (contoh: 2026)",
+                        "name": "tahun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/operasi/rekam_lembar_periksa": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan entri lembar periksa beserta detail inspeksinya",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kualitas"
+                ],
+                "summary": "Rekam Lembar Periksa",
+                "parameters": [
+                    {
+                        "description": "Payload Lembar Periksa",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_kualitas.DTOLembarPeriksaKirim"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/otentikasi/daftar": {
+            "post": {
+                "description": "Mendaftarkan kredensial staf QC/Manajemen baru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Otentikasi"
+                ],
+                "summary": "Pendaftaran Pengguna",
+                "parameters": [
+                    {
+                        "description": "Data pendaftaran",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanRegistrasi"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/otentikasi/lupa-sandi": {
+            "post": {
+                "description": "Pemulihan akun QC",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Otentikasi"
+                ],
+                "summary": "Lupa Sandi",
+                "parameters": [
+                    {
+                        "description": "Permohonan Reset",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanLupaSandi"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/otentikasi/masuk": {
+            "post": {
+                "description": "Memberikan Token JWT untuk akses sesi internal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Otentikasi"
+                ],
+                "summary": "Akses Masuk Pengguna",
+                "parameters": [
+                    {
+                        "description": "Kredensial",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_otentikasi.DataPermintaanLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/pgn-server_pkg_respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "internal_kualitas.DTODetailInspeksi": {
+            "type": "object",
+            "required": [
+                "kode_cacat",
+                "unik_part_id",
+                "waktu_pergeseran"
+            ],
+            "properties": {
+                "kode_cacat": {
+                    "type": "string"
+                },
+                "rasio_cacat": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "rasio_total_ok": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "unik_part_id": {
+                    "type": "integer"
+                },
+                "waktu_pergeseran": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_kualitas.DTOLembarPeriksaKirim": {
+            "type": "object",
+            "required": [
+                "detail",
+                "pengguna_id_tercatat",
+                "tanggal",
+                "zona_lini"
+            ],
+            "properties": {
+                "detail": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_kualitas.DTODetailInspeksi"
+                    }
+                },
+                "pengguna_id_tercatat": {
+                    "type": "integer"
+                },
+                "tanggal": {
+                    "type": "string"
+                },
+                "zona_lini": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_otentikasi.DataPermintaanLogin": {
+            "type": "object",
+            "required": [
+                "sandi",
+                "surel"
+            ],
+            "properties": {
+                "sandi": {
+                    "type": "string"
+                },
+                "surel": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_otentikasi.DataPermintaanLupaSandi": {
+            "type": "object",
+            "required": [
+                "sandiBaru",
+                "surel"
+            ],
+            "properties": {
+                "sandiBaru": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "surel": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_otentikasi.DataPermintaanRegistrasi": {
+            "type": "object",
+            "required": [
+                "sandi",
+                "surel"
+            ],
+            "properties": {
+                "peran": {
+                    "type": "string"
+                },
+                "sandi": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "surel": {
+                    "type": "string"
+                }
+            }
+        },
+        "pgn-server_pkg_respon.ResponStandar": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "pesan": {
+                    "type": "string"
+                },
+                "sukses": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
 }

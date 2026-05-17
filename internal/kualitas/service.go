@@ -1,3 +1,4 @@
+// Package kualitas menyediakan layanan dan repositori untuk modul kontrol kualitas.
 package kualitas
 
 import (
@@ -10,7 +11,7 @@ import (
 
 // LayananKualitas melayani penelusuran BOM dan pencatatan komposit.
 type LayananKualitas interface {
-	RekamLembarPeriksa(dto *DTO_LembarPeriksa_Kirim) error
+	RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error
 }
 
 type layananKualitas struct {
@@ -23,7 +24,7 @@ func KonstruksiLayananBaru(repo RepositoriKualitas, db *gorm.DB) LayananKualitas
 }
 
 // RekamLembarPeriksa mengatur arus logika bisnis pencatatan inspeksi fisik.
-func (l *layananKualitas) RekamLembarPeriksa(dto *DTO_LembarPeriksa_Kirim) error {
+func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
 	// Penjagaan skema atomik menggunakan transaksi
 	tx := l.db.Begin()
 	if tx.Error != nil {

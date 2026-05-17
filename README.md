@@ -57,5 +57,15 @@ Repositori ini menyertakan panduan kontekstual khusus untuk asisten AI (seperti 
 *   **`AGENTS.MD`**: Merumuskan profil (Persona) agen yang berperan sebagai "Leader QC & QA Analyst" dan "Database Architect".
 *   **`GEMINI.MD`**: Panduan integrasi Gemini AI menggunakan Model Context Protocol (MCP) untuk terhubung secara langsung ke pangkalan data `pgn_db` demi tujuan eksekusi kueri analitik (7 QC Tools).
 
+## 🔒 Aturan dan Tata Tertib (SOP Pengembangan)
+
+Proyek ini terikat dengan SOP yang ketat untuk menjamin stabilitas fase produksi Beta:
+
+1.  **Pelarangan Percabangan (No Branching Policy):** Segala bentuk penyatuan (*commit* & *push*) wajib mengarah sentralis secara eksklusif ke *branch* `main`. Dilarang mendirikan *feature branch* sementara selama fase beta, agar alur Continuous Integration bersifat linier dan terhindar dari *merge conflict* hantu.
+2.  **Pembuatan Wadah (*Docker Build*):** Wadah isolasi (*Docker container*) selalu diarahkan untuk mengkompilasi lingkungan berbasis *Alpine Linux* guna minimalisasi serangan permukaan. Gunakan perintah `docker-compose up -d --build` dengan spesifikasi arsitektur murni (*build-args*) dan buang *dependency* berlebih selama fase *build*. Skema port penjalanan dikunci statis pada `8080:8080` (layanan API) dan `5432:5432` (Pangkalan Data).
+3.  **Standarisasi Nomenklatur Bahasa Indonesia Murni:** Penamaan seluruh model domain, variabel (kecuali kata kunci dasar Go), hingga endpoint rute wajib mematuhi Pedoman Umum Ejaan Bahasa Indonesia (PUEBI) guna kemudahan telusur (*traceability*) secara manajerial.
+4.  **Tautan Kontrak API (Swagger):** Kunjungi `/swagger/index.html` pada server aktif untuk mencermati pemaparan otentik skema antarmuka REST API. Parameter analitik disajikan transparan tanpa enkapsulasi tersembunyi.
+5.  **Perlindungan Lingkungan Siluman (`.gitignore`):** Isolasi jejak berkas *binary* (`*.exe`), sesi *debugging* (seperti profil `.vscode/` atau artefak memori `tmp/`), dan berkas *log* agar tak mencemari repositori awan.
+
 ---
 *PGNServer Backend Development - Hak Cipta Dilindungi*

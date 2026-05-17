@@ -21,6 +21,17 @@ type DataPermintaanRegistrasi struct {
 	Peran string `json:"peran"`
 }
 
+// TanganiRegistrasi mengatur pendaftaran pengguna baru.
+// @Summary Pendaftaran Pengguna
+// @Description Mendaftarkan kredensial staf QC/Manajemen baru
+// @Tags Otentikasi
+// @Accept json
+// @Produce json
+// @Param body body DataPermintaanRegistrasi true "Data pendaftaran"
+// @Success 200 {object} respon.ResponStandar
+// @Failure 400 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/otentikasi/daftar [post]
 func (p *PenangananOtentikasi) TanganiRegistrasi(k *gin.Context) {
 	var masukan DataPermintaanRegistrasi
 	if err := k.ShouldBindJSON(&masukan); err != nil {
@@ -47,6 +58,16 @@ type DataPermintaanLogin struct {
 	Sandi string `json:"sandi" binding:"required"`
 }
 
+// TanganiLogin mengatur otentikasi dan mengembalikan JWT.
+// @Summary Akses Masuk Pengguna
+// @Description Memberikan Token JWT untuk akses sesi internal
+// @Tags Otentikasi
+// @Accept json
+// @Produce json
+// @Param body body DataPermintaanLogin true "Kredensial"
+// @Success 200 {object} respon.ResponStandar
+// @Failure 401 {object} respon.ResponStandar
+// @Router /api/v1/otentikasi/masuk [post]
 func (p *PenangananOtentikasi) TanganiLogin(k *gin.Context) {
 	var masukan DataPermintaanLogin
 	if err := k.ShouldBindJSON(&masukan); err != nil {
@@ -71,6 +92,15 @@ type DataPermintaanLupaSandi struct {
 	SandiBaru string `json:"sandiBaru" binding:"required,min=8"`
 }
 
+// TanganiLupaSandi mengatur penyetelan ulang sandi.
+// @Summary Lupa Sandi
+// @Description Pemulihan akun QC
+// @Tags Otentikasi
+// @Accept json
+// @Produce json
+// @Param body body DataPermintaanLupaSandi true "Permohonan Reset"
+// @Success 200 {object} respon.ResponStandar
+// @Router /api/v1/otentikasi/lupa-sandi [post]
 func (p *PenangananOtentikasi) TanganiLupaSandi(k *gin.Context) {
 	var masukan DataPermintaanLupaSandi
 	if err := k.ShouldBindJSON(&masukan); err != nil {

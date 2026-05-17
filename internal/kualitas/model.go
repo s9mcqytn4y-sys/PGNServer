@@ -1,9 +1,10 @@
+// Package kualitas menangani modul pencatatan inspeksi kontrol kualitas.
 package kualitas
 
 import "time"
 
-// DTO_Detail_Inspeksi mendefinisikan detail inspeksi dalam JSON.
-type DTO_Detail_Inspeksi struct {
+// DTODetailInspeksi mendefinisikan detail inspeksi dalam JSON.
+type DTODetailInspeksi struct {
 	UnikPartID      uint    `json:"unik_part_id" binding:"required"`
 	KodeCacat       string  `json:"kode_cacat" binding:"required"`
 	WaktuPergeseran string  `json:"waktu_pergeseran" binding:"required"`
@@ -11,12 +12,12 @@ type DTO_Detail_Inspeksi struct {
 	RasioTotalOK    float64 `json:"rasio_total_ok" binding:"gte=0"`
 }
 
-// DTO_LembarPeriksa_Kirim adalah komposit majemuk payload masuk.
-type DTO_LembarPeriksa_Kirim struct {
-	Tanggal            string                `json:"tanggal" binding:"required"`
-	ZonaLini           string                `json:"zona_lini" binding:"required"`
-	PenggunaIDTercatat uint                  `json:"pengguna_id_tercatat" binding:"required"`
-	Detail             []DTO_Detail_Inspeksi `json:"detail" binding:"required,dive"`
+// DTOLembarPeriksaKirim adalah komposit majemuk payload masuk.
+type DTOLembarPeriksaKirim struct {
+	Tanggal            string              `json:"tanggal" binding:"required"`
+	ZonaLini           string              `json:"zona_lini" binding:"required"`
+	PenggunaIDTercatat uint                `json:"pengguna_id_tercatat" binding:"required"`
+	Detail             []DTODetailInspeksi `json:"detail" binding:"required,dive"`
 }
 
 // LembarPeriksa merepresentasikan data utama lembar inspeksi fisik QC.
