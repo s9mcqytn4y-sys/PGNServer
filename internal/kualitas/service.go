@@ -33,53 +33,47 @@ func (l *layananKualitas) RekamLembarPeriksa(dto *DTOLembarPeriksaKirim) error {
 		}
 	}
 
-	// Penjagaan skema atomik menggunakan transaksi
-	tx := l.db.Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
+	// Penjagaan skema atomik menggunakan GORM Transaction untuk auto-rollback pada panic/error.
+	errTx := l.db.Transaction(func(tx *gorm.DB) error {
+		// Langkah 1: Eksekusi penyisipan cepat multi-baris (menghindari N+1)
+		errSimpan := l.repo.SimpanLembarPeriksaMassal(dto, tx)
+		if errSimpan != nil {
+			return errSimpan
+		}
 
-	// Langkah 1: Eksekusi penyisipan cepat multi-baris (menghindari N+1)
-	errSimpan := l.repo.SimpanLembarPeriksaMassal(dto, tx)
-	if errSimpan != nil {
-		tx.Rollback()
-		return errSimpan
-	}
+		// Langkah 2: Algoritma penelusuran susunan graf hirarki BOM.
+		// Jika ditemukan kode cacat spesifik, sistem secara independen mendeklarasikan
+		// catatan buku besar penyusutan.
+		for _, detail := range dto.Detail {
+			if detail.RasioCacat > 0 {
+				var bom manufaktur.KomposisiMaterialBOM
 
-	// Langkah 2: Algoritma penelusuran susunan graf hirarki BOM.
-	// Jika ditemukan kode cacat spesifik, sistem secara independen mendeklarasikan
-	// catatan buku besar penyusutan.
-	for _, detail := range dto.Detail {
-		if detail.RasioCacat > 0 {
-			var bom manufaktur.KomposisiMaterialBOM
+				// Kueri melacak ID material komponen berdasarkan hirarki BOM produk akhir (UnikPartID).
+				errLacak := tx.Joins("JOIN materials ON materials.id = komposisi_material_boms.id_raw_material").
+					Where("komposisi_material_boms.id_produk_final = ?", detail.UnikPartID).
+					First(&bom).Error
 
-			// Kueri mandiri melacak ID material komponen berdasarkan hirarki BOM produk akhir (UnikPartID).
-			errLacak := tx.Joins("JOIN materials ON materials.id = komposisi_material_boms.id_raw_material").
-				Where("komposisi_material_boms.id_produk_final = ?", detail.UnikPartID).
-				First(&bom).Error
-
-			if errLacak == nil {
-				// Deklarasikan pencatatan rasio penyusutan hanya terhadap entri Buku Besar Cacat
-				entriLedger := BukuBesarCacat{
-					IDMaterial:      bom.IDRawMaterial,
-					TotalPenyusutan: detail.RasioCacat,
+				if errLacak == nil {
+					// Deklarasikan pencatatan rasio penyusutan hanya terhadap entri Buku Besar Cacat
+					entriLedger := BukuBesarCacat{
+						IDMaterial:      bom.IDRawMaterial,
+						TotalPenyusutan: detail.RasioCacat,
+					}
+					if errLedger := tx.Create(&entriLedger).Error; errLedger != nil {
+						return errLedger
+					}
+				} else if !errors.Is(errLacak, gorm.ErrRecordNotFound) {
+					return errLacak
+				} else {
+					// Bila BOM tidak diatur, log info namun tak batalkan transaksi.
+					log.Printf("Informasi: Relasi material BOM tidak terdeteksi untuk part ID %d. Mengabaikan buku besar.", detail.UnikPartID)
 				}
-				if errLedger := tx.Create(&entriLedger).Error; errLedger != nil {
-					tx.Rollback()
-					return errLedger
-				}
-			} else if !errors.Is(errLacak, gorm.ErrRecordNotFound) {
-				tx.Rollback()
-				return errLacak
-			} else {
-				// Bila BOM tidak diatur, log info namun tak batalkan transaksi.
-				log.Printf("Informasi: Relasi material BOM tidak terdeteksi untuk part ID %d. Mengabaikan buku besar.", detail.UnikPartID)
 			}
 		}
-	}
+		return nil
+	})
 
-	// Semua berhasil, aplikasikan komit mutlak.
-	return tx.Commit().Error
+	return errTx
 }
 
 // DaftarRiwayat mengembalikan daftar riwayat lembar periksa harian.

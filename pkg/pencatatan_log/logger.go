@@ -1,3 +1,4 @@
+// Package pencatatan_log menyediakan pustaka pencatatan log terstruktur dengan Correlation-ID.
 package pencatatan_log
 
 import (
@@ -27,7 +28,7 @@ func HasilkanUUIDv4() string {
 		// Fallback sederhana jika terjadi kegagalan pembacaan entropi
 		return fmt.Sprintf("%d", time.Now().UnixNano())
 	}
-	
+
 	// Sesuai dengan spesifikasi RFC 4122
 	b[6] = (b[6] & 0x0f) | 0x40 // Set versi ke 4
 	b[8] = (b[8] & 0x3f) | 0x80 // Set varian ke 10xx
@@ -52,9 +53,9 @@ func Catat(k *gin.Context, level Level, format string, v ...interface{}) {
 		}
 	}
 
-	waktu := time.Now().Format("2006-05-02 15:04:05.000")
+	waktu := time.Now().Format("2006-01-02 15:04:05.000")
 	pesan := fmt.Sprintf(format, v...)
-	
+
 	// Format: [WAKTU] [LEVEL] [Correlation-ID: X-Request-ID] Pesan
 	log.Printf("[%s] [%s] [Correlation-ID: %s] %s\n", waktu, level, reqID, pesan)
 }

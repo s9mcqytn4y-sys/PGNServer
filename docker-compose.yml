@@ -6,10 +6,12 @@ services:
       POSTGRES_DB: pgn_db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
+      TZ: Asia/Jakarta
+    restart: unless-stopped
     ports:
       - "5432:5432"
     volumes:
-      - pgn_pgdata:/var/lib/postgresql/data
+      - ./docker/pgdata:/var/lib/postgresql/data
     networks:
       - pgn_jaringan
     healthcheck:
@@ -23,6 +25,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: pgn_api
+    restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
@@ -36,6 +39,7 @@ services:
       - DB_NAME=pgn_db
       - APP_PORT=8080
       - JWT_SECRET=pgn-rahasia-2026
+      - TZ=Asia/Jakarta
     networks:
       - pgn_jaringan
     volumes:
@@ -44,6 +48,3 @@ services:
 networks:
   pgn_jaringan:
     driver: bridge
-
-volumes:
-  pgn_pgdata:

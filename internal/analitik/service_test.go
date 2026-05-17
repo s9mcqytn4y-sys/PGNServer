@@ -8,6 +8,7 @@ import (
 	"pgn-server/internal/infrastruktur"
 	"pgn-server/internal/kualitas"
 	"pgn-server/internal/manufaktur"
+	"pgn-server/pkg/cache"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
@@ -88,7 +89,7 @@ func TestLayananAnalitik_ParetoDanLacak(t *testing.T) {
 		tx.Commit()
 
 		// Test Kalkulasi Pareto
-		pareto, errPareto := layanan.DapatkanPareto("2026-05-17", "2026-05-17", "Lini-Test-1")
+		pareto, errPareto := layanan.DapatkanPareto(nil, "2026-05-17", "2026-05-17", "Lini-Test-1")
 		assert.NoError(t, errPareto)
 		assert.NotEmpty(t, pareto)
 
@@ -101,7 +102,7 @@ func TestLayananAnalitik_ParetoDanLacak(t *testing.T) {
 
 	t.Run("BOM Tracing Akar Masalah Cacat Material", func(t *testing.T) {
 		// Lacak cacat LAMINATING BOLONG pada Protector
-		lacak, errLacak := layanan.LacakAkarMasalah("LAMINATING BOLONG", "FG-002")
+		lacak, errLacak := layanan.LacakAkarMasalah(nil, "LAMINATING BOLONG", "FG-002")
 		assert.NoError(t, errLacak)
 		assert.NotEmpty(t, lacak)
 
@@ -136,9 +137,13 @@ func TestLayananAnalitik_ParetoDanLacak(t *testing.T) {
 		defer func() {
 			db.Delete(&bom1)
 			db.Delete(&bom2)
+			cache.GlobalCache.Clear()
 		}()
 
-		lacak, errLacak := layanan.LacakAkarMasalah("SPUNBOUND TIDAK MEREKAT", mat1.KodeSKU)
+		// Bersihkan cache sebelum pelacakan
+		cache.GlobalCache.Clear()
+
+		lacak, errLacak := layanan.LacakAkarMasalah(nil, "SPUNBOUND TIDAK MEREKAT", mat1.KodeSKU)
 		assert.NoError(t, errLacak)
 		
 		circularDetected := false
@@ -162,7 +167,7 @@ func TestLayananAnalitik_ProcessDefect(t *testing.T) {
 	layanan := KonstruksiLayananBaru(repo, db)
 
 	t.Run("Internal Process Defect", func(t *testing.T) {
-		lacak, errLacak := layanan.LacakAkarMasalah("SEWING MIRING", "FG-002")
+		lacak, errLacak := layanan.LacakAkarMasalah(nil, "SEWING MIRING", "FG-002")
 		assert.NoError(t, errLacak)
 		assert.NotEmpty(t, lacak)
 		assert.Equal(t, "INTERNAL PROCESS DEFECT", lacak[0].RawMaterialNama)

@@ -3,21 +3,31 @@ definitions:
   kualitas.DTODetailInspeksi:
     properties:
       kodeCacat:
+        description: 'Kode cacat defect (misal: "A", "B", dll)'
+        example: A
         type: string
       rasioCacat:
-        description: NG
+        description: Kuantitas barang reject / NG (Not Good)
+        example: 2
         minimum: 0
         type: number
       rasioTotalOK:
+        description: Kuantitas barang dengan status OK (Lolos QC)
+        example: 98
         minimum: 0
         type: number
       totalProduksi:
+        description: Total kuantitas barang yang diproduksi
+        example: 100
         minimum: 0
         type: number
       unikPartId:
+        description: ID unik part material yang diperiksa
+        example: 1
         type: integer
       waktuPergeseran:
-        description: Shift
+        description: Waktu/Shift pergeseran jam pemeriksaan
+        example: "08:00"
         type: string
     required:
     - kodeCacat
@@ -27,14 +37,21 @@ definitions:
   kualitas.DTOLembarPeriksaKirim:
     properties:
       detail:
+        description: Himpunan baris rincian inspeksi part
         items:
           $ref: '#/definitions/kualitas.DTODetailInspeksi'
         type: array
       penggunaIdTercatat:
+        description: ID pengguna/staf QC yang merekam data
+        example: 1
         type: integer
       tanggal:
+        description: Tanggal pemeriksaan (format ISO 8601)
+        example: "2026-05-17T00:00:00Z"
         type: string
       zonaLini:
+        description: Zona atau Lini produksi tempat inspeksi
+        example: Lini 1
         type: string
     required:
     - detail
@@ -44,37 +61,68 @@ definitions:
     type: object
   otentikasi.DataPermintaanLogin:
     properties:
+      kata_sandi:
+        description: Fallback sandi untuk login retro-kompatibel
+        example: admin
+        type: string
+      nip:
+        description: Fallback NIP untuk login retro-kompatibel
+        example: "2211019"
+        type: string
       sandi:
+        description: Kata sandi akun
+        example: sandiRahasia123
         type: string
       surel:
+        description: Surel akun terdaftar
+        example: operator@pgn.com
         type: string
-    required:
-    - sandi
-    - surel
     type: object
   otentikasi.DataPermintaanLupaSandi:
     properties:
+      kata_sandi:
+        description: Fallback sandi baru retro-kompatibel
+        example: admin
+        type: string
+      nip:
+        description: Fallback NIP untuk reset retro-kompatibel
+        example: "2211019"
+        type: string
       sandiBaru:
-        minLength: 8
+        description: Kata sandi baru (Minimal 8 karakter)
+        example: sandiBaru123
         type: string
       surel:
+        description: Surel akun terdaftar
+        example: operator@pgn.com
         type: string
-    required:
-    - sandiBaru
-    - surel
     type: object
   otentikasi.DataPermintaanRegistrasi:
     properties:
+      kata_sandi:
+        description: Kata sandi fallback (Retro-kompatibilitas)
+        example: admin
+        type: string
+      nama_lengkap:
+        description: Nama lengkap pegawai (Opsional)
+        example: Leader QC
+        type: string
+      nip:
+        description: Nomor Induk Pegawai (Fallback retro-kompatibilitas)
+        example: "2211019"
+        type: string
       peran:
+        description: 'Peran otorisasi: OPERATOR atau LEADER (Default: OPERATOR)'
+        example: OPERATOR
         type: string
       sandi:
-        minLength: 8
+        description: Kata sandi minimal 8 karakter (Wajib jika kata_sandi kosong)
+        example: sandiRahasia123
         type: string
       surel:
+        description: Surel resmi pegawai (Wajib jika NIP kosong)
+        example: operator@pgn.com
         type: string
-    required:
-    - sandi
-    - surel
     type: object
   respon.ResponStandar:
     properties:
@@ -207,6 +255,43 @@ paths:
       summary: Dapatkan Pareto Dinamis
       tags:
       - Analitik
+  /api/v1/cek_sistem:
+    get:
+      description: Memvalidasi kesiapan server API dan konektivitas live database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Pemeriksaan Kesehatan Sistem
+      tags:
+      - Sistem
+  /api/v1/krusial/status:
+    get:
+      description: Menyajikan data status sensitif jika IP pengirim lolos Whitelisting
+        korporasi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Status Operasi Krusial (Whitelisted IP)
+      tags:
+      - Sistem
   /api/v1/materials/{id}/media:
     post:
       consumes:
@@ -338,7 +423,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Mendaftarkan kredensial staf QC/Manajemen baru
+      description: Mendaftarkan kredensial staf QC/Manajemen baru dengan dukungan
+        retro-kompatibilitas NIP/kata_sandi
       parameters:
       - description: Data pendaftaran
         in: body
@@ -381,7 +467,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Pemulihan akun QC
+      description: Pemulihan akun QC dengan dukungan NIP/kata_sandi fallback
       parameters:
       - description: Permohonan Reset
         in: body
@@ -396,6 +482,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/respon.ResponStandar'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
       summary: Lupa Sandi
       tags:
       - Otentikasi
@@ -403,7 +493,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Memberikan Token JWT untuk akses sesi internal
+      description: Memberikan Token JWT untuk akses sesi internal dengan dukungan
+        NIP/kata_sandi
       parameters:
       - description: Kredensial
         in: body
@@ -416,6 +507,10 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/respon.ResponStandar'
         "401":

@@ -31,3 +31,7 @@ tmp/
 *.db-journal
 *.sqlite
 *.sqlite-journal
+
+# Docker Postgres Data & Backups
+docker/pgdata/
+docker/backups/*.sql

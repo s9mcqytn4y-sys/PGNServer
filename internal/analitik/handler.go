@@ -57,7 +57,7 @@ func (h *PenangananAnalitik) TanganiParetoBulanan(k *gin.Context) {
 		}
 	}
 
-	hasil, err := h.layanan.DapatkanParetoBulanan(bulan, tahun)
+	hasil, err := h.layanan.DapatkanParetoBulanan(k, bulan, tahun)
 	if err != nil {
 		respon.Galat_Server(k, "Gagal mengkalkulasi agregat Pareto.", err)
 		return
@@ -84,7 +84,7 @@ func (h *PenangananAnalitik) TanganiPareto(k *gin.Context) {
 	tanggalSelesai := k.Query("end_date")
 	zonaLini := k.Query("line")
 
-	hasil, err := h.layanan.DapatkanPareto(tanggalMulai, tanggalSelesai, zonaLini)
+	hasil, err := h.layanan.DapatkanPareto(k, tanggalMulai, tanggalSelesai, zonaLini)
 	if err != nil {
 		respon.Galat_Server(k, "Gagal mengkalkulasi agregat Pareto.", err)
 		return
@@ -114,7 +114,7 @@ func (h *PenangananAnalitik) TanganiLacakAkarMasalah(k *gin.Context) {
 		return
 	}
 
-	hasil, err := h.layanan.LacakAkarMasalah(kodeCacat, parentSKU)
+	hasil, err := h.layanan.LacakAkarMasalah(k, kodeCacat, parentSKU)
 	if err != nil {
 		respon.Galat_Server(k, "Gagal melacak akar masalah BOM.", err)
 		return

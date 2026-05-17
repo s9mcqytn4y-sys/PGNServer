@@ -1,10 +1,14 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -24,6 +28,10 @@ import (
 	"pgn-server/internal/otentikasi"
 	"pgn-server/pkg/respon"
 )
+
+//go:embed landing.html
+var landingHTML string
+
 
 // @title PGNServer API
 // @version 1.0
@@ -124,25 +132,31 @@ func main() {
 	rute.SetTrustedProxies(nil) // Mengamankan peringatan 'trusted all proxies'
 
 	// Middleware Keamanan Global
+	rute.Use(infrastruktur.MiddlewareCORS())
+	rute.Use(infrastruktur.MiddlewareSecureHeaders())
 	rute.Use(infrastruktur.MiddlewareCorrelationID())
 	rute.Use(infrastruktur.MiddlewarePenangkapPanic())
 	rute.Use(infrastruktur.MiddlewareRateLimiter(10, 20)) // 10 rps, 20 kapasitas
 
-	// Rute Publik untuk Swagger
+	// Rute Publik untuk Swagger dan Landing Page
+	rute.GET("/", tanganiLandingPage(db))
 	rute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Kumpulan Endpoint API
 	api := rute.Group("/api/v1")
 	{
+		// Landing page pada root API
+		api.GET("/", tanganiLandingPage(db))
+
 		// Endpoint pemeriksaan sistem (Health Check)
-		api.GET("/cek_sistem", func(k *gin.Context) {
-			errPing := sqlDB.Ping()
-			if errPing != nil {
-				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.", errPing)
-				return
-			}
-			respon.Sukses(k, "Sistem PGNServer beroperasi secara optimal dan terhubung ke pangkalan data.", nil)
-		})
+		api.GET("/cek_sistem", TanganiCekSistem(db))
+
+		// Endpoint Operasi Krusial (Perlu Whitelist IP)
+		krusial := api.Group("/krusial")
+		krusial.Use(infrastruktur.MiddlewareIPWhitelist())
+		{
+			krusial.GET("/status", TanganiStatusKrusial())
+		}
 
 		// Endpoint Autentikasi Publik
 		auth := api.Group("/otentikasi")
@@ -194,3 +208,105 @@ func main() {
 		log.Fatalf("Gagal menjalankan server: %v", errJalan)
 	}
 }
+
+// LandingData menyimpan konfigurasi dinamis yang dirender ke landing.html
+type LandingData struct {
+	StatusApp      string
+	DBConnected    bool
+	DBHost         string
+	DBName         string
+	AllowedOrigins string
+	IPWhitelist    string
+	WaktuServer    string
+	SwaggerURL     string
+}
+
+// tanganiLandingPage merestitusi antarmuka visual berbasis go:embed landing.html
+func tanganiLandingPage(db *gorm.DB) gin.HandlerFunc {
+	tmpl, err := template.New("landing").Parse(landingHTML)
+	if err != nil {
+		log.Fatalf("Gagal mem-parsing template landing.html: %v", err)
+	}
+	return func(k *gin.Context) {
+		sqlDB, err := db.DB()
+		dbConnected := false
+		dbHost := os.Getenv("DB_HOST")
+		dbName := os.Getenv("DB_NAME")
+		
+		if err == nil {
+			errPing := sqlDB.Ping()
+			dbConnected = (errPing == nil)
+		}
+
+		allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+		if allowedOrigins == "" {
+			allowedOrigins = "* (Dev Fallback)"
+		}
+
+		ipWhitelist := os.Getenv("IP_WHITELIST")
+		if ipWhitelist == "" {
+			ipWhitelist = "None (Fully Open)"
+		}
+
+		data := LandingData{
+			StatusApp:      "BETA_ACTIVE",
+			DBConnected:    dbConnected,
+			DBHost:         dbHost,
+			DBName:         dbName,
+			AllowedOrigins: allowedOrigins,
+			IPWhitelist:    ipWhitelist,
+			WaktuServer:    time.Now().Format("2006-01-02 15:04:05 MST"),
+			SwaggerURL:     "/swagger/index.html",
+		}
+
+		k.Header("Content-Type", "text/html; charset=utf-8")
+		errExec := tmpl.Execute(k.Writer, data)
+		if errExec != nil {
+			log.Printf("Gagal merender landing page: %v", errExec)
+			k.String(http.StatusInternalServerError, "Gagal merender landing page")
+		}
+	}
+}
+
+// TanganiCekSistem menyajikan status operasional aplikasi dan pangkalan data.
+// @Summary Pemeriksaan Kesehatan Sistem
+// @Description Memvalidasi kesiapan server API dan konektivitas live database
+// @Tags Sistem
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/cek_sistem [get]
+func TanganiCekSistem(db *gorm.DB) gin.HandlerFunc {
+	return func(k *gin.Context) {
+		sqlDB, err := db.DB()
+		if err != nil {
+			respon.Galat_Server(k, "Gagal mendapatkan koneksi pangkalan data.", err)
+			return
+		}
+		errPing := sqlDB.Ping()
+		if errPing != nil {
+			respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.", errPing)
+			return
+		}
+		respon.Sukses(k, "Sistem PGNServer beroperasi secara optimal dan terhubung ke pangkalan data.", nil)
+	}
+}
+
+// TanganiStatusKrusial menyajikan status akses ter-whitelist IP.
+// @Summary Status Operasi Krusial (Whitelisted IP)
+// @Description Menyajikan data status sensitif jika IP pengirim lolos Whitelisting korporasi
+// @Tags Sistem
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} respon.ResponStandar
+// @Failure 401 {object} respon.ResponStandar
+// @Router /api/v1/krusial/status [get]
+func TanganiStatusKrusial() gin.HandlerFunc {
+	return func(k *gin.Context) {
+		respon.Sukses(k, "Akses diizinkan, IP kamu terdaftar dalam whitelist pangkalan data.", gin.H{
+			"ip_whitelist_status": "authorized",
+			"timestamp":           time.Now(),
+		})
+	}
+}
+

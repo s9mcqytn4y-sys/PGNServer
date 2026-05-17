@@ -1,0 +1,63 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.0.0-beta)'
+        required: true
+        default: 'v1.0.0-beta'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-release:
+    name: Validate and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Security Scan (govulncheck)
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Run Tests (Race Detector & Pyramid Test)
+        run: go test -race -v ./...
+
+      - name: Compile Binaries for Release (Windows, Linux, macOS)
+        run: |
+          mkdir -p build/
+          GOEXPERIMENT=jsonv2 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build/pgn_api-linux-amd64 ./cmd/api
+          GOEXPERIMENT=jsonv2 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o build/pgn_api-windows-amd64.exe ./cmd/api
+          GOEXPERIMENT=jsonv2 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o build/pgn_api-darwin-amd64 ./cmd/api
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            build/pgn_api-linux-amd64
+            build/pgn_api-windows-amd64.exe
+            build/pgn_api-darwin-amd64
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

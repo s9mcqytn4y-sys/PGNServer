@@ -90,3 +90,19 @@ GET {{baseUrl}}/analitik/pareto?start_date=2026-05-17&end_date=2026-05-17&line=L
 ### 10. Analitik Pelacakan Akar Masalah (BOM Tracing)
 GET {{baseUrl}}/analitik/lacak?kode_cacat=LAMINATING BOLONG&parent_sku=FG-002
 
+### 11. Simulasi CORS Preflight Request (OPTIONS)
+OPTIONS http://localhost:8080/api/v1/cek_sistem
+Origin: http://localhost:3000
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type, Authorization
+
+### 12. Simulasi Secure Enterprise Headers Check
+GET http://localhost:8080/api/v1/cek_sistem
+
+### 13. Simulasi IP Whitelist - Akses Lolos (Menggunakan IP Tepercaya 127.0.0.1)
+GET http://localhost:8080/api/v1/krusial/status
+X-Forwarded-For: 127.0.0.1
+
+### 14. Simulasi IP Whitelist - Akses Ditolak (Menggunakan IP Asing)
+GET http://localhost:8080/api/v1/krusial/status
+X-Forwarded-For: 192.168.1.99

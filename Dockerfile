@@ -21,9 +21,11 @@ RUN go build -ldflags="-s -w" -o pgn_api ./cmd/api
 # --- Tahap 2: Final Image (Distroless / Minimalist) ---
 FROM alpine:latest
 
-# Konfigurasi zona waktu
+# Konfigurasi zona waktu secara lengkap
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 RUN echo "Asia/Jakarta" > /etc/timezone
+ENV TZ=Asia/Jakarta
 
 # Security Hardening: Menjalankan aplikasi sebagai non-root user
 RUN addgroup -S pgnteam && adduser -S pgnuser -G pgnteam

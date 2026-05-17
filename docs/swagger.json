@@ -172,6 +172,63 @@
                 }
             }
         },
+        "/api/v1/cek_sistem": {
+            "get": {
+                "description": "Memvalidasi kesiapan server API dan konektivitas live database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sistem"
+                ],
+                "summary": "Pemeriksaan Kesehatan Sistem",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/krusial/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyajikan data status sensitif jika IP pengirim lolos Whitelisting korporasi",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sistem"
+                ],
+                "summary": "Status Operasi Krusial (Whitelisted IP)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/materials/{id}/media": {
             "post": {
                 "security": [
@@ -373,7 +430,7 @@
         },
         "/api/v1/otentikasi/daftar": {
             "post": {
-                "description": "Mendaftarkan kredensial staf QC/Manajemen baru",
+                "description": "Mendaftarkan kredensial staf QC/Manajemen baru dengan dukungan retro-kompatibilitas NIP/kata_sandi",
                 "consumes": [
                     "application/json"
                 ],
@@ -439,7 +496,7 @@
         },
         "/api/v1/otentikasi/lupa-sandi": {
             "post": {
-                "description": "Pemulihan akun QC",
+                "description": "Pemulihan akun QC dengan dukungan NIP/kata_sandi fallback",
                 "consumes": [
                     "application/json"
                 ],
@@ -467,13 +524,19 @@
                         "schema": {
                             "$ref": "#/definitions/respon.ResponStandar"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
                     }
                 }
             }
         },
         "/api/v1/otentikasi/masuk": {
             "post": {
-                "description": "Memberikan Token JWT untuk akses sesi internal",
+                "description": "Memberikan Token JWT untuk akses sesi internal dengan dukungan NIP/kata_sandi",
                 "consumes": [
                     "application/json"
                 ],
@@ -502,6 +565,12 @@
                             "$ref": "#/definitions/respon.ResponStandar"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -522,27 +591,37 @@
             ],
             "properties": {
                 "kodeCacat": {
-                    "type": "string"
+                    "description": "Kode cacat defect (misal: \"A\", \"B\", dll)",
+                    "type": "string",
+                    "example": "A"
                 },
                 "rasioCacat": {
-                    "description": "NG",
+                    "description": "Kuantitas barang reject / NG (Not Good)",
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 2
                 },
                 "rasioTotalOK": {
+                    "description": "Kuantitas barang dengan status OK (Lolos QC)",
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 98
                 },
                 "totalProduksi": {
+                    "description": "Total kuantitas barang yang diproduksi",
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 100
                 },
                 "unikPartId": {
-                    "type": "integer"
+                    "description": "ID unik part material yang diperiksa",
+                    "type": "integer",
+                    "example": 1
                 },
                 "waktuPergeseran": {
-                    "description": "Shift",
-                    "type": "string"
+                    "description": "Waktu/Shift pergeseran jam pemeriksaan",
+                    "type": "string",
+                    "example": "08:00"
                 }
             }
         },
@@ -556,69 +635,111 @@
             ],
             "properties": {
                 "detail": {
+                    "description": "Himpunan baris rincian inspeksi part",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/kualitas.DTODetailInspeksi"
                     }
                 },
                 "penggunaIdTercatat": {
-                    "type": "integer"
+                    "description": "ID pengguna/staf QC yang merekam data",
+                    "type": "integer",
+                    "example": 1
                 },
                 "tanggal": {
-                    "type": "string"
+                    "description": "Tanggal pemeriksaan (format ISO 8601)",
+                    "type": "string",
+                    "example": "2026-05-17T00:00:00Z"
                 },
                 "zonaLini": {
-                    "type": "string"
+                    "description": "Zona atau Lini produksi tempat inspeksi",
+                    "type": "string",
+                    "example": "Lini 1"
                 }
             }
         },
         "otentikasi.DataPermintaanLogin": {
             "type": "object",
-            "required": [
-                "sandi",
-                "surel"
-            ],
             "properties": {
+                "kata_sandi": {
+                    "description": "Fallback sandi untuk login retro-kompatibel",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "nip": {
+                    "description": "Fallback NIP untuk login retro-kompatibel",
+                    "type": "string",
+                    "example": "2211019"
+                },
                 "sandi": {
-                    "type": "string"
+                    "description": "Kata sandi akun",
+                    "type": "string",
+                    "example": "sandiRahasia123"
                 },
                 "surel": {
-                    "type": "string"
+                    "description": "Surel akun terdaftar",
+                    "type": "string",
+                    "example": "operator@pgn.com"
                 }
             }
         },
         "otentikasi.DataPermintaanLupaSandi": {
             "type": "object",
-            "required": [
-                "sandiBaru",
-                "surel"
-            ],
             "properties": {
-                "sandiBaru": {
+                "kata_sandi": {
+                    "description": "Fallback sandi baru retro-kompatibel",
                     "type": "string",
-                    "minLength": 8
+                    "example": "admin"
+                },
+                "nip": {
+                    "description": "Fallback NIP untuk reset retro-kompatibel",
+                    "type": "string",
+                    "example": "2211019"
+                },
+                "sandiBaru": {
+                    "description": "Kata sandi baru (Minimal 8 karakter)",
+                    "type": "string",
+                    "example": "sandiBaru123"
                 },
                 "surel": {
-                    "type": "string"
+                    "description": "Surel akun terdaftar",
+                    "type": "string",
+                    "example": "operator@pgn.com"
                 }
             }
         },
         "otentikasi.DataPermintaanRegistrasi": {
             "type": "object",
-            "required": [
-                "sandi",
-                "surel"
-            ],
             "properties": {
+                "kata_sandi": {
+                    "description": "Kata sandi fallback (Retro-kompatibilitas)",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "nama_lengkap": {
+                    "description": "Nama lengkap pegawai (Opsional)",
+                    "type": "string",
+                    "example": "Leader QC"
+                },
+                "nip": {
+                    "description": "Nomor Induk Pegawai (Fallback retro-kompatibilitas)",
+                    "type": "string",
+                    "example": "2211019"
+                },
                 "peran": {
-                    "type": "string"
+                    "description": "Peran otorisasi: OPERATOR atau LEADER (Default: OPERATOR)",
+                    "type": "string",
+                    "example": "OPERATOR"
                 },
                 "sandi": {
+                    "description": "Kata sandi minimal 8 karakter (Wajib jika kata_sandi kosong)",
                     "type": "string",
-                    "minLength": 8
+                    "example": "sandiRahasia123"
                 },
                 "surel": {
-                    "type": "string"
+                    "description": "Surel resmi pegawai (Wajib jika NIP kosong)",
+                    "type": "string",
+                    "example": "operator@pgn.com"
                 }
             }
         },

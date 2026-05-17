@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PGNServer | Enterprise Manufacturing & Traceability Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        outfit: ['Outfit', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        corporate: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0066cc',
+                            600: '#0052a3',
+                            900: '#0a2540',
+                        },
+                        cyber: {
+                            dark: '#030712',
+                            darker: '#02040a',
+                            green: '#10b981',
+                            blue: '#3b82f6',
+                            purple: '#8b5cf6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glow-border {
+            position: relative;
+        }
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0.15;
+            transition: opacity 0.3s ease;
+        }
+        .glow-border:hover::after {
+            opacity: 0.4;
+        }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        @keyframes pulse-glow {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+                box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 1;
+                box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
+            }
+        }
+        .pulse-active {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-cyber-darker text-gray-200 font-sans antialiased bg-grid min-h-screen flex flex-col justify-between">
+
+    <!-- Header Section -->
+    <header class="border-b border-gray-800 bg-cyber-dark/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyber-blue to-cyber-purple flex items-center justify-center font-outfit font-extrabold text-white text-lg shadow-lg shadow-cyber-blue/20">
+                    PGN
+                </div>
+                <div>
+                    <h1 class="font-outfit font-bold text-lg tracking-tight text-white">PGNServer</h1>
+                    <p class="text-xs text-gray-500 font-medium">Traceability & Analytics Engine</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 pulse-active"></span>
+                    Sistem Aktif (BETA)
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-6 py-12 flex-grow flex flex-col justify-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+            <!-- Left Panel: Hero and Core Info -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="inline-block px-3 py-1 rounded-md bg-cyber-blue/10 text-cyber-blue text-xs font-bold tracking-wider uppercase border border-cyber-blue/20">
+                    Toyota Production System (TPS) Alignment
+                </div>
+                <h2 class="font-outfit font-extrabold text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none">
+                    Literally the ultimate <span class="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-green bg-clip-text text-transparent">QC Monolith.</span>
+                </h2>
+                <p class="text-gray-400 text-lg max-w-xl leading-relaxed">
+                    Arsitektur terpadu dengan optimalisasi Go 1.25 dan PostgreSQL 17 untuk mendeteksi defect secara rekursif (*BOM Tracing*), Pareto dinamis berbasis *SQL Window Function*, dan perlindungan media ganda yang aman dan tangguh.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <a href="{{.SwaggerURL}}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-semibold shadow-lg shadow-cyber-blue/30 hover:shadow-cyber-blue/50 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
+                        <span>Buka Swagger API Docs</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </a>
+                    <a href="#telemetry" class="px-6 py-3 rounded-xl bg-gray-800/80 hover:bg-gray-800 text-gray-300 font-semibold border border-gray-700/50 hover:border-gray-600 transition-all duration-200">
+                        Lihat Telemetri
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Panel: Telemetry & Monitoring Card -->
+            <div id="telemetry" class="lg:col-span-5">
+                <div class="bg-cyber-dark/60 backdrop-blur-lg border border-gray-800/80 rounded-3xl p-8 glow-border shadow-2xl space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-800/80 pb-4">
+                        <h3 class="font-outfit font-bold text-xl text-white">System Telemetry</h3>
+                        <span class="text-xs text-gray-500 font-medium">Aktual: {{.WaktuServer}}</span>
+                    </div>
+
+                    <!-- DB Status Card -->
+                    <div class="p-5 rounded-2xl bg-gray-900/60 border border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-white">PostgreSQL 17.x</h4>
+                                <p class="text-xs text-gray-400">{{.DBName}} @ {{.DBHost}}</p>
+                            </div>
+                        </div>
+                        <div>
+                            {{if .DBConnected}}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-ping"></span>
+                                CONNECTED
+                            </span>
+                            {{else}}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-sm">
+                                DISCONNECTED
+                            </span>
+                            {{end}}
+                        </div>
+                    </div>
+
+                    <!-- Config Summary -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Konfigurasi Jaringan & Keamanan</h4>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3 bg-gray-900/40 rounded-xl border border-gray-800/60">
+                                <span class="text-[10px] text-gray-500 block uppercase font-bold">App Port</span>
+                                <span class="text-sm font-semibold text-white font-mono">8080</span>
+                            </div>
+                            <div class="p-3 bg-gray-900/40 rounded-xl border border-gray-800/60">
+                                <span class="text-[10px] text-gray-500 block uppercase font-bold">Gin Mode</span>
+                                <span class="text-sm font-semibold text-cyber-blue font-mono">debug</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-900/40 rounded-2xl border border-gray-800/60 space-y-2 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-500 font-semibold">ALLOWED_ORIGINS:</span>
+                                <span class="font-mono text-white max-w-[180px] truncate" title="{{.AllowedOrigins}}">
+                                    {{if .AllowedOrigins}}{{.AllowedOrigins}}{{else}}* (Dev Fallback){{end}}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-gray-850 pt-2">
+                                <span class="text-gray-500 font-semibold">IP_WHITELIST:</span>
+                                <span class="font-mono text-emerald-400 max-w-[180px] truncate" title="{{.IPWhitelist}}">
+                                    {{if .IPWhitelist}}{{.IPWhitelist}}{{else}}Not Set{{end}}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-gray-850 pt-2">
+                                <span class="text-gray-500 font-semibold">SECURITY MIDDLEWARES:</span>
+                                <span class="font-semibold text-cyber-purple">CORS, Clickjacking, MIME</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="border-t border-gray-900 bg-cyber-darker py-6">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
+            <p>&copy; 2026 PGN Quality Assurance & Database Architecture Dept.</p>
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <span class="hover:text-gray-300 cursor-pointer">Toyota Production System AQL v1.0</span>
+                <span>&bull;</span>
+                <span class="hover:text-gray-300 cursor-pointer">Go 1.25.x & Postgres 17.x</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

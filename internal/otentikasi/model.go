@@ -1,3 +1,4 @@
+// Package otentikasi menangani manajemen akun pengguna, registrasi, login, dan validasi sesi.
 package otentikasi
 
 import "time"

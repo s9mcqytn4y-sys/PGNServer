@@ -5,20 +5,20 @@ import "time"
 
 // DTODetailInspeksi mendefinisikan detail inspeksi dalam JSON dengan struktur TPS.
 type DTODetailInspeksi struct {
-	UnikPartID      uint    `json:"unikPartId,omitempty" binding:"required"`
-	KodeCacat       string  `json:"kodeCacat,omitempty" binding:"required"`
-	WaktuPergeseran string  `json:"waktuPergeseran,omitempty" binding:"required"` // Shift
-	TotalProduksi   float64 `json:"totalProduksi,omitempty" binding:"gte=0"`
-	RasioTotalOK    float64 `json:"rasioTotalOK,omitempty" binding:"gte=0"`
-	RasioCacat      float64 `json:"rasioCacat,omitempty" binding:"gte=0"` // NG
+	UnikPartID      uint    `json:"unikPartId" example:"1" binding:"required"`                             // ID unik part material yang diperiksa
+	KodeCacat       string  `json:"kodeCacat" example:"A" binding:"required"`                             // Kode cacat defect (misal: "A", "B", dll)
+	WaktuPergeseran string  `json:"waktuPergeseran" example:"08:00" binding:"required"`                    // Waktu/Shift pergeseran jam pemeriksaan
+	TotalProduksi   float64 `json:"totalProduksi" example:"100" binding:"gte=0"`                           // Total kuantitas barang yang diproduksi
+	RasioTotalOK    float64 `json:"rasioTotalOK" example:"98" binding:"gte=0"`                            // Kuantitas barang dengan status OK (Lolos QC)
+	RasioCacat      float64 `json:"rasioCacat" example:"2" binding:"gte=0"`                             // Kuantitas barang reject / NG (Not Good)
 }
 
 // DTOLembarPeriksaKirim adalah komposit majemuk payload masuk.
 type DTOLembarPeriksaKirim struct {
-	Tanggal            string              `json:"tanggal,omitempty" binding:"required"`
-	ZonaLini           string              `json:"zonaLini,omitempty" binding:"required"`
-	PenggunaIDTercatat uint                `json:"penggunaIdTercatat,omitempty" binding:"required"`
-	Detail             []DTODetailInspeksi `json:"detail,omitempty" binding:"required,dive"`
+	Tanggal            string              `json:"tanggal" example:"2026-05-17T00:00:00Z" binding:"required"` // Tanggal pemeriksaan (format ISO 8601)
+	ZonaLini           string              `json:"zonaLini" example:"Lini 1" binding:"required"`              // Zona atau Lini produksi tempat inspeksi
+	PenggunaIDTercatat uint                `json:"penggunaIdTercatat" example:"1" binding:"required"`         // ID pengguna/staf QC yang merekam data
+	Detail             []DTODetailInspeksi `json:"detail" binding:"required,dive"`                            // Himpunan baris rincian inspeksi part
 }
 
 // LembarPeriksa merepresentasikan data utama lembar inspeksi fisik QC.
