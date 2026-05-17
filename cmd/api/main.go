@@ -103,7 +103,11 @@ func main() {
 	handlerAnalitik := analitik.KonstruksiPenangananBaru(layananAnalitik)
 
 	// Konfigurasi layanan router web Gin
+	if os.Getenv("GIN_MODE") == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	rute := gin.Default()
+	rute.SetTrustedProxies(nil) // Mengamankan peringatan 'trusted all proxies'
 
 	// Rute Publik untuk Swagger
 	rute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
