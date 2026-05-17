@@ -53,15 +53,17 @@ Klien `QControl` wajib menaati spesifikasi berikut saat berkomunikasi dengan ser
 4. **Kualitas & Lembar Periksa**:
    - Tambah Lembar Periksa: `POST /api/v1/operasi/rekam_lembar_periksa` dengan header `X-Idempotency-Key` untuk menghindari duplikasi.
    - Total produk harus presisi sesuai Hukum TPS: `TotalProduksi == KuantitasOK + KuantitasNG`.
-5. **Analitik Pareto & Histogram**:
+5. **Pemeriksaan Kesehatan & Kesiapan**:
+   - Guna memverifikasi konektivitas, klien KMP secara berkala melakukan ping ke `/api/v1/kesehatan` (atau alias `/api/v1/health`), dan memverifikasi `/api/v1/readiness` sebelum mengirimkan antrian local Outbox.
+6. **Analitik Pareto & Histogram**:
    - Rute `GET /api/v1/analitik/metrik_pareto_bulanan` menyajikan proporsi cacat teratas berbasis Window Functions PostgreSQL.
    - Klien desktop harus menyinkronkan data ini ke dalam SQLite lokal dan merendernya secara native menggunakan Compose Native Canvas (`ParetoDefectChart` & `HistogramDefectSlot`) dengan dynamic entrance animations dan visual 80/20 threshold indicators.
-6. **Secure Middleware**: Seluruh permintaan dari klien wajib mematuhi restriksi CORS dan secure HTTP headers yang disyaratkan oleh server. IP klien harus masuk dalam Whitelist yang dikonfigurasi.
+7. **Secure Middleware**: Seluruh permintaan dari klien wajib mematuhi restriksi CORS dan secure HTTP headers yang disyaratkan oleh server. IP klien harus masuk dalam Whitelist yang dikonfigurasi.
 
 ## 7. Kebijakan Pengembangan & Deployment Berkelanjutan
 Seluruh Agent wajib mematuhi aturan operasional berikut tanpa kecuali:
 1. **Mandat Satu Cabang (No-Branching)**: Seluruh agen wajib melakukan kompilasi, verifikasi, komit, dan langsung melakukan push ke cabang `main` branch. Dilarang keras menciptakan atau melakukan push ke cabang di luar `main`.
-2. **Imutabilitas Kontrak API**: Struktur amplop respon JSON (`success`, `message`, `data`, `meta`, `errors`) bersifat **mutlak** dan **tidak boleh dimodifikasi** untuk mencegah kerusakan deserialisasi pada klien KControl desktop KMP.
+2. **Imutabilitas Kontrak API**: Struktur amplop respon JSON mendukung pola ganda (dual-envelope) secara serentak baik versi Indonesia (`sukses`, `pesan`, `data`, `metadata`, `kesalahan`) maupun versi lama (`success`, `message`, `status`, `meta`, `errors`) dan **wajib dijaga konsistensinya** untuk mencegah kerusakan deserialisasi pada klien QControl desktop KMP.
 3. **Isolasi Transaksi Database**: Seluruh mutasi pangkalan data wajib memanfaatkan scope transaksi GORM (`db.Transaction`) yang terbungkus dengan penanganan kegagalan `panic` otomatis demi integritas data multi-tabel.
 
 ---

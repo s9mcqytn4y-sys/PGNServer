@@ -794,6 +794,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/health": {
+            "get": {
+                "description": "Memvalidasi bahwa instansi server API aktif dan berjalan",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sistem"
+                ],
+                "summary": "Pemeriksaan Liveness Aplikasi",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/kesehatan": {
+            "get": {
+                "description": "Memvalidasi kesiapan server API dan konektivitas live database untuk klien KMP",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sistem"
+                ],
+                "summary": "Pemeriksaan Kesehatan Sistem KMP",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/krusial/status": {
             "get": {
                 "security": [
@@ -1471,6 +1523,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/readiness": {
+            "get": {
+                "description": "Memvalidasi bahwa server API siap menerima trafik dengan memverifikasi koneksi database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sistem"
+                ],
+                "summary": "Pemeriksaan Kesiapan Aplikasi",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/suppliers": {
             "get": {
                 "security": [
@@ -2131,6 +2209,17 @@ const docTemplate = `{
                 }
             }
         },
+        "respon.DetailKesalahan": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "pesan": {
+                    "type": "string"
+                }
+            }
+        },
         "respon.ResponStandar": {
             "type": "object",
             "properties": {
@@ -2141,12 +2230,29 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "kesalahan": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respon.DetailKesalahan"
+                    }
+                },
                 "message": {
                     "type": "string"
                 },
-                "status": {
-                    "description": "\"success\" atau \"fail\" atau \"error\"",
+                "meta": {},
+                "metadata": {},
+                "pesan": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "success": {
+                    "description": "Legacy fields untuk retro-kompatibilitas",
+                    "type": "boolean"
+                },
+                "sukses": {
+                    "type": "boolean"
                 }
             }
         }

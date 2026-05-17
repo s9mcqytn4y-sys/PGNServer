@@ -153,7 +153,8 @@ func main() {
 		api.GET("/", tanganiLandingPage(db))
 
 		// Endpoint pemeriksaan sistem (Health Check & Readiness)
-		api.GET("/health", TanganiHealth())
+		api.GET("/health", TanganiHealth(db))
+		api.GET("/kesehatan", TanganiKesehatan(db))
 		api.GET("/readiness", TanganiReadiness(db))
 		api.GET("/cek_sistem", TanganiCekSistem(db))
 
@@ -382,11 +383,22 @@ func TanganiStatusKrusial() gin.HandlerFunc {
 // @Tags Sistem
 // @Produce json
 // @Success 200 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
 // @Router /api/v1/health [get]
-func TanganiHealth() gin.HandlerFunc {
-	return func(k *gin.Context) {
-		respon.Sukses(k, "Aplikasi PGNServer aktif dan berjalan.", nil)
-	}
+func TanganiHealth(db *gorm.DB) gin.HandlerFunc {
+	return TanganiCekSistem(db)
+}
+
+// TanganiKesehatan menyajikan status operasional aplikasi dan pangkalan data.
+// @Summary Pemeriksaan Kesehatan Sistem KMP
+// @Description Memvalidasi kesiapan server API dan konektivitas live database untuk klien KMP
+// @Tags Sistem
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/kesehatan [get]
+func TanganiKesehatan(db *gorm.DB) gin.HandlerFunc {
+	return TanganiCekSistem(db)
 }
 
 // TanganiReadiness menyajikan pemeriksaan kesiapan sistem.

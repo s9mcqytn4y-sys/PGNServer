@@ -258,6 +258,13 @@ definitions:
         example: operator@pgn.com
         type: string
     type: object
+  respon.DetailKesalahan:
+    properties:
+      field:
+        type: string
+      pesan:
+        type: string
+    type: object
   respon.ResponStandar:
     properties:
       data: {}
@@ -265,11 +272,23 @@ definitions:
         items:
           type: string
         type: array
+      kesalahan:
+        items:
+          $ref: '#/definitions/respon.DetailKesalahan'
+        type: array
       message:
         type: string
-      status:
-        description: '"success" atau "fail" atau "error"'
+      meta: {}
+      metadata: {}
+      pesan:
         type: string
+      status:
+        type: string
+      success:
+        description: Legacy fields untuk retro-kompatibilitas
+        type: boolean
+      sukses:
+        type: boolean
     type: object
 host: localhost:8080
 info:
@@ -760,6 +779,41 @@ paths:
       summary: Perbarui Customer
       tags:
       - Manufaktur - Customer
+  /api/v1/health:
+    get:
+      description: Memvalidasi bahwa instansi server API aktif dan berjalan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Pemeriksaan Liveness Aplikasi
+      tags:
+      - Sistem
+  /api/v1/kesehatan:
+    get:
+      description: Memvalidasi kesiapan server API dan konektivitas live database
+        untuk klien KMP
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Pemeriksaan Kesehatan Sistem KMP
+      tags:
+      - Sistem
   /api/v1/krusial/status:
     get:
       description: Menyajikan data status sensitif jika IP pengirim lolos Whitelisting
@@ -1185,6 +1239,24 @@ paths:
       summary: Akses Masuk Pengguna
       tags:
       - Otentikasi
+  /api/v1/readiness:
+    get:
+      description: Memvalidasi bahwa server API siap menerima trafik dengan memverifikasi
+        koneksi database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Pemeriksaan Kesiapan Aplikasi
+      tags:
+      - Sistem
   /api/v1/suppliers:
     get:
       description: Menampilkan daftar seluruh pemasok bahan baku

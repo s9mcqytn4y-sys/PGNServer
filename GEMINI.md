@@ -36,7 +36,7 @@ Akses API menggunakan standar RESTful modern (Go Gin). Pastikan setiap request m
 
 Klien QControl mengimplementasikan Ktor HTTP Response Interceptor untuk mendeteksi status `401 Unauthorized` atau kedaluwarsa token secara global, yang secara otomatis memicu alur keluar sesi (`auto-logout`) untuk melindungi integritas sesi pengguna.
 
-Environment Path: `C:\Software\PGNServer` | Docker Engine: Active
+Untuk menjamin transmisi aman pada local Outbox, klien memverifikasi liveness server melalui `/api/v1/kesehatan` (atau `/api/v1/health`) serta kesiapan database melalui `/api/v1/readiness` sebelum mengirim batch request.
 
 ## 6. Manufacturing & Master Data API Endpoints (GORM CRUD)
 Sistem kini mengekspos antarmuka CRUD lengkap yang aman terproteksi JWT untuk pengelolaan rantai pasok manufaktur:
@@ -47,13 +47,16 @@ Sistem kini mengekspos antarmuka CRUD lengkap yang aman terproteksi JWT untuk pe
 
 Setiap mutasi data master secara otomatis menghapus cache memori global (`cache.GlobalCache.Clear()`) untuk menyajikan metrik telemetri yang selalu mutakhir pada Landing Page dinamis.
 
-## 7. QControl Visual Canvas Integration & Sync
+## 7. Dual-Envelope Response Adaptation
+Untuk memfasilitasi kelancaran integrasi dengan klien QControl Kotlin Multiplatform (KMP), PGNServer mengimplementasikan struktur amplop JSON ganda (dual-envelope). Respons dikembalikan dengan properti bahasa Indonesia (`sukses`, `pesan`, `data`, `metadata`, `kesalahan`) dan properti legacy (`success`, `message`, `status`, `meta`, `errors`) secara bersamaan. Format ini diuji dengan baik untuk mencegah kegagalan serialisasi di sisi client.
+
+## 8. QControl Visual Canvas Integration & Sync
 Klien desktop QControl merender data secara offline-first menggunakan Jetpack Compose Native Canvas:
 - **Pareto Chart**: Menampilkan proporsi 80/20 dari defect master dengan dynamic threshold markers dan dynamic cumulative line drawing.
 - **Defect Histogram**: Menyajikan visualisasi frekuensi defect slot per jam kerja secara real-time.
 - **SQLite Engine**: Seluruh metrik visualisasi tersebut dihitung dan diambil langsung dari database SQLite lokal secara sinkron, yang ditarik dari endpoint analitik saat jaringan tersedia.
 
-## 8. Development Optimization & Git Workflow Hardening
+## 9. Development Optimization & Git Workflow Hardening
 Setiap interaksi dengan sistem wajib memperhatikan panduan optimasi token dan keamanan integrasi:
 1. **Token Savings Analytics (RTK)**: Gunakan CLI proxy `rtk` untuk seluruh perintah Git, kompilasi, dan testing guna mereduksi token overhead (hingga 90%). Contoh: `rtk git status`, `rtk go test ./...`.
 2. **Environmental Safety Rules**: Seluruh variabel rahasia (`JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, dan `DATABASE_URL`) wajib dimuat secara dinamis via berkas `.env` dan tidak boleh di-hardcode di dalam kode sumber Go.

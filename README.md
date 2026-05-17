@@ -123,18 +123,53 @@ chmod +x scripts/backup_db.sh
 
 Server API PGNServer kini secara resmi dinyatakan **"Siap di-Consume"** untuk integrasi penuh dengan tim Frontend dan Client Apps (seperti QControl Desktop Client).
 
-Seluruh endpoint API berjalan di bawah routing group `/api/v1` dan mengembalikan amplop respon JSON terstandardisasi:
-- **Respon Sukses**: `{"success": true, "message": "...", "data": ..., "meta": null}`
-- **Respon Gagal / Galat**: `{"success": false, "message": "...", "errors": ["..."]}`
+Seluruh endpoint API berjalan di bawah routing group `/api/v1` dan mengembalikan amplop respon JSON terstandardisasi ganda (dual-envelope structure) untuk menjamin kompatibilitas penuh dengan klien KMP/QControl Desktop tanpa merusak kompatibilitas lama (retro-compatible):
+
+- **Respon Sukses**:
+  ```json
+  {
+    "sukses": true,
+    "pesan": "Pesan sukses ramah pengguna",
+    "data": {},
+    "metadata": null,
+    "kesalahan": null,
+    "success": true,
+    "message": "Pesan sukses ramah pengguna",
+    "status": "success",
+    "meta": null,
+    "errors": null
+  }
+  ```
+- **Respon Gagal / Galat**:
+  ```json
+  {
+    "sukses": false,
+    "pesan": "Penjelasan umum kesalahan",
+    "data": null,
+    "metadata": null,
+    "kesalahan": [
+      {
+        "field": "nama_field",
+        "pesan": "Penjelasan kesalahan spesifik field"
+      }
+    ],
+    "success": false,
+    "message": "Penjelasan umum kesalahan",
+    "status": "error",
+    "meta": null,
+    "errors": ["nama_field: Penjelasan kesalahan spesifik field"]
+  }
+  ```
 
 ### 1. Modul Sistem & Pemeriksaan Kesehatan (Public)
 
-| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data / Deskripsi |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/` | Public | Public | *None* | Halaman HTML interaktif Dashboard telemetry |
 | `GET` | `/swagger/*any` | Public | Public | *None* | Dokumentasi UI Swagger interaktif |
-| `GET` | `/api/v1/health` | Public | Public | *None* | Pesan string liveness server |
-| `GET` | `/api/v1/readiness` | Public | Public | *None* | Status kesiapan database ping |
+| `GET` | `/api/v1/health` | Public | Public | *None* | Amplop JSON status operasional liveness server & database (alias `/cek_sistem`) |
+| `GET` | `/api/v1/kesehatan` | Public | Public | *None* | Amplop JSON pemeriksaan kesehatan sistem komprehensif untuk klien KMP |
+| `GET` | `/api/v1/readiness` | Public | Public | *None* | Status kesiapan database ping & kesiapan menerima trafik |
 | `GET` | `/api/v1/cek_sistem` | Public | Public | *None* | Telemetri runtime GORM & RAM sistem |
 | `GET` | `/api/v1/krusial/status` | IP Whitelist | Admin / LEADER | *None* | Data telemetri operasi tingkat tinggi |
 
