@@ -59,6 +59,140 @@ definitions:
     - tanggal
     - zonaLini
     type: object
+  manufaktur.Customer:
+    properties:
+      customerCode:
+        type: string
+      dibuatPada:
+        type: string
+      diubahPada:
+        type: string
+      id:
+        type: integer
+      kontak:
+        type: string
+      nama:
+        type: string
+    type: object
+  manufaktur.DTOBOMSimpan:
+    properties:
+      idParentMaterial:
+        type: integer
+      idRawMaterial:
+        type: integer
+      parameterKuantitasPembentuk:
+        type: number
+    required:
+    - idRawMaterial
+    - parameterKuantitasPembentuk
+    type: object
+  manufaktur.DTOCustomerSimpan:
+    properties:
+      customerCode:
+        type: string
+      kontak:
+        type: string
+      nama:
+        type: string
+    required:
+    - customerCode
+    - nama
+    type: object
+  manufaktur.DTOMaterialSimpan:
+    properties:
+      beratGSM:
+        type: integer
+      idPemasok:
+        type: integer
+      kodeSKU:
+        type: string
+      lebarCM:
+        type: number
+      namaMaterial:
+        type: string
+      panjangCM:
+        type: number
+      tebalCM:
+        type: number
+      unitSatuan:
+        type: string
+    required:
+    - idPemasok
+    - kodeSKU
+    - namaMaterial
+    - unitSatuan
+    type: object
+  manufaktur.DTOPemasokSimpan:
+    properties:
+      kontak:
+        type: string
+      namaEntitas:
+        type: string
+      supplierCode:
+        type: string
+    required:
+    - namaEntitas
+    - supplierCode
+    type: object
+  manufaktur.KomposisiMaterialBOM:
+    properties:
+      dibuatPada:
+        type: string
+      id:
+        type: integer
+      idParentMaterial:
+        type: integer
+      idRawMaterial:
+        type: integer
+      materialBaku:
+        $ref: '#/definitions/manufaktur.Material'
+      parameterKuantitasPembentuk:
+        type: number
+      parentMaterial:
+        $ref: '#/definitions/manufaktur.Material'
+    type: object
+  manufaktur.Material:
+    properties:
+      beratGSM:
+        type: integer
+      dibuatPada:
+        type: string
+      diubahPada:
+        type: string
+      id:
+        type: integer
+      idPemasok:
+        type: integer
+      kodeSKU:
+        type: string
+      lebarCM:
+        type: number
+      namaMaterial:
+        type: string
+      panjangCM:
+        type: number
+      pemasok:
+        $ref: '#/definitions/manufaktur.Pemasok'
+      tebalCM:
+        type: number
+      unitSatuan:
+        type: string
+    type: object
+  manufaktur.Pemasok:
+    properties:
+      dibuatPada:
+        type: string
+      diubahPada:
+        type: string
+      id:
+        type: integer
+      kontak:
+        type: string
+      namaEntitas:
+        type: string
+      supplierCode:
+        type: string
+    type: object
   otentikasi.DataPermintaanLogin:
     properties:
       kata_sandi:
@@ -255,6 +389,183 @@ paths:
       summary: Dapatkan Pareto Dinamis
       tags:
       - Analitik
+  /api/v1/boms:
+    get:
+      description: Menampilkan daftar seluruh relasi BOM beserta detail material terkait
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/manufaktur.KomposisiMaterialBOM'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Ambil Semua BOM
+      tags:
+      - Manufaktur - BOM
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan relasi hirarkis BOM baru ke pangkalan data
+      parameters:
+      - description: Payload Tambah BOM
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOBOMSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.KomposisiMaterialBOM'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Tambah BOM Baru
+      tags:
+      - Manufaktur - BOM
+  /api/v1/boms/{id}:
+    delete:
+      description: Menghapus data relasi BOM dari sistem berdasarkan ID
+      parameters:
+      - description: ID BOM
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Hapus BOM
+      tags:
+      - Manufaktur - BOM
+    get:
+      description: Mendapatkan data detail relasi BOM berdasarkan ID
+      parameters:
+      - description: ID BOM
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.KomposisiMaterialBOM'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Detail BOM
+      tags:
+      - Manufaktur - BOM
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui informasi relasi BOM berdasarkan ID
+      parameters:
+      - description: ID BOM
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payload Perbarui BOM
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOBOMSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.KomposisiMaterialBOM'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Perbarui BOM
+      tags:
+      - Manufaktur - BOM
   /api/v1/cek_sistem:
     get:
       description: Memvalidasi kesiapan server API dan konektivitas live database
@@ -272,6 +583,183 @@ paths:
       summary: Pemeriksaan Kesehatan Sistem
       tags:
       - Sistem
+  /api/v1/customers:
+    get:
+      description: Menampilkan daftar seluruh customer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/manufaktur.Customer'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Ambil Semua Customer
+      tags:
+      - Manufaktur - Customer
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan data customer baru ke pangkalan data
+      parameters:
+      - description: Payload Tambah Customer
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOCustomerSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Customer'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Tambah Customer Baru
+      tags:
+      - Manufaktur - Customer
+  /api/v1/customers/{id}:
+    delete:
+      description: Menghapus data customer dari sistem berdasarkan ID
+      parameters:
+      - description: ID Customer
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Hapus Customer
+      tags:
+      - Manufaktur - Customer
+    get:
+      description: Mendapatkan data detail customer berdasarkan ID
+      parameters:
+      - description: ID Customer
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Customer'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Detail Customer
+      tags:
+      - Manufaktur - Customer
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui informasi customer berdasarkan ID
+      parameters:
+      - description: ID Customer
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payload Perbarui Customer
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOCustomerSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Customer'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Perbarui Customer
+      tags:
+      - Manufaktur - Customer
   /api/v1/krusial/status:
     get:
       description: Menyajikan data status sensitif jika IP pengirim lolos Whitelisting
@@ -292,6 +780,183 @@ paths:
       summary: Status Operasi Krusial (Whitelisted IP)
       tags:
       - Sistem
+  /api/v1/materials:
+    get:
+      description: Menampilkan daftar seluruh material beserta info pemasoknya
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/manufaktur.Material'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Ambil Semua Material
+      tags:
+      - Manufaktur - Material
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan data material baru ke pangkalan data
+      parameters:
+      - description: Payload Tambah Material
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOMaterialSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Material'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Tambah Material Baru
+      tags:
+      - Manufaktur - Material
+  /api/v1/materials/{id}:
+    delete:
+      description: Menghapus data material dari sistem berdasarkan ID
+      parameters:
+      - description: ID Material
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Hapus Material
+      tags:
+      - Manufaktur - Material
+    get:
+      description: Mendapatkan data detail material berdasarkan ID
+      parameters:
+      - description: ID Material
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Material'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Detail Material
+      tags:
+      - Manufaktur - Material
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui informasi material berdasarkan ID
+      parameters:
+      - description: ID Material
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payload Perbarui Material
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOMaterialSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Material'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Perbarui Material
+      tags:
+      - Manufaktur - Material
   /api/v1/materials/{id}/media:
     post:
       consumes:
@@ -520,6 +1185,183 @@ paths:
       summary: Akses Masuk Pengguna
       tags:
       - Otentikasi
+  /api/v1/suppliers:
+    get:
+      description: Menampilkan daftar seluruh pemasok bahan baku
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/manufaktur.Pemasok'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Ambil Semua Pemasok
+      tags:
+      - Manufaktur - Pemasok
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan data pemasok (supplier) baru ke pangkalan data
+      parameters:
+      - description: Payload Tambah Pemasok
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOPemasokSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Pemasok'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Tambah Pemasok Baru
+      tags:
+      - Manufaktur - Pemasok
+  /api/v1/suppliers/{id}:
+    delete:
+      description: Menghapus data pemasok dari sistem berdasarkan ID
+      parameters:
+      - description: ID Pemasok
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Hapus Pemasok
+      tags:
+      - Manufaktur - Pemasok
+    get:
+      description: Mendapatkan data detail pemasok berdasarkan ID
+      parameters:
+      - description: ID Pemasok
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Pemasok'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Detail Pemasok
+      tags:
+      - Manufaktur - Pemasok
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui informasi pemasok berdasarkan ID
+      parameters:
+      - description: ID Pemasok
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payload Perbarui Pemasok
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/manufaktur.DTOPemasokSimpan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.Pemasok'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Perbarui Pemasok
+      tags:
+      - Manufaktur - Pemasok
 securityDefinitions:
   BearerAuth:
     in: header

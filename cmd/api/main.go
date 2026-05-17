@@ -124,6 +124,11 @@ func main() {
 	layananMedia := media.KonstruksiLayananBaru(repoMedia, db)
 	handlerMedia := media.KonstruksiPenangananBaru(layananMedia)
 
+	// Setup Dependensi Manufaktur
+	repoManufaktur := manufaktur.KonstruksiRepositoriBaru(db)
+	layananManufaktur := manufaktur.KonstruksiLayananBaru(repoManufaktur)
+	handlerManufaktur := manufaktur.KonstruksiPenangananBaru(layananManufaktur)
+
 	// Konfigurasi layanan router web Gin
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
@@ -190,10 +195,46 @@ func main() {
 			mediaGrup.GET("/:id/pratinjau", handlerMedia.TanganiPratinjauMedia)
 		}
 
+		// Endpoint Manufaktur (Perlu JWT)
+		pemasokGrup := api.Group("/suppliers")
+		pemasokGrup.Use(infrastruktur.PenjagaSesiJWT())
+		{
+			pemasokGrup.POST("", handlerManufaktur.TanganiTambahPemasok)
+			pemasokGrup.GET("", handlerManufaktur.TanganiAmbilSemuaPemasok)
+			pemasokGrup.GET("/:id", handlerManufaktur.TanganiCariPemasokID)
+			pemasokGrup.PUT("/:id", handlerManufaktur.TanganiUbahPemasok)
+			pemasokGrup.DELETE("/:id", handlerManufaktur.TanganiHapusPemasok)
+		}
+
 		materialGrup := api.Group("/materials")
 		materialGrup.Use(infrastruktur.PenjagaSesiJWT())
 		{
+			materialGrup.POST("", handlerManufaktur.TanganiTambahMaterial)
+			materialGrup.GET("", handlerManufaktur.TanganiAmbilSemuaMaterial)
+			materialGrup.GET("/:id", handlerManufaktur.TanganiCariMaterialID)
+			materialGrup.PUT("/:id", handlerManufaktur.TanganiUbahMaterial)
+			materialGrup.DELETE("/:id", handlerManufaktur.TanganiHapusMaterial)
 			materialGrup.POST("/:id/media", handlerMedia.TanganiUnggahMedia)
+		}
+
+		customerGrup := api.Group("/customers")
+		customerGrup.Use(infrastruktur.PenjagaSesiJWT())
+		{
+			customerGrup.POST("", handlerManufaktur.TanganiTambahCustomer)
+			customerGrup.GET("", handlerManufaktur.TanganiAmbilSemuaCustomer)
+			customerGrup.GET("/:id", handlerManufaktur.TanganiCariCustomerID)
+			customerGrup.PUT("/:id", handlerManufaktur.TanganiUbahCustomer)
+			customerGrup.DELETE("/:id", handlerManufaktur.TanganiHapusCustomer)
+		}
+
+		bomGrup := api.Group("/boms")
+		bomGrup.Use(infrastruktur.PenjagaSesiJWT())
+		{
+			bomGrup.POST("", handlerManufaktur.TanganiTambahBOM)
+			bomGrup.GET("", handlerManufaktur.TanganiAmbilSemuaBOM)
+			bomGrup.GET("/:id", handlerManufaktur.TanganiCariBOMID)
+			bomGrup.PUT("/:id", handlerManufaktur.TanganiUbahBOM)
+			bomGrup.DELETE("/:id", handlerManufaktur.TanganiHapusBOM)
 		}
 	}
 
@@ -211,14 +252,19 @@ func main() {
 
 // LandingData menyimpan konfigurasi dinamis yang dirender ke landing.html
 type LandingData struct {
-	StatusApp      string
-	DBConnected    bool
-	DBHost         string
-	DBName         string
-	AllowedOrigins string
-	IPWhitelist    string
-	WaktuServer    string
-	SwaggerURL     string
+	StatusApp       string
+	DBConnected     bool
+	DBHost          string
+	DBName          string
+	AllowedOrigins  string
+	IPWhitelist     string
+	WaktuServer     string
+	SwaggerURL      string
+	SupplierCount   int64
+	MaterialCount   int64
+	CustomerCount   int64
+	BOMCount        int64
+	InspectionCount int64
 }
 
 // tanganiLandingPage merestitusi antarmuka visual berbasis go:embed landing.html
@@ -248,15 +294,34 @@ func tanganiLandingPage(db *gorm.DB) gin.HandlerFunc {
 			ipWhitelist = "None (Fully Open)"
 		}
 
+		var supplierCount int64
+		var materialCount int64
+		var customerCount int64
+		var bomCount int64
+		var inspectionCount int64
+
+		if dbConnected {
+			db.Model(&manufaktur.Pemasok{}).Count(&supplierCount)
+			db.Model(&manufaktur.Material{}).Count(&materialCount)
+			db.Model(&manufaktur.Customer{}).Count(&customerCount)
+			db.Model(&manufaktur.KomposisiMaterialBOM{}).Count(&bomCount)
+			db.Model(&kualitas.LembarPeriksa{}).Count(&inspectionCount)
+		}
+
 		data := LandingData{
-			StatusApp:      "BETA_ACTIVE",
-			DBConnected:    dbConnected,
-			DBHost:         dbHost,
-			DBName:         dbName,
-			AllowedOrigins: allowedOrigins,
-			IPWhitelist:    ipWhitelist,
-			WaktuServer:    time.Now().Format("2006-01-02 15:04:05 MST"),
-			SwaggerURL:     "/swagger/index.html",
+			StatusApp:       "BETA_ACTIVE",
+			DBConnected:     dbConnected,
+			DBHost:          dbHost,
+			DBName:          dbName,
+			AllowedOrigins:  allowedOrigins,
+			IPWhitelist:     ipWhitelist,
+			WaktuServer:     time.Now().Format("2006-01-02 15:04:05 MST"),
+			SwaggerURL:      "/swagger/index.html",
+			SupplierCount:   supplierCount,
+			MaterialCount:   materialCount,
+			CustomerCount:   customerCount,
+			BOMCount:        bomCount,
+			InspectionCount: inspectionCount,
 		}
 
 		k.Header("Content-Type", "text/html; charset=utf-8")

@@ -35,3 +35,12 @@ Akses API menggunakan standar RESTful modern (Go Gin). Pastikan setiap request m
 - **Password:** admin
 
 Environment Path: `C:\Software\PGNServer` | Docker Engine: Active
+
+## 6. Manufacturing & Master Data API Endpoints (GORM CRUD)
+Sistem kini mengekspos antarmuka CRUD lengkap yang aman terproteksi JWT untuk pengelolaan rantai pasok manufaktur:
+- **Pemasok (Suppliers)**: `POST/GET/PUT/DELETE /api/v1/suppliers`
+- **Bahan Baku (Materials)**: `POST/GET/PUT/DELETE /api/v1/materials`
+- **Pelanggan (Customers)**: `POST/GET/PUT/DELETE /api/v1/customers`
+- **BOM (Bill of Materials)**: `POST/GET/PUT/DELETE /api/v1/boms`
+
+Setiap mutasi data master secara otomatis menghapus cache memori global (`cache.GlobalCache.Clear()`) untuk menyajikan metrik telemetri yang selalu mutakhir pada Landing Page dinamis.

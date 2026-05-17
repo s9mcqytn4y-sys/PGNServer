@@ -178,6 +178,301 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/boms": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan daftar seluruh relasi BOM beserta detail material terkait",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - BOM"
+                ],
+                "summary": "Ambil Semua BOM",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/manufaktur.KomposisiMaterialBOM"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan relasi hirarkis BOM baru ke pangkalan data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - BOM"
+                ],
+                "summary": "Tambah BOM Baru",
+                "parameters": [
+                    {
+                        "description": "Payload Tambah BOM",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOBOMSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.KomposisiMaterialBOM"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/boms/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mendapatkan data detail relasi BOM berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - BOM"
+                ],
+                "summary": "Detail BOM",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID BOM",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.KomposisiMaterialBOM"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memperbarui informasi relasi BOM berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - BOM"
+                ],
+                "summary": "Perbarui BOM",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID BOM",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload Perbarui BOM",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOBOMSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.KomposisiMaterialBOM"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus data relasi BOM dari sistem berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - BOM"
+                ],
+                "summary": "Hapus BOM",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID BOM",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/cek_sistem": {
             "get": {
                 "description": "Memvalidasi kesiapan server API dan konektivitas live database",
@@ -191,6 +486,301 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/customers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan daftar seluruh customer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Customer"
+                ],
+                "summary": "Ambil Semua Customer",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/manufaktur.Customer"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan data customer baru ke pangkalan data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Customer"
+                ],
+                "summary": "Tambah Customer Baru",
+                "parameters": [
+                    {
+                        "description": "Payload Tambah Customer",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOCustomerSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Customer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/customers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mendapatkan data detail customer berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Customer"
+                ],
+                "summary": "Detail Customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Customer",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Customer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memperbarui informasi customer berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Customer"
+                ],
+                "summary": "Perbarui Customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Customer",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload Perbarui Customer",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOCustomerSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Customer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus data customer dari sistem berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Customer"
+                ],
+                "summary": "Hapus Customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Customer",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/respon.ResponStandar"
                         }
@@ -228,6 +818,301 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/materials": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan daftar seluruh material beserta info pemasoknya",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Material"
+                ],
+                "summary": "Ambil Semua Material",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/manufaktur.Material"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan data material baru ke pangkalan data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Material"
+                ],
+                "summary": "Tambah Material Baru",
+                "parameters": [
+                    {
+                        "description": "Payload Tambah Material",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOMaterialSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Material"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/materials/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mendapatkan data detail material berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Material"
+                ],
+                "summary": "Detail Material",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Material",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Material"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memperbarui informasi material berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Material"
+                ],
+                "summary": "Perbarui Material",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Material",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload Perbarui Material",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOMaterialSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Material"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus data material dari sistem berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Material"
+                ],
+                "summary": "Hapus Material",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Material",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/respon.ResponStandar"
                         }
@@ -585,6 +1470,301 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/suppliers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan daftar seluruh pemasok bahan baku",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Pemasok"
+                ],
+                "summary": "Ambil Semua Pemasok",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/manufaktur.Pemasok"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan data pemasok (supplier) baru ke pangkalan data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Pemasok"
+                ],
+                "summary": "Tambah Pemasok Baru",
+                "parameters": [
+                    {
+                        "description": "Payload Tambah Pemasok",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOPemasokSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Pemasok"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/suppliers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mendapatkan data detail pemasok berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Pemasok"
+                ],
+                "summary": "Detail Pemasok",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Pemasok",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Pemasok"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memperbarui informasi pemasok berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Pemasok"
+                ],
+                "summary": "Perbarui Pemasok",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Pemasok",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload Perbarui Pemasok",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/manufaktur.DTOPemasokSimpan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.Pemasok"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus data pemasok dari sistem berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Pemasok"
+                ],
+                "summary": "Hapus Pemasok",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Pemasok",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -661,6 +1841,208 @@ const docTemplate = `{
                     "description": "Zona atau Lini produksi tempat inspeksi",
                     "type": "string",
                     "example": "Lini 1"
+                }
+            }
+        },
+        "manufaktur.Customer": {
+            "type": "object",
+            "properties": {
+                "customerCode": {
+                    "type": "string"
+                },
+                "dibuatPada": {
+                    "type": "string"
+                },
+                "diubahPada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kontak": {
+                    "type": "string"
+                },
+                "nama": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.DTOBOMSimpan": {
+            "type": "object",
+            "required": [
+                "idRawMaterial",
+                "parameterKuantitasPembentuk"
+            ],
+            "properties": {
+                "idParentMaterial": {
+                    "type": "integer"
+                },
+                "idRawMaterial": {
+                    "type": "integer"
+                },
+                "parameterKuantitasPembentuk": {
+                    "type": "number"
+                }
+            }
+        },
+        "manufaktur.DTOCustomerSimpan": {
+            "type": "object",
+            "required": [
+                "customerCode",
+                "nama"
+            ],
+            "properties": {
+                "customerCode": {
+                    "type": "string"
+                },
+                "kontak": {
+                    "type": "string"
+                },
+                "nama": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.DTOMaterialSimpan": {
+            "type": "object",
+            "required": [
+                "idPemasok",
+                "kodeSKU",
+                "namaMaterial",
+                "unitSatuan"
+            ],
+            "properties": {
+                "beratGSM": {
+                    "type": "integer"
+                },
+                "idPemasok": {
+                    "type": "integer"
+                },
+                "kodeSKU": {
+                    "type": "string"
+                },
+                "lebarCM": {
+                    "type": "number"
+                },
+                "namaMaterial": {
+                    "type": "string"
+                },
+                "panjangCM": {
+                    "type": "number"
+                },
+                "tebalCM": {
+                    "type": "number"
+                },
+                "unitSatuan": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.DTOPemasokSimpan": {
+            "type": "object",
+            "required": [
+                "namaEntitas",
+                "supplierCode"
+            ],
+            "properties": {
+                "kontak": {
+                    "type": "string"
+                },
+                "namaEntitas": {
+                    "type": "string"
+                },
+                "supplierCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.KomposisiMaterialBOM": {
+            "type": "object",
+            "properties": {
+                "dibuatPada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "idParentMaterial": {
+                    "type": "integer"
+                },
+                "idRawMaterial": {
+                    "type": "integer"
+                },
+                "materialBaku": {
+                    "$ref": "#/definitions/manufaktur.Material"
+                },
+                "parameterKuantitasPembentuk": {
+                    "type": "number"
+                },
+                "parentMaterial": {
+                    "$ref": "#/definitions/manufaktur.Material"
+                }
+            }
+        },
+        "manufaktur.Material": {
+            "type": "object",
+            "properties": {
+                "beratGSM": {
+                    "type": "integer"
+                },
+                "dibuatPada": {
+                    "type": "string"
+                },
+                "diubahPada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "idPemasok": {
+                    "type": "integer"
+                },
+                "kodeSKU": {
+                    "type": "string"
+                },
+                "lebarCM": {
+                    "type": "number"
+                },
+                "namaMaterial": {
+                    "type": "string"
+                },
+                "panjangCM": {
+                    "type": "number"
+                },
+                "pemasok": {
+                    "$ref": "#/definitions/manufaktur.Pemasok"
+                },
+                "tebalCM": {
+                    "type": "number"
+                },
+                "unitSatuan": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.Pemasok": {
+            "type": "object",
+            "properties": {
+                "dibuatPada": {
+                    "type": "string"
+                },
+                "diubahPada": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kontak": {
+                    "type": "string"
+                },
+                "namaEntitas": {
+                    "type": "string"
+                },
+                "supplierCode": {
+                    "type": "string"
                 }
             }
         },

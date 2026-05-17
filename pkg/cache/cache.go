@@ -36,12 +36,12 @@ func KonstruksiCacheBaru(defaultTTL, cleanupInterval time.Duration) *Cache {
 		defaultTTL:  defaultTTL,
 		stopCleanup: make(chan struct{}),
 	}
-	
+
 	if cleanupInterval > 0 {
 		c.cleanupTicker = time.NewTicker(cleanupInterval)
 		go c.startCleanupLoop()
 	}
-	
+
 	return c
 }
 
@@ -54,7 +54,7 @@ func (c *Cache) Set(key string, value interface{}, ttl time.Duration) {
 	if ttl > 0 {
 		expiration = time.Now().Add(ttl).UnixNano()
 	}
-	
+
 	c.mu.Lock()
 	c.items[key] = Item{
 		Value:      value,
@@ -68,15 +68,15 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	c.mu.RLock()
 	item, found := c.items[key]
 	c.mu.RUnlock()
-	
+
 	if !found {
 		return nil, false
 	}
-	
+
 	if item.Expired() {
 		return nil, false
 	}
-	
+
 	return item.Value, true
 }
 
