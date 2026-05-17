@@ -32,13 +32,13 @@ func (p *PenangananKualitas) TanganiRekamLembarPeriksa(k *gin.Context) {
 
 	// Tangkap eksepsi bila permohonan antarmuka terdistorsi
 	if err := k.ShouldBindJSON(&dto); err != nil {
-		respon.Galat_Validasi(k, "Struktur laporan inspeksi cacat tidak lengkap: "+err.Error())
+		respon.Galat_Validasi(k, "Struktur laporan inspeksi cacat tidak lengkap: "+err.Error(), nil)
 		return
 	}
 
 	errProses := p.layanan.RekamLembarPeriksa(&dto)
 	if errProses != nil {
-		respon.Galat_Server(k, "Gagal mencatat transmisi himpunan Lembar Periksa ke pangkalan data.")
+		respon.Galat_Server(k, "Gagal mencatat transmisi himpunan Lembar Periksa ke pangkalan data.", errProses)
 		return
 	}
 

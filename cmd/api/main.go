@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -12,6 +12,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	_ "go.uber.org/automaxprocs"
 
 	_ "pgn-server/docs"
 	"pgn-server/internal/analitik"
@@ -42,9 +44,7 @@ import (
 
 func main() {
 	// Inisialisasi pengenalan cgroup limit di Go 1.25.x
-	// Meskipun Go 1.25.x memiliki peningkatan otomatisasi, menetapkan GOMAXPROCS
-	// sesuai jumlah CPU sistem yang dialokasikan di dalam kontainer masih merupakan praktik yang baik.
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	// Automaxprocs secara implisit menyesuaikan GOMAXPROCS tanpa konfigurasi manual
 
 	// Memuat konfigurasi
 	err := godotenv.Load()
@@ -79,6 +79,7 @@ func main() {
 	if errSQL == nil {
 		sqlDB.SetMaxIdleConns(10)
 		sqlDB.SetMaxOpenConns(100)
+		sqlDB.SetConnMaxLifetime(5 * time.Minute) // Tambahan batas umur koneksi maksimal
 	}
 
 	// Menjalankan automigrasi entitas manufaktur dan otentikasi
@@ -108,6 +109,11 @@ func main() {
 	}
 	rute := gin.Default()
 	rute.SetTrustedProxies(nil) // Mengamankan peringatan 'trusted all proxies'
+	
+	// Middleware Keamanan Global
+	rute.Use(infrastruktur.MiddlewarePenangkapPanic())
+	rute.Use(infrastruktur.MiddlewareRateLimiter(10, 20)) // 10 rps, 20 kapasitas
+
 
 	// Rute Publik untuk Swagger
 	rute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -119,7 +125,7 @@ func main() {
 		api.GET("/cek_sistem", func(k *gin.Context) {
 			errPing := sqlDB.Ping()
 			if errPing != nil {
-				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.")
+				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.", errPing)
 				return
 			}
 			respon.Sukses(k, "Sistem PGNServer beroperasi secara optimal dan terhubung ke pangkalan data.", nil)

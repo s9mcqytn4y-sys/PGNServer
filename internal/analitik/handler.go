@@ -43,7 +43,7 @@ func (h *PenangananAnalitik) TanganiParetoBulanan(k *gin.Context) {
 		if b, err := strconv.Atoi(bulanStr); err == nil && b >= 1 && b <= 12 {
 			bulan = b
 		} else {
-			respon.Galat_Validasi(k, "Parameter bulan harus berupa angka yang valid")
+			respon.Galat_Validasi(k, "Parameter bulan harus berupa angka yang valid", nil)
 			return
 		}
 	}
@@ -52,14 +52,14 @@ func (h *PenangananAnalitik) TanganiParetoBulanan(k *gin.Context) {
 		if t, err := strconv.Atoi(tahunStr); err == nil && t > 2000 {
 			tahun = t
 		} else {
-			respon.Galat_Validasi(k, "Parameter tahun harus berupa angka yang valid")
+			respon.Galat_Validasi(k, "Parameter tahun harus berupa angka yang valid", nil)
 			return
 		}
 	}
 
 	hasil, err := h.layanan.DapatkanParetoBulanan(bulan, tahun)
 	if err != nil {
-		respon.Galat_Server(k, "Gagal mengkalkulasi agregat Pareto.")
+		respon.Galat_Server(k, "Gagal mengkalkulasi agregat Pareto.", err)
 		return
 	}
 

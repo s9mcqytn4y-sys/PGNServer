@@ -35,17 +35,17 @@ type DataPermintaanRegistrasi struct {
 func (p *PenangananOtentikasi) TanganiRegistrasi(k *gin.Context) {
 	var masukan DataPermintaanRegistrasi
 	if err := k.ShouldBindJSON(&masukan); err != nil {
-		respon.Galat_Validasi(k, "Format surel tidak sah atau sandi kurang dari 8 karakter")
+		respon.Galat_Validasi(k, "Format surel tidak sah atau sandi kurang dari 8 karakter", nil)
 		return
 	}
 
 	penggunaBaru, errDaftar := p.layanan.Registrasi(masukan.Surel, masukan.Sandi, masukan.Peran)
 	if errDaftar != nil {
 		if errDaftar.Error() == "surel_telah_terdaftar" {
-			respon.Galat_Validasi(k, "Akun dengan surel tersebut telah terdaftar di sistem")
+			respon.Galat_Validasi(k, "Akun dengan surel tersebut telah terdaftar di sistem", nil)
 			return
 		}
-		respon.Galat_Server(k, "Gagal memproses registrasi akun")
+		respon.Galat_Server(k, "Gagal memproses registrasi akun", errDaftar)
 		return
 	}
 
@@ -71,13 +71,13 @@ type DataPermintaanLogin struct {
 func (p *PenangananOtentikasi) TanganiLogin(k *gin.Context) {
 	var masukan DataPermintaanLogin
 	if err := k.ShouldBindJSON(&masukan); err != nil {
-		respon.Galat_Validasi(k, "Harap berikan surel dan kata sandi")
+		respon.Galat_Validasi(k, "Harap berikan surel dan kata sandi", nil)
 		return
 	}
 
 	token, errLogin := p.layanan.Login(masukan.Surel, masukan.Sandi)
 	if errLogin != nil {
-		respon.Galat_Validasi(k, "Surel atau kata sandi tidak cocok")
+		respon.Galat_Validasi(k, "Surel atau kata sandi tidak cocok", nil)
 		return
 	}
 
@@ -104,13 +104,13 @@ type DataPermintaanLupaSandi struct {
 func (p *PenangananOtentikasi) TanganiLupaSandi(k *gin.Context) {
 	var masukan DataPermintaanLupaSandi
 	if err := k.ShouldBindJSON(&masukan); err != nil {
-		respon.Galat_Validasi(k, "Pastikan format surel dan kata sandi baru (min 8 karakter) sesuai")
+		respon.Galat_Validasi(k, "Pastikan format surel dan kata sandi baru (min 8 karakter) sesuai", nil)
 		return
 	}
 
 	errLupa := p.layanan.LupaSandi(masukan.Surel, masukan.SandiBaru)
 	if errLupa != nil {
-		respon.Galat_Validasi(k, "Permintaan gagal diproses. Pastikan akun terdaftar di platform kami.")
+		respon.Galat_Validasi(k, "Permintaan gagal diproses. Pastikan akun terdaftar di platform kami.", nil)
 		return
 	}
 

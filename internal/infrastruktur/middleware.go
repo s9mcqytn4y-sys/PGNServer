@@ -16,7 +16,7 @@ func PenjagaSesiJWT() gin.HandlerFunc {
 	return func(k *gin.Context) {
 		tajukOtorisasi := k.GetHeader("Authorization")
 		if tajukOtorisasi == "" {
-			respon.Galat_Validasi(k, "Akses ditolak: Tajuk otorisasi tidak ditemukan")
+			respon.Galat_TidakSah(k, "Akses ditolak: Tajuk otorisasi tidak ditemukan")
 			k.Abort()
 			return
 		}
@@ -24,7 +24,7 @@ func PenjagaSesiJWT() gin.HandlerFunc {
 		// Ekspektasi: "Bearer <token>"
 		bagianTajuk := strings.Split(tajukOtorisasi, " ")
 		if len(bagianTajuk) != 2 || strings.ToLower(bagianTajuk[0]) != "bearer" {
-			respon.Galat_Validasi(k, "Akses ditolak: Format tajuk otorisasi tidak valid")
+			respon.Galat_TidakSah(k, "Akses ditolak: Format tajuk otorisasi tidak valid")
 			k.Abort()
 			return
 		}
@@ -44,7 +44,7 @@ func PenjagaSesiJWT() gin.HandlerFunc {
 		})
 
 		if errVerifikasi != nil || !token.Valid {
-			respon.Galat_Validasi(k, "Akses ditolak: Sesi tidak sah atau telah kedaluwarsa")
+			respon.Galat_TidakSah(k, "Akses ditolak: Sesi tidak sah atau telah kedaluwarsa")
 			k.Abort()
 			return
 		}

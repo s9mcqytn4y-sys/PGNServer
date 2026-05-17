@@ -1,40 +1,40 @@
-# Tahap Kompilasi (Build Stage)
-FROM golang:1.25-alpine AS pembangun
+# --- Tahap 1: Pembangun (Builder) ---
+FROM golang:1.25-alpine AS builder
 
-# Setel variabel lingkungan
-ENV CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64 \
-    GOEXPERIMENT=jsonv2
+# Inject env untuk mengaktifkan Go 1.25 JSON v2 eksperimen
+ENV GOEXPERIMENT=jsonv2
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+
+# Instal dependencies root OS minimal
+RUN apk add --no-cache tzdata
 
 WORKDIR /app
-
-# Salin modul dan unduh dependensi
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Salin kode sumber
 COPY . .
-
-# Kompilasi aplikasi dengan optimasi ukuran
+# Kompilasi static binary yang aman dan efisien
 RUN go build -ldflags="-s -w" -o pgn_api ./cmd/api
 
-# Tahap Produksi (Final Stage)
+# --- Tahap 2: Final Image (Distroless / Minimalist) ---
 FROM alpine:latest
 
+# Konfigurasi zona waktu
+COPY --from=builder /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+RUN echo "Asia/Jakarta" > /etc/timezone
+
+# Security Hardening: Menjalankan aplikasi sebagai non-root user
+RUN addgroup -S pgnteam && adduser -S pgnuser -G pgnteam
+USER pgnuser
+
 WORKDIR /app
+COPY --from=builder /app/pgn_api .
+COPY --from=builder /app/.env .
 
-# Tambahkan sertifikat SSL dan zona waktu
-RUN apk --no-cache add ca-certificates tzdata
-
-# Salin biner hasil kompilasi
-COPY --from=pembangun /app/pgn_api .
-COPY --from=pembangun /app/.env .
-# COPY --from=pembangun /app/docs ./docs # abaikan jika belum ada
-
-# Buat direktori penyimpanan
-RUN mkdir -p penyimpanan
-
+# Port eksposur
 EXPOSE 8080
 
+# Jalankan server
 CMD ["./pgn_api"]
