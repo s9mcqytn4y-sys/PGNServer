@@ -65,7 +65,8 @@ Proyek ini terikat dengan SOP yang ketat untuk menjamin stabilitas fase produksi
 2.  **Pembuatan Wadah (*Docker Build*):** Wadah isolasi (*Docker container*) selalu diarahkan untuk mengkompilasi lingkungan berbasis *Alpine Linux* guna minimalisasi serangan permukaan. Gunakan perintah `docker-compose up -d --build` dengan spesifikasi arsitektur murni (*build-args*) dan buang *dependency* berlebih selama fase *build*. Skema port penjalanan dikunci statis pada `8080:8080` (layanan API) dan `5432:5432` (Pangkalan Data).
 3.  **Standarisasi Nomenklatur Bahasa Indonesia Murni:** Penamaan seluruh model domain, variabel (kecuali kata kunci dasar Go), hingga endpoint rute wajib mematuhi Pedoman Umum Ejaan Bahasa Indonesia (PUEBI) guna kemudahan telusur (*traceability*) secara manajerial.
 4.  **Tautan Kontrak API (Swagger):** Kunjungi `/swagger/index.html` pada server aktif untuk mencermati pemaparan otentik skema antarmuka REST API. Parameter analitik disajikan transparan tanpa enkapsulasi tersembunyi.
-5.  **Perlindungan Lingkungan Siluman (`.gitignore`):** Isolasi jejak berkas *binary* (`*.exe`), sesi *debugging* (seperti profil `.vscode/` atau artefak memori `tmp/`), dan berkas *log* agar tak mencemari repositori awan.
+5.  **Pengujian Manual Endpoint:** Telah disediakan berkas `test.http` yang kompatibel dengan ekstensi VSCode REST Client. Anda dapat menjalankan pengujian rute dari autentikasi hingga lembar periksa, dengan pewarisan Token (JWT) secara otomatis.
+6.  **Perlindungan Lingkungan Siluman (`.gitignore`):** Isolasi jejak berkas *binary* (`*.exe`), sesi *debugging* (seperti profil `.vscode/` atau artefak memori `tmp/`), dan berkas *log* agar tak mencemari repositori awan.
 
 ---
 *PGNServer Backend Development - Hak Cipta Dilindungi*

@@ -110,5 +110,13 @@
     "editor.hideCursorInOverviewRuler": true,
     "editor.gotoLocation.multipleDefinitions": "peek",
     "editor.gotoLocation.multipleDeclarations": "peek",
-    "containers.containers.sortBy": "Label"
+    "containers.containers.sortBy": "Label",
+    // --- 8. REST Client Configuration ---
+    "rest-client.environmentVariables": {
+        "$shared": {},
+        "local": {
+            "baseUrl": "http://localhost:8080/api/v1"
+        }
+    },
+    "rest-client.showHeaders": false
 }

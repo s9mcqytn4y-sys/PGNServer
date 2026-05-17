@@ -1,0 +1,61 @@
+### PGNServer Endpoint Tests
+
+@baseUrl = http://localhost:8080/api/v1
+# Token akan otomatis diisi jika ekstensi REST Client di VSCode digunakan dan request login dijalankan.
+@token = {{login.response.body.data.token}}
+
+### 1. Cek Sistem
+GET {{baseUrl}}/cek_sistem
+
+### 2. Registrasi Pengguna
+# @name register
+POST {{baseUrl}}/otentikasi/daftar
+Content-Type: application/json
+
+{
+    "nama_lengkap": "Leader QC",
+    "nip": "2211019",
+    "kata_sandi": "admin"
+}
+
+### 3. Login Pengguna
+# @name login
+POST {{baseUrl}}/otentikasi/masuk
+Content-Type: application/json
+
+{
+    "nip": "2211019",
+    "kata_sandi": "admin"
+}
+
+### 4. Lupa Sandi
+POST {{baseUrl}}/otentikasi/lupa-sandi
+Content-Type: application/json
+
+{
+    "nip": "2211019"
+}
+
+### 5. Rekam Lembar Periksa (Memerlukan JWT)
+POST {{baseUrl}}/operasi/rekam_lembar_periksa
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "tanggal": "2026-05-17T00:00:00Z",
+    "zona_lini": "Lini 1",
+    "pengguna_id_tercatat": 1,
+    "rincian_inspeksi": [
+        {
+            "unik_material_bom_id": 1,
+            "jam_periksa": "08:00",
+            "kuantitas_diperiksa": 100,
+            "kuantitas_ng": 2,
+            "kode_cacat": "A",
+            "catatan": "Material cacat bentuk"
+        }
+    ]
+}
+
+### 6. Analitik Metrik Pareto Bulanan
+GET {{baseUrl}}/analitik/metrik_pareto_bulanan?bulan=5&tahun=2026

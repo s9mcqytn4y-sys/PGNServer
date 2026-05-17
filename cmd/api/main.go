@@ -54,10 +54,16 @@ func main() {
 
 	// Mempersiapkan string koneksi ke PostgreSQL
 	inangDB := os.Getenv("DB_HOST")
+	if inangDB == "" {
+		inangDB = "localhost"
+	}
 	penggunaDB := os.Getenv("DB_USER")
 	sandiDB := os.Getenv("DB_PASSWORD")
 	namaDB := os.Getenv("DB_NAME")
 	pelabuhanDB := os.Getenv("DB_PORT")
+	if pelabuhanDB == "" {
+		pelabuhanDB = "5432"
+	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 		inangDB, penggunaDB, sandiDB, namaDB, pelabuhanDB)
