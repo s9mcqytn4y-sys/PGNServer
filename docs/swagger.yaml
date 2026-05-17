@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   model.BillOfMaterial:
     properties:
@@ -132,12 +131,8 @@ definitions:
       status:
         type: boolean
     type: object
-host: localhost:8080
 info:
   contact: {}
-  description: API Server untuk PGN (Produk Gagal & NG) Intelligence System.
-  title: PGNServer API
-  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -333,9 +328,4 @@ paths:
       summary: Ambil Form Checksheet Dinamis
       tags:
       - QC-Checksheet
-securityDefinitions:
-  BearerAuth:
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

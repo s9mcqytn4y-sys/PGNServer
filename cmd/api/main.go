@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"runtime"
 
@@ -12,13 +11,13 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"pgn-server/internal/infrastruktur"
+	"pgn-server/internal/otentikasi"
 	"pgn-server/pkg/respon"
 )
 
 func main() {
 	// Inisialisasi pengenalan cgroup limit di Go 1.25.x
-	// Meskipun Go 1.25.x memiliki peningkatan otomatisasi, menetapkan GOMAXPROCS
-	// sesuai jumlah CPU sistem yang dialokasikan di dalam kontainer masih merupakan praktik yang baik.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Memuat konfigurasi
@@ -50,14 +49,25 @@ func main() {
 		sqlDb.SetMaxOpenConns(100)
 	}
 
+	// Menjalankan automigrasi entitas manufaktur dan otentikasi
+	errMigrasi := infrastruktur.PelaksanaanAutoMigrasi(db)
+	if errMigrasi != nil {
+		log.Fatalf("Gagal melaksanakan automigrasi: %v", errMigrasi)
+	}
+
+	// Setup Dependensi Otentikasi
+	repoOtentikasi := otentikasi.EkstraksiRepositoriBaru(db)
+	layananOtentikasi := otentikasi.KonstruksiLayananBaru(repoOtentikasi)
+	handlerOtentikasi := otentikasi.KonstruksiPenangananBaru(layananOtentikasi)
+
 	// Konfigurasi layanan router web Gin
 	rute := gin.Default()
 
-	// Endpoint pemeriksaan sistem (Health Check)
+	// Kumpulan Endpoint API
 	api := rute.Group("/api/v1")
 	{
+		// Endpoint pemeriksaan sistem (Health Check)
 		api.GET("/cek_sistem", func(k *gin.Context) {
-			// Menguji ping ke pangkalan data
 			errPing := sqlDb.Ping()
 			if errPing != nil {
 				respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.")
@@ -65,6 +75,14 @@ func main() {
 			}
 			respon.Sukses(k, "Sistem PGNServer beroperasi secara optimal dan terhubung ke pangkalan data.", nil)
 		})
+
+		// Endpoint Autentikasi Publik
+		auth := api.Group("/otentikasi")
+		{
+			auth.POST("/daftar", handlerOtentikasi.TanganiRegistrasi)
+			auth.POST("/masuk", handlerOtentikasi.TanganiLogin)
+			auth.POST("/lupa-sandi", handlerOtentikasi.TanganiLupaSandi)
+		}
 	}
 
 	// Menjalankan server
