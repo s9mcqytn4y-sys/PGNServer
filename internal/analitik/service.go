@@ -60,7 +60,7 @@ func KonstruksiLayananBaru(repo RepositoriAnalitik, db *gorm.DB) LayananAnalitik
 func (l *layananAnalitik) DapatkanParetoBulanan(k *gin.Context, bulan, tahun int) ([]DTOParetoMetrik, error) {
 	waktuMulai := time.Now()
 	cacheKey := fmt.Sprintf("pareto_bulanan_%d_%d", bulan, tahun)
-	
+
 	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
 		pencatatan_log.Info(k, "[Telemetry] DapatkanParetoBulanan Cache HIT untuk kunci: %s, Latency: %v", cacheKey, time.Since(waktuMulai))
 		return cachedVal.([]DTOParetoMetrik), nil
@@ -81,7 +81,7 @@ func (l *layananAnalitik) DapatkanParetoBulanan(k *gin.Context, bulan, tahun int
 func (l *layananAnalitik) DapatkanPareto(k *gin.Context, tanggalMulai, tanggalSelesai string, zonaLini string) ([]DTOParetoMetrik, error) {
 	waktuMulai := time.Now()
 	cacheKey := fmt.Sprintf("pareto_%s_%s_%s", tanggalMulai, tanggalSelesai, zonaLini)
-	
+
 	if cachedVal, found := cache.GlobalCache.Get(cacheKey); found {
 		pencatatan_log.Info(k, "[Telemetry] DapatkanPareto Cache HIT untuk kunci: %s, Latency: %v", cacheKey, time.Since(waktuMulai))
 		return cachedVal.([]DTOParetoMetrik), nil

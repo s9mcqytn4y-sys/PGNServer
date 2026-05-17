@@ -16,12 +16,12 @@ func KonstruksiPenangananBaru(layanan LayananOtentikasi) *PenangananOtentikasi {
 
 // DataPermintaanRegistrasi merepresentasikan payload untuk pendaftaran pengguna baru.
 type DataPermintaanRegistrasi struct {
-	Surel       string `json:"surel" example:"operator@pgn.com"`             // Surel resmi pegawai (Wajib jika NIP kosong)
-	Sandi       string `json:"sandi" example:"sandiRahasia123"`             // Kata sandi minimal 8 karakter (Wajib jika kata_sandi kosong)
-	Peran       string `json:"peran" example:"OPERATOR"`                     // Peran otorisasi: OPERATOR atau LEADER (Default: OPERATOR)
-	Nip         string `json:"nip" example:"2211019"`                        // Nomor Induk Pegawai (Fallback retro-kompatibilitas)
-	KataSandi   string `json:"kata_sandi" example:"admin"`                   // Kata sandi fallback (Retro-kompatibilitas)
-	NamaLengkap string `json:"nama_lengkap" example:"Leader QC"`             // Nama lengkap pegawai (Opsional)
+	Surel       string `json:"surel" example:"operator@pgn.com"` // Surel resmi pegawai (Wajib jika NIP kosong)
+	Sandi       string `json:"sandi" example:"sandiRahasia123"`  // Kata sandi minimal 8 karakter (Wajib jika kata_sandi kosong)
+	Peran       string `json:"peran" example:"OPERATOR"`         // Peran otorisasi: OPERATOR atau LEADER (Default: OPERATOR)
+	Nip         string `json:"nip" example:"2211019"`            // Nomor Induk Pegawai (Fallback retro-kompatibilitas)
+	KataSandi   string `json:"kata_sandi" example:"admin"`       // Kata sandi fallback (Retro-kompatibilitas)
+	NamaLengkap string `json:"nama_lengkap" example:"Leader QC"` // Nama lengkap pegawai (Opsional)
 }
 
 // TanganiRegistrasi mengatur pendaftaran pengguna baru.
@@ -82,7 +82,7 @@ func (p *PenangananOtentikasi) TanganiRegistrasi(k *gin.Context) {
 // DataPermintaanLogin merepresentasikan payload untuk masuk sistem.
 type DataPermintaanLogin struct {
 	Surel     string `json:"surel" example:"operator@pgn.com"` // Surel akun terdaftar
-	Sandi     string `json:"sandi" example:"sandiRahasia123"` // Kata sandi akun
+	Sandi     string `json:"sandi" example:"sandiRahasia123"`  // Kata sandi akun
 	Nip       string `json:"nip" example:"2211019"`            // Fallback NIP untuk login retro-kompatibel
 	KataSandi string `json:"kata_sandi" example:"admin"`       // Fallback sandi untuk login retro-kompatibel
 }

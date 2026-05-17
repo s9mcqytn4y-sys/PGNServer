@@ -52,3 +52,10 @@ Klien desktop QControl merender data secara offline-first menggunakan Jetpack Co
 - **Pareto Chart**: Menampilkan proporsi 80/20 dari defect master dengan dynamic threshold markers dan dynamic cumulative line drawing.
 - **Defect Histogram**: Menyajikan visualisasi frekuensi defect slot per jam kerja secara real-time.
 - **SQLite Engine**: Seluruh metrik visualisasi tersebut dihitung dan diambil langsung dari database SQLite lokal secara sinkron, yang ditarik dari endpoint analitik saat jaringan tersedia.
+
+## 8. Development Optimization & Git Workflow Hardening
+Setiap interaksi dengan sistem wajib memperhatikan panduan optimasi token dan keamanan integrasi:
+1. **Token Savings Analytics (RTK)**: Gunakan CLI proxy `rtk` untuk seluruh perintah Git, kompilasi, dan testing guna mereduksi token overhead (hingga 90%). Contoh: `rtk git status`, `rtk go test ./...`.
+2. **Environmental Safety Rules**: Seluruh variabel rahasia (`JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, dan `DATABASE_URL`) wajib dimuat secara dinamis via berkas `.env` dan tidak boleh di-hardcode di dalam kode sumber Go.
+3. **Mandat Satu Cabang (No-Branching)**: Jangan membuat branch baru. Seluruh progress wajib di-commit dan langsung di-push ke branch `main` repositori `PGNServer`.
+

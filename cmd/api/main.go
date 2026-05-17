@@ -32,22 +32,21 @@ import (
 //go:embed landing.html
 var landingHTML string
 
-
 // @title PGNServer API
 // @version 1.0
 // @description REST API untuk ekosistem manufaktur dan kontrol kualitas PGNServer.
 // @termsOfService http://swagger.io/terms/
-// 
+//
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
 // @contact.email support@swagger.io
-// 
+//
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// 
+//
 // @host localhost:8080
 // @BasePath /
-// 
+//
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
@@ -153,7 +152,9 @@ func main() {
 		// Landing page pada root API
 		api.GET("/", tanganiLandingPage(db))
 
-		// Endpoint pemeriksaan sistem (Health Check)
+		// Endpoint pemeriksaan sistem (Health Check & Readiness)
+		api.GET("/health", TanganiHealth())
+		api.GET("/readiness", TanganiReadiness(db))
 		api.GET("/cek_sistem", TanganiCekSistem(db))
 
 		// Endpoint Operasi Krusial (Perlu Whitelist IP)
@@ -278,7 +279,7 @@ func tanganiLandingPage(db *gorm.DB) gin.HandlerFunc {
 		dbConnected := false
 		dbHost := os.Getenv("DB_HOST")
 		dbName := os.Getenv("DB_NAME")
-		
+
 		if err == nil {
 			errPing := sqlDB.Ping()
 			dbConnected = (errPing == nil)
@@ -375,3 +376,39 @@ func TanganiStatusKrusial() gin.HandlerFunc {
 	}
 }
 
+// TanganiHealth menyajikan pemeriksaan liveness sistem.
+// @Summary Pemeriksaan Liveness Aplikasi
+// @Description Memvalidasi bahwa instansi server API aktif dan berjalan
+// @Tags Sistem
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Router /api/v1/health [get]
+func TanganiHealth() gin.HandlerFunc {
+	return func(k *gin.Context) {
+		respon.Sukses(k, "Aplikasi PGNServer aktif dan berjalan.", nil)
+	}
+}
+
+// TanganiReadiness menyajikan pemeriksaan kesiapan sistem.
+// @Summary Pemeriksaan Kesiapan Aplikasi
+// @Description Memvalidasi bahwa server API siap menerima trafik dengan memverifikasi koneksi database
+// @Tags Sistem
+// @Produce json
+// @Success 200 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/readiness [get]
+func TanganiReadiness(db *gorm.DB) gin.HandlerFunc {
+	return func(k *gin.Context) {
+		sqlDB, err := db.DB()
+		if err != nil {
+			respon.Galat_Server(k, "Gagal mendapatkan koneksi pangkalan data.", err)
+			return
+		}
+		errPing := sqlDB.Ping()
+		if errPing != nil {
+			respon.Galat_Server(k, "Pangkalan data tidak dapat dijangkau.", errPing)
+			return
+		}
+		respon.Sukses(k, "Aplikasi PGNServer siap menerima koneksi trafik.", nil)
+	}
+}

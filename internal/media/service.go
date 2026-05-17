@@ -98,7 +98,7 @@ func (l *layananMedia) UnggahBerkasLokal(idMaterial uint, berkas *multipart.File
 	if errBaca != nil && errBaca != io.EOF {
 		return nil, errBaca
 	}
-	
+
 	tipeMimeDeteksi := http.DetectContentType(buffer)
 	if !l.validasiTipeMIME(tipeMimeDeteksi) {
 		return nil, errors.New("tipe_mime_berkas_tidak_valid")

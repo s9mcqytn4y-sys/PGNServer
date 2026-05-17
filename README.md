@@ -119,19 +119,120 @@ chmod +x scripts/backup_db.sh
 
 ---
 
-## 🌐 Akses Root UI & Konsumsi API (Siap di-Consume)
+## 🗺️ REST API Endpoints Specification & Integration Matrix
 
 Server API PGNServer kini secara resmi dinyatakan **"Siap di-Consume"** untuk integrasi penuh dengan tim Frontend dan Client Apps (seperti QControl Desktop Client).
 
-### 🖥️ 1. Root Landing Page Dashboard
-Akses landing page interaktif bawaan server (yang dipaketkan secara mandiri via `go:embed`) langsung di browser Anda:
-*   **Root Dashboard URL**: [http://localhost:8080/](http://localhost:8080/)
-*   **Fitur**: Menampilkan metrik kesehatan sistem secara realtime, telemetri operasional, status database, serta panduan interaksi API.
+Seluruh endpoint API berjalan di bawah routing group `/api/v1` dan mengembalikan amplop respon JSON terstandardisasi:
+- **Respon Sukses**: `{"success": true, "message": "...", "data": ..., "meta": null}`
+- **Respon Gagal / Galat**: `{"success": false, "message": "...", "errors": ["..."]}`
 
-### 📚 2. REST API Kontrak & Swagger Docs
-Semua kontrak endpoint terdokumentasi secara interaktif via Swagger UI. Anda bisa melakukan testing secara dinamis dengan Bearer Token JWT.
-*   **Swagger URL**: [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
-*   **Bahan Uji Cepat**: Gunakan berkas [test.http](file:///c:/Software/PGNServer/test.http) yang kompatibel dengan VSCode REST Client untuk melakukan simulasi request registrasi, login, pengiriman checksheet, hingga pelacakan akar masalah BOM.
+### 1. Modul Sistem & Pemeriksaan Kesehatan (Public)
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/` | Public | Public | *None* | Halaman HTML interaktif Dashboard telemetry |
+| `GET` | `/swagger/*any` | Public | Public | *None* | Dokumentasi UI Swagger interaktif |
+| `GET` | `/api/v1/health` | Public | Public | *None* | Pesan string liveness server |
+| `GET` | `/api/v1/readiness` | Public | Public | *None* | Status kesiapan database ping |
+| `GET` | `/api/v1/cek_sistem` | Public | Public | *None* | Telemetri runtime GORM & RAM sistem |
+| `GET` | `/api/v1/krusial/status` | IP Whitelist | Admin / LEADER | *None* | Data telemetri operasi tingkat tinggi |
+
+### 2. Modul Otentikasi & Manajemen Sesi (Stateless JWT v5)
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/otentikasi/daftar` | Public | Public | `{"surel": "surel@pgn.com", "sandi": "sandi123", "peran": "LEADER", "nip": "2211019", "kata_sandi": "sandi123"}` | Objek profil pengguna baru yang didaftarkan |
+| `POST` | `/api/v1/otentikasi/masuk` | Public | Public | `{"surel": "surel@pgn.com", "sandi": "sandi123", "nip": "2211019", "kata_sandi": "sandi123"}` | `{"token_akses": "jwt_token", "peran": "LEADER", "nip": "2211019"}` |
+| `POST` | `/api/v1/otentikasi/lupa-sandi` | Public | Public | `{"surel": "surel@pgn.com"}` | Informasi pengiriman reset link |
+| `POST` | `/api/v1/otentikasi/keluar` | Public | Public | *None* | Konfirmasi penghapusan sesi kuki/lokal |
+
+### 3. Modul Kualitas & Transmisi Lembar Periksa (TPS Compliant)
+
+> [!IMPORTANT]
+> - Semua request di bawah ini wajib menyertakan Header: `Authorization: Bearer <JWT_TOKEN>`.
+> - Total produksi checksheet wajib mematuhi **Hukum TPS**: `TotalProduksi == KuantitasOK + KuantitasNG`.
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/operasi/rekam_lembar_periksa` | JWT | OPERATOR / LEADER | `{"tanggal": "2026-05-17", "zona_lini": "Lini A", "kuantitas_ok": 150, "kuantitas_ng": 12, "detail_inspeksi": [{"unikPartId": 1, "kodeCacat": "NG01", "waktuPergeseran": "Pagi", "rasioCacat": 5, "rasioTotalOK": 145}]}` | Konfirmasi penyimpanan atomik lembar periksa |
+| `GET` | `/api/v1/operasi/riwayat_lembar_periksa` | JWT | OPERATOR / LEADER | Query: `limit`, `offset`, `tanggal_mulai`, `tanggal_selesai`, `zona_lini` | Array riwayat data inspeksi terpaginasi |
+
+### 4. Modul Analitik 7 QC Tools & Root-Cause Tracing (BOM Engine)
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/analitik/metrik_pareto_bulanan` | Public | Public | Query: `bulan` (1-12, default saat ini) | Array kontribusi defect 80/20 terurut kumulatif |
+| `GET` | `/api/v1/analitik/pareto` | Public | Public | Query: `limit`, `offset` | Data pareto analitik umum |
+| `GET` | `/api/v1/analitik/lacak` | Public | Public | Query: `material_id` (Wajib) | Struktur pohon kegagalan (Trace Tree) rekursif |
+
+### 5. Modul Media & Attachment Inspeksi (Dual-Default Protection)
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Struktur Respon Data |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/media/:id/pratinjau` | Public | Public | Path parameter: `id` media | Mengembalikan binary payload file gambar (PNG/JPG) |
+| `POST` | `/api/v1/materials/:id/media` | JWT | OPERATOR / LEADER | Multipart Form: `berkas` (File gambar) | Metadata gambar yang tersimpan aman |
+
+### 6. Modul Master Data Manufaktur (RBAC Proteksi JWT)
+
+| Metode | Path | Otorisasi | Peran Akses | Payload Request | Deskripsi Operasi |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/suppliers` | JWT | LEADER | `{"kode_pemasok": "SUP01", "nama": "PT Baja Utama", "alamat": "Jakarta", "kontak": "0812..."}` | Menambah pemasok baru |
+| `GET` | `/api/v1/suppliers` | JWT | OPERATOR / LEADER | *None* | Mengambil daftar semua pemasok |
+| `GET` | `/api/v1/suppliers/:id` | JWT | OPERATOR / LEADER | Path Parameter: `id` | Mengambil detail pemasok |
+| `PUT` | `/api/v1/suppliers/:id` | JWT | LEADER | `{"nama": "PT Baja Utama Baru", "alamat": "Jakarta Barat"}` | Memperbarui data pemasok |
+| `DELETE` | `/api/v1/suppliers/:id` | JWT | LEADER | *None* | Menghapus data pemasok |
+| `POST` | `/api/v1/materials` | JWT | LEADER | `{"kode_material": "MAT01", "nama": "Besi Hollow", "tipe": "RAW", "pemasok_id": 1}` | Menambah bahan baku/produk |
+| `GET` | `/api/v1/materials` | JWT | OPERATOR / LEADER | *None* | Mengambil daftar semua material |
+| `GET` | `/api/v1/materials/:id` | JWT | OPERATOR / LEADER | Path Parameter: `id` | Mengambil detail material |
+| `PUT` | `/api/v1/materials/:id` | JWT | LEADER | `{"nama": "Besi Hollow Premium"}` | Memperbarui data material |
+| `DELETE` | `/api/v1/materials/:id` | JWT | LEADER | *None* | Menghapus data material |
+| `POST` | `/api/v1/customers` | JWT | LEADER | `{"kode_pelanggan": "CUST01", "nama": "PT Astra", "alamat": "Cikarang"}` | Menambah pelanggan baru |
+| `GET` | `/api/v1/customers` | JWT | OPERATOR / LEADER | *None* | Mengambil daftar semua pelanggan |
+| `GET` | `/api/v1/customers/:id` | JWT | OPERATOR / LEADER | Path Parameter: `id` | Mengambil detail pelanggan |
+| `PUT` | `/api/v1/customers/:id` | JWT | LEADER | `{"nama": "PT Astra Tbk"}` | Memperbarui data pelanggan |
+| `DELETE` | `/api/v1/customers/:id` | JWT | LEADER | *None* | Menghapus data pelanggan |
+| `POST` | `/api/v1/boms` | JWT | LEADER | `{"produk_id": 1, "material_id": 2, "kuantitas_komposisi": 2.5}` | Membuat link BOM komposisi |
+| `GET` | `/api/v1/boms` | JWT | OPERATOR / LEADER | *None* | Mengambil semua komposisi BOM |
+| `GET` | `/api/v1/boms/:id` | JWT | OPERATOR / LEADER | Path Parameter: `id` | Mengambil detail komposisi BOM |
+| `PUT` | `/api/v1/boms/:id` | JWT | LEADER | `{"kuantitas_komposisi": 3.0}` | Memperbarui kuantitas BOM |
+| `DELETE` | `/api/v1/boms/:id` | JWT | LEADER | *None* | Menghapus komposisi BOM |
+
+---
+
+## 🛠️ Panduan Local Development & Kompilasi Swagger
+
+### 1. Inisialisasi Lokal
+Untuk menjalankan server secara manual di mesin lokal (tanpa Docker):
+1.  **Siapkan Database**: Pastikan PostgreSQL 17.x aktif dengan database `pgn_db` dan pengguna `admin:admin`.
+2.  **Salin Environtment**:
+    ```bash
+    copy .env.example .env
+    ```
+3.  **Jalankan Aplikasi**:
+    ```bash
+    go run cmd/api/main.go
+    ```
+    *Database schema migration dan seeding data dummy akan dieksekusi secara otomatis pada saat startup.*
+
+### 2. Kompilasi & Regenerasi Swagger UI
+Jika Anda memodifikasi rute, anotasi gin, atau deskripsi param pada handler, regenerasi dokumentasi Swagger dengan:
+1.  **Instal Swag CLI**:
+    ```bash
+    go install github.com/swaggo/swag/cmd/swag@latest
+    ```
+2.  **Jalankan Swag Init** di direktori utama:
+    ```bash
+    swag init -g cmd/api/main.go
+    ```
+3.  Restart server untuk memuat Swagger UI terbaru di `/swagger/index.html`.
+
+### 3. Pengujian Endpoint dengan REST Client (`test.http`)
+Kami menyertakan file [test.http](file:///C:/Software/PGNServer/test.http) di root repositori. Anda dapat mengeksekusi langsung kueri HTTP dari VSCode dengan ekstensi REST Client untuk:
+- Menguji alur otentikasi login/registrasi.
+- Mengirim lembar periksa berukuran besar (*batch write*).
+- Menambah, mengubah, dan menghapus master data (Pemasok, Material, Pelanggan, BOM).
+- Memverifikasi output Window Functions Pareto dan rekursi BOM Tracing.
 
 ---
 
@@ -139,7 +240,7 @@ Semua kontrak endpoint terdokumentasi secara interaktif via Swagger UI. Anda bis
 
 Demi menjaga stabilitas sistem selama fase rilis *Beta Production*, seluruh kontributor wajib mematuhi aturan berikut secara ketat:
 
-| SOP Category | Kebijakan & Aturan Teknis | Dampak & Konsekuensi |
+| Kategori SOP | Kebijakan & Aturan Teknis | Dampak & Konsekuensi |
 | :--- | :--- | :--- |
 | **No-Branching** | Semua commit & push wajib langsung ke cabang `main`. Dilarang membuat cabang fitur baru secara terpisah. | Continuous Integration yang linier, bebas konflik penggabungan (*merge conflict*). |
 | **Nomenklatur** | Variabel, skema model, dan endpoint wajib memakai Bahasa Indonesia sesuai Pedoman Umum Ejaan Bahasa Indonesia (PUEBI). | Kemudahan telusur (*traceability*) secara manajerial operasional internal. |

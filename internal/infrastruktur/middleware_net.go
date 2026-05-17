@@ -24,11 +24,15 @@ func MiddlewareCORS() gin.HandlerFunc {
 
 		// Memuat daftar origin yang diizinkan dari environment variable
 		originsEnv := os.Getenv("ALLOWED_ORIGINS")
+		frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
 		originsDiizinkan := []string{}
 		if originsEnv != "" {
 			for _, o := range strings.Split(originsEnv, ",") {
 				originsDiizinkan = append(originsDiizinkan, strings.TrimSpace(o))
 			}
+		}
+		if frontendOrigin != "" {
+			originsDiizinkan = append(originsDiizinkan, strings.TrimSpace(frontendOrigin))
 		}
 
 		asalDiterima := ""
@@ -39,7 +43,7 @@ func MiddlewareCORS() gin.HandlerFunc {
 			}
 		}
 
-		// Development fallback jika ALLOWED_ORIGINS kosong demi mempermudah integrasi tim frontend
+		// Development fallback jika ALLOWED_ORIGINS dan FRONTEND_ORIGIN kosong demi mempermudah integrasi tim frontend
 		if asalDiterima == "" && len(originsDiizinkan) == 0 {
 			asalDiterima = asalPermintaan
 		}
@@ -107,7 +111,7 @@ func ekstrakRealIP(c *gin.Context) string {
 func MiddlewareIPWhitelist() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ipWhitelistsEnv := os.Getenv("IP_WHITELIST")
-		
+
 		// Jika konfigurasi kosong, kita tolak akses secara default demi keamanan enterprise
 		if ipWhitelistsEnv == "" {
 			pencatatan_log.Peringatan(c, "IP_WHITELIST kosong di .env. Akses ditolak secara default.")
@@ -122,7 +126,7 @@ func MiddlewareIPWhitelist() gin.HandlerFunc {
 		}
 
 		ipKlien := ekstrakRealIP(c)
-		
+
 		// Validasi pencocokan IP klien dengan whitelist
 		ipDiizinkan := false
 		for _, ipWhitelisted := range daftarIP {
@@ -150,7 +154,7 @@ func MiddlewareSecureHeaders() gin.HandlerFunc {
 		c.Writer.Header().Set("X-Frame-Options", "DENY")
 		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
 		c.Writer.Header().Set("X-XSS-Protection", "1; mode=block")
-		
+
 		c.Next()
 	}
 }

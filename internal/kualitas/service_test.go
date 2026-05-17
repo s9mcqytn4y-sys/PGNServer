@@ -37,7 +37,7 @@ func dapatkanDBTestOffline() (*gorm.DB, sqlmock.Sqlmock) {
 	}
 
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
+		Conn:                 db,
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{})
 	if err != nil {
@@ -64,7 +64,7 @@ func TestRekamLembarPeriksa_ValidasiTPS_Gagal(t *testing.T) {
 				WaktuPergeseran: "Shift-1",
 				TotalProduksi:   100,
 				RasioTotalOK:    80,
-				RasioCacat:      10, 
+				RasioCacat:      10,
 			},
 		},
 	}

@@ -5,12 +5,12 @@ import "time"
 
 // DTODetailInspeksi mendefinisikan detail inspeksi dalam JSON dengan struktur TPS.
 type DTODetailInspeksi struct {
-	UnikPartID      uint    `json:"unikPartId" example:"1" binding:"required"`                             // ID unik part material yang diperiksa
-	KodeCacat       string  `json:"kodeCacat" example:"A" binding:"required"`                             // Kode cacat defect (misal: "A", "B", dll)
-	WaktuPergeseran string  `json:"waktuPergeseran" example:"08:00" binding:"required"`                    // Waktu/Shift pergeseran jam pemeriksaan
-	TotalProduksi   float64 `json:"totalProduksi" example:"100" binding:"gte=0"`                           // Total kuantitas barang yang diproduksi
-	RasioTotalOK    float64 `json:"rasioTotalOK" example:"98" binding:"gte=0"`                            // Kuantitas barang dengan status OK (Lolos QC)
-	RasioCacat      float64 `json:"rasioCacat" example:"2" binding:"gte=0"`                             // Kuantitas barang reject / NG (Not Good)
+	UnikPartID      uint    `json:"unikPartId" example:"1" binding:"required"`          // ID unik part material yang diperiksa
+	KodeCacat       string  `json:"kodeCacat" example:"A" binding:"required"`           // Kode cacat defect (misal: "A", "B", dll)
+	WaktuPergeseran string  `json:"waktuPergeseran" example:"08:00" binding:"required"` // Waktu/Shift pergeseran jam pemeriksaan
+	TotalProduksi   float64 `json:"totalProduksi" example:"100" binding:"gte=0"`        // Total kuantitas barang yang diproduksi
+	RasioTotalOK    float64 `json:"rasioTotalOK" example:"98" binding:"gte=0"`          // Kuantitas barang dengan status OK (Lolos QC)
+	RasioCacat      float64 `json:"rasioCacat" example:"2" binding:"gte=0"`             // Kuantitas barang reject / NG (Not Good)
 }
 
 // DTOLembarPeriksaKirim adalah komposit majemuk payload masuk.

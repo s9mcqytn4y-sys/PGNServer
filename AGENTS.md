@@ -58,5 +58,11 @@ Klien `QControl` wajib menaati spesifikasi berikut saat berkomunikasi dengan ser
    - Klien desktop harus menyinkronkan data ini ke dalam SQLite lokal dan merendernya secara native menggunakan Compose Native Canvas (`ParetoDefectChart` & `HistogramDefectSlot`) dengan dynamic entrance animations dan visual 80/20 threshold indicators.
 6. **Secure Middleware**: Seluruh permintaan dari klien wajib mematuhi restriksi CORS dan secure HTTP headers yang disyaratkan oleh server. IP klien harus masuk dalam Whitelist yang dikonfigurasi.
 
+## 7. Kebijakan Pengembangan & Deployment Berkelanjutan
+Seluruh Agent wajib mematuhi aturan operasional berikut tanpa kecuali:
+1. **Mandat Satu Cabang (No-Branching)**: Seluruh agen wajib melakukan kompilasi, verifikasi, komit, dan langsung melakukan push ke cabang `main` branch. Dilarang keras menciptakan atau melakukan push ke cabang di luar `main`.
+2. **Imutabilitas Kontrak API**: Struktur amplop respon JSON (`success`, `message`, `data`, `meta`, `errors`) bersifat **mutlak** dan **tidak boleh dimodifikasi** untuk mencegah kerusakan deserialisasi pada klien KControl desktop KMP.
+3. **Isolasi Transaksi Database**: Seluruh mutasi pangkalan data wajib memanfaatkan scope transaksi GORM (`db.Transaction`) yang terbungkus dengan penanganan kegagalan `panic` otomatis demi integritas data multi-tabel.
+
 ---
-*Last Updated: 2026-05-17 | PGN Quality Assurance Dept.*
+*Last Updated: 2026-05-17 | PGN Quality Assurance Dept. & Advanced Software Architecture Team*

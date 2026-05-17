@@ -119,4 +119,3 @@ func MiddlewareCorrelationID() gin.HandlerFunc {
 		pencatatan_log.Info(k, "Permintaan selesai: %s %s -> Status %d", k.Request.Method, k.Request.URL.Path, k.Writer.Status())
 	}
 }
-

@@ -145,7 +145,7 @@ func TestLayananAnalitik_ParetoDanLacak(t *testing.T) {
 
 		lacak, errLacak := layanan.LacakAkarMasalah(nil, "SPUNBOUND TIDAK MEREKAT", mat1.KodeSKU)
 		assert.NoError(t, errLacak)
-		
+
 		circularDetected := false
 		for _, item := range lacak {
 			if item.CircularDependencyDetected {

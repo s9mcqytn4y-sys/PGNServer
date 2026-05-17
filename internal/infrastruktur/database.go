@@ -6,8 +6,8 @@ import (
 
 	"pgn-server/internal/kualitas"
 	"pgn-server/internal/manufaktur"
-	"pgn-server/internal/otentikasi"
 	"pgn-server/internal/media"
+	"pgn-server/internal/otentikasi"
 
 	"gorm.io/gorm"
 )

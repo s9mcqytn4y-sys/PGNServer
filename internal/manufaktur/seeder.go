@@ -47,7 +47,7 @@ func JalankanSeeder(db *gorm.DB) error {
 		{KodeSKU: "MAT-A01", NamaMaterial: "Plat Baja 2mm", TebalCM: 0.2, BeratGSM: 500, UnitSatuan: "Pcs", IDPemasok: sup1.ID},
 		{KodeSKU: "MAT-B01", NamaMaterial: "Baut M8", UnitSatuan: "Pcs", IDPemasok: sup1.ID},
 		{KodeSKU: "FG-001", NamaMaterial: "Bracket Engine Mount", UnitSatuan: "Pcs", IDPemasok: sup1.ID}, // Finished Good 1
-		
+
 		// TPS/BTI Materials
 		{KodeSKU: "MAT-001", NamaMaterial: "PS Polyester Non Woven Spunbond 100 Gsm White", TebalCM: 0.1, BeratGSM: 100, UnitSatuan: "Roll", IDPemasok: supBTI.ID},
 		{KodeSKU: "MAT-002", NamaMaterial: "Laminasi LDPE 200 Gsm", TebalCM: 0.05, BeratGSM: 200, UnitSatuan: "Roll", IDPemasok: supBTI.ID},

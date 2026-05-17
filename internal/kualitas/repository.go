@@ -12,7 +12,7 @@ type RepositoriKualitas interface {
 	DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error)
 }
 
-type repositoriKualitas struct{
+type repositoriKualitas struct {
 	db *gorm.DB
 }
 
@@ -59,9 +59,9 @@ func (r *repositoriKualitas) SimpanLembarPeriksaMassal(dto *DTOLembarPeriksaKiri
 // DaftarRiwayat melakukan paginasi dan filter historis lembar periksa.
 func (r *repositoriKualitas) DaftarRiwayat(limit int, offset int, tanggalMulai string, tanggalSelesai string, zonaLini string) ([]LembarPeriksa, error) {
 	var riwayat []LembarPeriksa
-	
+
 	query := r.db.Model(&LembarPeriksa{})
-	
+
 	if tanggalMulai != "" && tanggalSelesai != "" {
 		query = query.Where("tanggal >= ? AND tanggal <= ?", tanggalMulai, tanggalSelesai)
 	}
