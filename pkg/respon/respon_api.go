@@ -47,6 +47,24 @@ func Sukses(k *gin.Context, pesan string, data interface{}) {
 	})
 }
 
+// SuksesDenganMetadata mengembalikan format respons sukses standar beserta informasi metadata.
+func SuksesDenganMetadata(k *gin.Context, pesan string, data interface{}, metadata interface{}) {
+	k.JSON(http.StatusOK, gin.H{
+		"sukses":    true,
+		"pesan":     pesan,
+		"data":      data,
+		"metadata":  metadata,
+		"kesalahan": nil,
+		// Legacy fields
+		"success": true,
+		"message": pesan,
+		"status":  "success",
+		"meta":    metadata,
+		"errors":  nil,
+	})
+}
+
+
 // Galat_Server mengembalikan format respons untuk kesalahan internal server (ramah-antarmuka).
 // Stack trace error sesungguhnya HANYA di-log di sisi backend (tidak bocor ke klien).
 func Galat_Server(k *gin.Context, pesan string, err error) {

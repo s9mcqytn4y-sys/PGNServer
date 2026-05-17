@@ -877,6 +877,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/master-data/snapshot": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil snapshot data master lengkap untuk sinkronisasi offline-first klien QControl",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manufaktur - Master Data"
+                ],
+                "summary": "Snapshot master data untuk QControl",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/manufaktur.MasterDataSnapshotDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/materials": {
             "get": {
                 "security": [
@@ -2071,6 +2120,52 @@ const docTemplate = `{
                 }
             }
         },
+        "manufaktur.JenisDefectSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kategoriDefectId": {
+                    "type": "string"
+                },
+                "kodeDefect": {
+                    "type": "string"
+                },
+                "kodeKategori": {
+                    "type": "string"
+                },
+                "namaDefect": {
+                    "type": "string"
+                },
+                "namaKategori": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.KategoriDefectSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kodeKategori": {
+                    "type": "string"
+                },
+                "namaKategori": {
+                    "type": "string"
+                },
+                "urutanTampil": {
+                    "type": "integer"
+                }
+            }
+        },
         "manufaktur.KomposisiMaterialBOM": {
             "type": "object",
             "properties": {
@@ -2094,6 +2189,76 @@ const docTemplate = `{
                 },
                 "parentMaterial": {
                     "$ref": "#/definitions/manufaktur.Material"
+                }
+            }
+        },
+        "manufaktur.LineProduksiSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kodeLine": {
+                    "type": "string"
+                },
+                "namaLine": {
+                    "type": "string"
+                },
+                "urutanTampil": {
+                    "type": "integer"
+                }
+            }
+        },
+        "manufaktur.MasterDataSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "jenisDefect": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.JenisDefectSnapshotDto"
+                    }
+                },
+                "kategoriDefect": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.KategoriDefectSnapshotDto"
+                    }
+                },
+                "lineProduksi": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.LineProduksiSnapshotDto"
+                    }
+                },
+                "material": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.MaterialSnapshotDto"
+                    }
+                },
+                "part": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.PartSnapshotDto"
+                    }
+                },
+                "relasiPartDefect": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.RelasiPartDefectSnapshotDto"
+                    }
+                },
+                "slotWaktu": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/manufaktur.SlotWaktuSnapshotDto"
+                    }
+                },
+                "versiMasterData": {
+                    "type": "string"
                 }
             }
         },
@@ -2138,6 +2303,70 @@ const docTemplate = `{
                 }
             }
         },
+        "manufaktur.MaterialSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kodeSKU": {
+                    "type": "string"
+                },
+                "namaMaterial": {
+                    "type": "string"
+                }
+            }
+        },
+        "manufaktur.PartSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "jumlahItemPerKanban": {
+                    "type": "integer"
+                },
+                "kodeLineDefault": {
+                    "type": "string"
+                },
+                "kodeMaterial": {
+                    "type": "string"
+                },
+                "kodeProyek": {
+                    "type": "string"
+                },
+                "kodeUnikPart": {
+                    "type": "string"
+                },
+                "lineDefaultId": {
+                    "type": "string"
+                },
+                "materialId": {
+                    "type": "string"
+                },
+                "namaLineDefault": {
+                    "type": "string"
+                },
+                "namaMaterial": {
+                    "type": "string"
+                },
+                "namaPart": {
+                    "type": "string"
+                },
+                "nomorPart": {
+                    "type": "string"
+                },
+                "sumberData": {
+                    "type": "string"
+                }
+            }
+        },
         "manufaktur.Pemasok": {
             "type": "object",
             "properties": {
@@ -2158,6 +2387,61 @@ const docTemplate = `{
                 },
                 "supplierCode": {
                     "type": "string"
+                }
+            }
+        },
+        "manufaktur.RelasiPartDefectSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "jenisDefectId": {
+                    "type": "string"
+                },
+                "kodeDefect": {
+                    "type": "string"
+                },
+                "kodeTampilanDefect": {
+                    "type": "string"
+                },
+                "kodeUnikPart": {
+                    "type": "string"
+                },
+                "partId": {
+                    "type": "string"
+                },
+                "urutanTampil": {
+                    "type": "integer"
+                }
+            }
+        },
+        "manufaktur.SlotWaktuSnapshotDto": {
+            "type": "object",
+            "properties": {
+                "aktif": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "jamMulai": {
+                    "type": "string"
+                },
+                "jamSelesai": {
+                    "type": "string"
+                },
+                "kodeSlot": {
+                    "type": "string"
+                },
+                "labelSlot": {
+                    "type": "string"
+                },
+                "urutanTampil": {
+                    "type": "integer"
                 }
             }
         },

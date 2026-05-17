@@ -134,6 +134,36 @@ definitions:
     - namaEntitas
     - supplierCode
     type: object
+  manufaktur.JenisDefectSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      kategoriDefectId:
+        type: string
+      kodeDefect:
+        type: string
+      kodeKategori:
+        type: string
+      namaDefect:
+        type: string
+      namaKategori:
+        type: string
+    type: object
+  manufaktur.KategoriDefectSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      kodeKategori:
+        type: string
+      namaKategori:
+        type: string
+      urutanTampil:
+        type: integer
+    type: object
   manufaktur.KomposisiMaterialBOM:
     properties:
       dibuatPada:
@@ -150,6 +180,52 @@ definitions:
         type: number
       parentMaterial:
         $ref: '#/definitions/manufaktur.Material'
+    type: object
+  manufaktur.LineProduksiSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      kodeLine:
+        type: string
+      namaLine:
+        type: string
+      urutanTampil:
+        type: integer
+    type: object
+  manufaktur.MasterDataSnapshotDto:
+    properties:
+      jenisDefect:
+        items:
+          $ref: '#/definitions/manufaktur.JenisDefectSnapshotDto'
+        type: array
+      kategoriDefect:
+        items:
+          $ref: '#/definitions/manufaktur.KategoriDefectSnapshotDto'
+        type: array
+      lineProduksi:
+        items:
+          $ref: '#/definitions/manufaktur.LineProduksiSnapshotDto'
+        type: array
+      material:
+        items:
+          $ref: '#/definitions/manufaktur.MaterialSnapshotDto'
+        type: array
+      part:
+        items:
+          $ref: '#/definitions/manufaktur.PartSnapshotDto'
+        type: array
+      relasiPartDefect:
+        items:
+          $ref: '#/definitions/manufaktur.RelasiPartDefectSnapshotDto'
+        type: array
+      slotWaktu:
+        items:
+          $ref: '#/definitions/manufaktur.SlotWaktuSnapshotDto'
+        type: array
+      versiMasterData:
+        type: string
     type: object
   manufaktur.Material:
     properties:
@@ -178,6 +254,48 @@ definitions:
       unitSatuan:
         type: string
     type: object
+  manufaktur.MaterialSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      kodeSKU:
+        type: string
+      namaMaterial:
+        type: string
+    type: object
+  manufaktur.PartSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      jumlahItemPerKanban:
+        type: integer
+      kodeLineDefault:
+        type: string
+      kodeMaterial:
+        type: string
+      kodeProyek:
+        type: string
+      kodeUnikPart:
+        type: string
+      lineDefaultId:
+        type: string
+      materialId:
+        type: string
+      namaLineDefault:
+        type: string
+      namaMaterial:
+        type: string
+      namaPart:
+        type: string
+      nomorPart:
+        type: string
+      sumberData:
+        type: string
+    type: object
   manufaktur.Pemasok:
     properties:
       dibuatPada:
@@ -192,6 +310,42 @@ definitions:
         type: string
       supplierCode:
         type: string
+    type: object
+  manufaktur.RelasiPartDefectSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      jenisDefectId:
+        type: string
+      kodeDefect:
+        type: string
+      kodeTampilanDefect:
+        type: string
+      kodeUnikPart:
+        type: string
+      partId:
+        type: string
+      urutanTampil:
+        type: integer
+    type: object
+  manufaktur.SlotWaktuSnapshotDto:
+    properties:
+      aktif:
+        type: boolean
+      id:
+        type: string
+      jamMulai:
+        type: string
+      jamSelesai:
+        type: string
+      kodeSlot:
+        type: string
+      labelSlot:
+        type: string
+      urutanTampil:
+        type: integer
     type: object
   otentikasi.DataPermintaanLogin:
     properties:
@@ -834,6 +988,35 @@ paths:
       summary: Status Operasi Krusial (Whitelisted IP)
       tags:
       - Sistem
+  /api/v1/master-data/snapshot:
+    get:
+      description: Mengambil snapshot data master lengkap untuk sinkronisasi offline-first
+        klien QControl
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/manufaktur.MasterDataSnapshotDto'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      security:
+      - BearerAuth: []
+      summary: Snapshot master data untuk QControl
+      tags:
+      - Manufaktur - Master Data
   /api/v1/materials:
     get:
       description: Menampilkan daftar seluruh material beserta info pemasoknya

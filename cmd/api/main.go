@@ -239,6 +239,10 @@ func main() {
 			bomGrup.PUT("/:id", handlerManufaktur.TanganiUbahBOM)
 			bomGrup.DELETE("/:id", handlerManufaktur.TanganiHapusBOM)
 		}
+
+		// Endpoint Master Data Snapshot (untuk sinkronisasi QControl)
+		api.GET("/master-data/snapshot", infrastruktur.PenjagaSesiJWT(), handlerManufaktur.TanganiSnapshotMasterData)
+		api.GET("/qcontrol/master-data", infrastruktur.PenjagaSesiJWT(), handlerManufaktur.TanganiSnapshotMasterData)
 	}
 
 	// Menjalankan server

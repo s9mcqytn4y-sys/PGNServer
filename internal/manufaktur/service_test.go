@@ -145,6 +145,15 @@ func (m *MockRepositoriManufaktur) HapusBOM(id uint) error {
 	return args.Error(0)
 }
 
+func (m *MockRepositoriManufaktur) AmbilSnapshotMasterData() ([]Material, error) {
+	args := m.Called()
+	if args.Get(0) != nil {
+		return args.Get(0).([]Material), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+
 func TestTambahPemasok_Sukses(t *testing.T) {
 	mockRepo := new(MockRepositoriManufaktur)
 	layanan := KonstruksiLayananBaru(mockRepo)
@@ -216,3 +225,33 @@ func TestTambahMaterial_Sukses(t *testing.T) {
 	assert.Equal(t, dto.IDPemasok, material.IDPemasok)
 	mockRepo.AssertExpectations(t)
 }
+
+func TestAmbilSnapshotMasterData_Sukses(t *testing.T) {
+	mockRepo := new(MockRepositoriManufaktur)
+	layanan := KonstruksiLayananBaru(mockRepo)
+
+	materialsMock := []Material{
+		{
+			KodeSKU:      "MAT-FLT-01",
+			NamaMaterial: "Filter Element",
+		},
+	}
+	materialsMock[0].ID = 123
+
+	mockRepo.On("AmbilSnapshotMasterData").Return(materialsMock, nil).Once()
+
+	snapshot, metadata, err := layanan.AmbilSnapshotMasterData()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, snapshot)
+	assert.NotNil(t, metadata)
+	assert.Equal(t, "v1.0.0", snapshot.VersiMasterData)
+	assert.Len(t, snapshot.Material, 1)
+	assert.Equal(t, "123", snapshot.Material[0].ID)
+	assert.Equal(t, "MAT-FLT-01", snapshot.Material[0].KodeSKU)
+	assert.Equal(t, "Filter Element", snapshot.Material[0].NamaMaterial)
+	assert.Equal(t, 1, metadata.JumlahMaterial)
+	assert.Equal(t, 3, metadata.JumlahShiftOperasional)
+	mockRepo.AssertExpectations(t)
+}
+

@@ -2,6 +2,7 @@ package manufaktur
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"pgn-server/pkg/cache"
@@ -36,6 +37,9 @@ type LayananManufaktur interface {
 	AmbilSemuaBOM() ([]KomposisiMaterialBOM, error)
 	UbahBOM(id uint, dto *DTOBOMSimpan) (*KomposisiMaterialBOM, error)
 	HapusBOMID(id uint) error
+
+	// Snapshot
+	AmbilSnapshotMasterData() (*MasterDataSnapshotDto, *MetadataSnapshotDto, error)
 }
 
 type layananManufaktur struct {
@@ -372,3 +376,45 @@ func (l *layananManufaktur) HapusBOMID(id uint) error {
 	l.invalidateCache()
 	return nil
 }
+
+func (l *layananManufaktur) AmbilSnapshotMasterData() (*MasterDataSnapshotDto, *MetadataSnapshotDto, error) {
+	materialList, err := l.repo.AmbilSnapshotMasterData()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	materialDtos := make([]MaterialSnapshotDto, 0, len(materialList))
+	for _, m := range materialList {
+		materialDtos = append(materialDtos, MaterialSnapshotDto{
+			ID:           strconv.FormatUint(uint64(m.ID), 10),
+			KodeSKU:      m.KodeSKU,
+			NamaMaterial: m.NamaMaterial,
+			Aktif:        true,
+		})
+	}
+
+	// Inisialisasi slice kosong (bukan nil) untuk menjamin output JSON [] dan menghindari null
+	snapshot := &MasterDataSnapshotDto{
+		VersiMasterData:  "v1.0.0",
+		LineProduksi:     []LineProduksiSnapshotDto{},
+		SlotWaktu:        []SlotWaktuSnapshotDto{},
+		Material:         materialDtos,
+		Part:             []PartSnapshotDto{},
+		KategoriDefect:   []KategoriDefectSnapshotDto{},
+		JenisDefect:      []JenisDefectSnapshotDto{},
+		RelasiPartDefect: []RelasiPartDefectSnapshotDto{},
+	}
+
+	metadata := &MetadataSnapshotDto{
+		JumlahLineProduksi:     0,
+		JumlahSlotWaktu:        0,
+		JumlahMaterial:         len(materialDtos),
+		JumlahPart:             0,
+		JumlahJenisDefect:      0,
+		JumlahRelasiPartDefect: 0,
+		JumlahShiftOperasional: 3,
+	}
+
+	return snapshot, metadata, nil
+}
+

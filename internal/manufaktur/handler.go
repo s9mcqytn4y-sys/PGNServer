@@ -627,3 +627,24 @@ func (p *PenangananManufaktur) TanganiHapusBOM(k *gin.Context) {
 
 	respon.Sukses(k, "BOM berhasil dihapus dari sistem", nil)
 }
+
+// TanganiSnapshotMasterData mengambil snapshot data master secara batch.
+// @Summary Snapshot master data untuk QControl
+// @Description Mengambil snapshot data master lengkap untuk sinkronisasi offline-first klien QControl
+// @Tags Manufaktur - Master Data
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} respon.ResponStandar{data=MasterDataSnapshotDto}
+// @Failure 401 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/master-data/snapshot [get]
+func (p *PenangananManufaktur) TanganiSnapshotMasterData(k *gin.Context) {
+	snapshot, metadata, err := p.layanan.AmbilSnapshotMasterData()
+	if err != nil {
+		respon.Galat_Server(k, "Gagal mengambil snapshot master data", err)
+		return
+	}
+
+	respon.SuksesDenganMetadata(k, "Snapshot master data berhasil diambil", snapshot, metadata)
+}
+

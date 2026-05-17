@@ -34,6 +34,9 @@ type RepositoriManufaktur interface {
 	DaftarBOM() ([]KomposisiMaterialBOM, error)
 	PerbaruiBOM(b *KomposisiMaterialBOM) error
 	HapusBOM(id uint) error
+
+	// Snapshot
+	AmbilSnapshotMasterData() ([]Material, error)
 }
 
 type repositoriManufaktur struct {
@@ -172,3 +175,12 @@ func (r *repositoriManufaktur) PerbaruiBOM(b *KomposisiMaterialBOM) error {
 func (r *repositoriManufaktur) HapusBOM(id uint) error {
 	return r.db.Delete(&KomposisiMaterialBOM{}, id).Error
 }
+
+func (r *repositoriManufaktur) AmbilSnapshotMasterData() ([]Material, error) {
+	var list []Material
+	if err := r.db.Preload("Pemasok").Order("id ASC").Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+

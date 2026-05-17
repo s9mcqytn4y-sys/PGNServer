@@ -110,3 +110,12 @@ X-Forwarded-For: 127.0.0.1
 ### 14. Simulasi IP Whitelist - Akses Ditolak (Menggunakan IP Asing)
 GET http://localhost:8080/api/v1/krusial/status
 X-Forwarded-For: 192.168.1.99
+
+### 15. Master Data Snapshot (Memerlukan JWT)
+GET {{baseUrl}}/master-data/snapshot
+Authorization: Bearer {{token}}
+
+### 16. QControl Master Data Alias (Memerlukan JWT)
+GET {{baseUrl}}/qcontrol/master-data
+Authorization: Bearer {{token}}
+
