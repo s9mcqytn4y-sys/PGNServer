@@ -87,6 +87,8 @@ GIN_MODE=debug
 ### 2. Kompilasi & Menjalankan Kontainer Docker (Production-Ready)
 Kami menyediakan multi-stage `Dockerfile` berbasis *Alpine Linux* yang di-hardening secara ketat dengan *Non-Root User* (`pgnuser`) untuk meminimalkan *attack surface*.
 
+Volume database kini dipetakan secara fisik ke `./docker/pgdata` untuk menjamin ketahanan persisten jika kontainer direstart atau dimatikan tanpa sengaja via `docker compose down -v`.
+
 Jalankan seluruh infrastruktur (Database Postgres 17 & API Server) hanya dengan satu perintah:
 ```bash
 docker-compose up -d --build
@@ -100,10 +102,34 @@ go test -v -race ./...
 
 ---
 
-## 📚 REST API Kontrak & Swagger Docs
+## 🗄️ Disaster Recovery & Manual Database Backup
 
-Semua kontrak endpoint terdokumentasi secara interaktif via Swagger UI. Anda bisa *literally* melakukan testing secara dinamis.
+Demi mencegah kehilangan data historis inspeksi kualitas akibat kesalahan operasional lokal, kami menyertakan utilitas backup otomatis. 
 
+Jalankan backup data manual secara berkala dengan perintah:
+```bash
+# Berikan izin eksekusi jika berjalan di Linux/macOS
+chmod +x scripts/backup_db.sh
+
+# Eksekusi skrip backup
+./scripts/backup_db.sh
+```
+> [!NOTE]
+> Skrip ini secara otomatis mendeteksi apakah database berjalan di dalam container Docker `pgn_db` atau lokal host, lalu mengekstrak skema dan data transaksi ke dalam direktori aman `./docker/backups/` dengan penamaan terstruktur berbasis timestamp. File dump SQL ini terlindung di dalam `.gitignore`.
+
+---
+
+## 🌐 Akses Root UI & Konsumsi API (Siap di-Consume)
+
+Server API PGNServer kini secara resmi dinyatakan **"Siap di-Consume"** untuk integrasi penuh dengan tim Frontend dan Client Apps (seperti QControl Desktop Client).
+
+### 🖥️ 1. Root Landing Page Dashboard
+Akses landing page interaktif bawaan server (yang dipaketkan secara mandiri via `go:embed`) langsung di browser Anda:
+*   **Root Dashboard URL**: [http://localhost:8080/](http://localhost:8080/)
+*   **Fitur**: Menampilkan metrik kesehatan sistem secara realtime, telemetri operasional, status database, serta panduan interaksi API.
+
+### 📚 2. REST API Kontrak & Swagger Docs
+Semua kontrak endpoint terdokumentasi secara interaktif via Swagger UI. Anda bisa melakukan testing secara dinamis dengan Bearer Token JWT.
 *   **Swagger URL**: [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
 *   **Bahan Uji Cepat**: Gunakan berkas [test.http](file:///c:/Software/PGNServer/test.http) yang kompatibel dengan VSCode REST Client untuk melakukan simulasi request registrasi, login, pengiriman checksheet, hingga pelacakan akar masalah BOM.
 
