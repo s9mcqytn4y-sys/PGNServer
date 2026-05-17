@@ -263,3 +263,32 @@ func (h *PenangananAnalitik) TanganiSinyalKualitas(k *gin.Context) {
 
 	respon.Sukses(k, "Sinyal kualitas berhasil ditarik.", hasil)
 }
+
+// TanganiRekomendasiTindakan memberikan rekomendasi keputusan QC berbasis rule.
+// @Summary Dapatkan Rekomendasi Tindakan (DSS)
+// @Description Mengembalikan saran operasional prioritas untuk QA, PCD, QC, Supplier, dan Management berdasarkan data agregat defect.
+// @Tags Analitik
+// @Accept json
+// @Produce json
+// @Param start_date query string false "Tanggal Mulai (YYYY-MM-DD)"
+// @Param end_date query string false "Tanggal Selesai (YYYY-MM-DD)"
+// @Param line query string false "Nama Lini / Zona"
+// @Param kode_cacat query string false "Kode Cacat Spesifik (Opsional)"
+// @Success 200 {object} respon.ResponStandar{data=DTORekomendasiTindakan}
+// @Failure 400 {object} respon.ResponStandar
+// @Failure 500 {object} respon.ResponStandar
+// @Router /api/v1/analitik/rekomendasi_tindakan [get]
+func (h *PenangananAnalitik) TanganiRekomendasiTindakan(k *gin.Context) {
+	tanggalMulai := k.Query("start_date")
+	tanggalSelesai := k.Query("end_date")
+	zonaLini := k.Query("line")
+	kodeCacat := k.Query("kode_cacat")
+
+	hasil, err := h.layanan.DapatkanRekomendasiTindakan(k, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat)
+	if err != nil {
+		respon.Galat_Server(k, "Gagal mendapatkan rekomendasi tindakan.", err)
+		return
+	}
+
+	respon.Sukses(k, "Rekomendasi tindakan berhasil ditarik.", hasil)
+}

@@ -1,5 +1,20 @@
 basePath: /
 definitions:
+  analitik.DTODetailRekomendasiTindakan:
+    properties:
+      alasan:
+        example: Rasio NG melebihi ambang kritis.
+        type: string
+      prioritas:
+        example: TINGGI
+        type: string
+      target:
+        example: QA
+        type: string
+      tindakan:
+        example: Lakukan investigasi defect dominan pada line terkait.
+        type: string
+    type: object
   analitik.DTOHistogramDefect:
     properties:
       jumlah:
@@ -9,6 +24,42 @@ definitions:
       kategori:
         description: 'Kategori grouping (contoh: slot waktu, tanggal, kode)'
         example: 08:00-12:00
+        type: string
+    type: object
+  analitik.DTOIndikatorRekomendasiTindakan:
+    properties:
+      defect_dominan:
+        example: LAMINATING BOLONG
+        type: string
+      rasio_ng:
+        example: 5
+        type: number
+      total_defect:
+        example: 50
+        type: number
+      total_ok:
+        example: 950
+        type: number
+      total_produksi:
+        example: 1000
+        type: number
+      trend_7_hari:
+        example: NAIK
+        type: string
+    type: object
+  analitik.DTORekomendasiTindakan:
+    properties:
+      indikator:
+        $ref: '#/definitions/analitik.DTOIndikatorRekomendasiTindakan'
+      rekomendasi:
+        items:
+          $ref: '#/definitions/analitik.DTODetailRekomendasiTindakan'
+        type: array
+      ringkasan:
+        example: Rasio NG berada pada level waspada.
+        type: string
+      status:
+        example: WASPADA
         type: string
     type: object
   analitik.DTORingkasanNG:
@@ -687,6 +738,52 @@ paths:
           schema:
             $ref: '#/definitions/respon.ResponStandar'
       summary: Dapatkan Pareto Dinamis
+      tags:
+      - Analitik
+  /api/v1/analitik/rekomendasi_tindakan:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan saran operasional prioritas untuk QA, PCD, QC, Supplier,
+        dan Management berdasarkan data agregat defect.
+      parameters:
+      - description: Tanggal Mulai (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Tanggal Selesai (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Nama Lini / Zona
+        in: query
+        name: line
+        type: string
+      - description: Kode Cacat Spesifik (Opsional)
+        in: query
+        name: kode_cacat
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/respon.ResponStandar'
+            - properties:
+                data:
+                  $ref: '#/definitions/analitik.DTORekomendasiTindakan'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respon.ResponStandar'
+      summary: Dapatkan Rekomendasi Tindakan (DSS)
       tags:
       - Analitik
   /api/v1/analitik/ringkasan_ng:

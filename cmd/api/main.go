@@ -196,6 +196,7 @@ func main() {
 			analitikGrup.GET("/trend_defect", handlerAnalitik.TanganiTrendDefect)
 			analitikGrup.GET("/stratifikasi_defect", handlerAnalitik.TanganiStratifikasiDefect)
 			analitikGrup.GET("/sinyal_kualitas", handlerAnalitik.TanganiSinyalKualitas)
+			analitikGrup.GET("/rekomendasi_tindakan", handlerAnalitik.TanganiRekomendasiTindakan)
 		}
 
 		// Endpoint Media

@@ -49,6 +49,7 @@ type LayananAnalitik interface {
 	DapatkanTrendDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, periode string) ([]DTOTrendDefect, error)
 	DapatkanStratifikasiDefect(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat string) ([]DTOStratifikasiDefect, error)
 	DapatkanSinyalKualitas(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini string) (*DTOSinyalKualitas, error)
+	DapatkanRekomendasiTindakan(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat string) (*DTORekomendasiTindakan, error)
 }
 
 type layananAnalitik struct {
@@ -144,18 +145,7 @@ func (l *layananAnalitik) LacakAkarMasalah(k *gin.Context, kodeCacat string, par
 	}
 
 	// Cek apakah defect merupakan defect proses internal (tidak berakar ke material)
-	isProcessDefect := false
-	processDefects := []string{
-		"OVERCUTTING", "DIMENSI OUT STD", "TERBALIK", "HOLE T/A", "SEWING MIRING",
-		"SEWING LONCAT", "SEWING NITIK", "KUNCIAN JEBOL", "SEWING PUTUS",
-		"ALUR SERAT TDK SESUAI", "SEWING LONGGAR", "LANGKAH SEWING TIDAK SESUAI",
-	}
-	for _, pd := range processDefects {
-		if strings.ToUpper(kodeCacat) == pd {
-			isProcessDefect = true
-			break
-		}
-	}
+	isProcessDefect := ApakahDefectProcess(kodeCacat)
 
 	if isProcessDefect {
 		for _, p := range parents {
@@ -350,4 +340,166 @@ func (l *layananAnalitik) DapatkanSinyalKualitas(k *gin.Context, tanggalMulai, t
 	}
 
 	return sinyal, nil
+}
+
+func (l *layananAnalitik) DapatkanRekomendasiTindakan(k *gin.Context, tanggalMulai, tanggalSelesai, zonaLini, kodeCacat string) (*DTORekomendasiTindakan, error) {
+	tanggalMulaiDef, tanggalSelesaiDef := parseTanggalDefault(tanggalMulai, tanggalSelesai)
+
+	// Inisialisasi response DTO
+	resp := &DTORekomendasiTindakan{
+		Status:      "STABIL", // Default
+		Ringkasan:   "Data tidak cukup atau semua metrik berada dalam batas aman.",
+		Rekomendasi: []DTODetailRekomendasiTindakan{},
+		Indikator: DTOIndikatorRekomendasiTindakan{
+			Trend7Hari: "DATA_TIDAK_CUKUP",
+		},
+	}
+
+	// 1. Dapatkan ringkasan NG
+	ringkasan, err := l.repo.DapatkanRingkasanNG(tanggalMulaiDef, tanggalSelesaiDef, zonaLini)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Indikator.TotalProduksi = ringkasan.TotalProduksi
+	resp.Indikator.TotalOK = ringkasan.TotalOK
+	resp.Indikator.TotalDefect = ringkasan.TotalDefect
+	resp.Indikator.RasioNG = ringkasan.RasioNG
+
+	// Rule 1: Jika total_produksi <= 0
+	if ringkasan.TotalProduksi <= 0 {
+		resp.Ringkasan = "Data belum cukup untuk membuat rekomendasi (Total Produksi = 0)."
+		return resp, nil
+	}
+
+	// 2. Ambil Pareto untuk mencari defect dominan (mengabaikan filter kode_cacat agar dapat the real dominant)
+	pareto, err := l.repo.KalkulasiPareto(tanggalMulaiDef, tanggalSelesaiDef, zonaLini)
+	if err != nil {
+		return nil, err
+	}
+	if len(pareto) > 0 {
+		resp.Indikator.DefectDominan = pareto[0].KodeCacat
+	}
+
+	// 3. Ambil Trend Defect Harian (7 hari ke belakang dari tanggal selesai yang diberikan)
+	// Kita set batas tanggal untuk trend adalah 7 hari
+	if endT, err := time.Parse("2006-01-02", tanggalSelesaiDef); err == nil {
+		startT := endT.AddDate(0, 0, -6)
+		trendStart := startT.Format("2006-01-02")
+
+		trend, _ := l.repo.DapatkanTrendDefect(trendStart, tanggalSelesaiDef, zonaLini, "harian")
+
+		if len(trend) >= MinimumHariTrend {
+			// Perhitungan trend sederhana (membandingkan awal dan akhir)
+			if len(trend) >= 2 {
+				awal := trend[0].JumlahDefect
+				akhir := trend[len(trend)-1].JumlahDefect
+				if akhir > awal {
+					resp.Indikator.Trend7Hari = "NAIK"
+				} else if akhir < awal {
+					resp.Indikator.Trend7Hari = "TURUN"
+				} else {
+					resp.Indikator.Trend7Hari = "STABIL"
+				}
+			}
+		}
+	}
+
+	// Rule Evaluasi Status (Rule 2, 3, 4)
+	if ringkasan.RasioNG >= AmbangRasioNGKritis {
+		resp.Status = "KRITIS"
+		resp.Ringkasan = "Rasio NG mencapai tingkat kritis. Memerlukan tindakan korektif menyeluruh."
+		resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+			Target:    "MANAGEMENT",
+			Prioritas: "TINGGI",
+			Tindakan:  "Lakukan tinjauan operasional menyeluruh dan hentikan line jika diperlukan.",
+			Alasan:    fmt.Sprintf("Rasio NG (%.2f%%) melebihi batas kritis (%.2f%%).", ringkasan.RasioNG, float64(AmbangRasioNGKritis)),
+		})
+		resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+			Target:    "QA",
+			Prioritas: "TINGGI",
+			Tindakan:  "Segera investigasi penyebab utama dari cacat produk.",
+			Alasan:    "Kualitas keseluruhan di luar batas toleransi maksimum.",
+		})
+	} else if ringkasan.RasioNG >= AmbangRasioNGWaspada {
+		resp.Status = "WASPADA"
+		resp.Ringkasan = "Rasio NG berada pada level waspada. Perketat pemantauan line produksi."
+		resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+			Target:    "QA",
+			Prioritas: "SEDANG",
+			Tindakan:  "Monitor trend cacat secara lebih dekat dan lakukan sampling tambahan.",
+			Alasan:    fmt.Sprintf("Rasio NG (%.2f%%) berada pada batas waspada.", ringkasan.RasioNG),
+		})
+		resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+			Target:    "QC",
+			Prioritas: "SEDANG",
+			Tindakan:  "Tingkatkan intensitas pengecekan kualitas di line produksi.",
+			Alasan:    "Rasio cacat berisiko naik ke tingkat kritis.",
+		})
+	}
+
+	// Rule 5 & 6: Defect Dominan (Pareto >= 50%)
+	if len(pareto) > 0 {
+		dominan := pareto[0]
+		if dominan.Persentase >= AmbangDominasiPareto {
+			resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+				Target:    "QA",
+				Prioritas: "TINGGI",
+				Tindakan:  fmt.Sprintf("Fokuskan investigasi pada cacat '%s'.", dominan.KodeCacat),
+				Alasan:    fmt.Sprintf("Cacat '%s' menyumbang %.2f%% dari total masalah.", dominan.KodeCacat, dominan.Persentase),
+			})
+		}
+
+		// Rule 7: Jika defect dominan adalah Material
+		if ApakahDefectMaterial(dominan.KodeCacat) {
+			resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+				Target:    "SUPPLIER",
+				Prioritas: "SEDANG",
+				Tindakan:  "Kirim feedback performa kualitas ke supplier pemasok.",
+				Alasan:    "Defect dominan teridentifikasi berasal dari faktor material.",
+			})
+			resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+				Target:    "PCD",
+				Prioritas: "SEDANG",
+				Tindakan:  "Review ketersediaan material dan stok pengaman (safety stock).",
+				Alasan:    "Defect material tinggi berisiko mengganggu kelancaran produksi.",
+			})
+
+			// Rule 12: PCD (rasio NG >= 2.0 dan cacat material)
+			if ringkasan.RasioNG >= AmbangRasioNGWaspada {
+				resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+					Target:    "PCD",
+					Prioritas: "TINGGI",
+					Tindakan:  "Evaluasi ulang risiko ketersediaan material terhadap forecast produksi.",
+					Alasan:    "Defect material mengurangi jumlah hasil OK secara signifikan.",
+				})
+			}
+		}
+
+		// Rule 8: Jika defect dominan adalah Process
+		if ApakahDefectProcess(dominan.KodeCacat) {
+			resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+				Target:    "QC",
+				Prioritas: "SEDANG",
+				Tindakan:  "Lakukan kalibrasi mesin, briefing prosedur, dan pelatihan operator line.",
+				Alasan:    "Defect dominan teridentifikasi sebagai kesalahan proses internal.",
+			})
+		}
+	}
+
+	// Rule 10: Jika trend 7 hari NAIK
+	if resp.Indikator.Trend7Hari == "NAIK" {
+		if resp.Status == "STABIL" {
+			resp.Status = "WASPADA"
+			resp.Ringkasan = "Rasio aman, namun tren defect menunjukkan peningkatan."
+		}
+		resp.Rekomendasi = append(resp.Rekomendasi, DTODetailRekomendasiTindakan{
+			Target:    "QA",
+			Prioritas: "SEDANG",
+			Tindakan:  "Investigasi penyebab peningkatan jumlah cacat harian di line.",
+			Alasan:    "Jumlah defect terpantau naik dalam tren 7 hari terakhir.",
+		})
+	}
+
+	return resp, nil
 }

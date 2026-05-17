@@ -248,6 +248,79 @@
                 }
             }
         },
+        "/api/v1/analitik/rekomendasi_tindakan": {
+            "get": {
+                "description": "Mengembalikan saran operasional prioritas untuk QA, PCD, QC, Supplier, dan Management berdasarkan data agregat defect.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analitik"
+                ],
+                "summary": "Dapatkan Rekomendasi Tindakan (DSS)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Mulai (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Selesai (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Lini / Zona",
+                        "name": "line",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Cacat Spesifik (Opsional)",
+                        "name": "kode_cacat",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/respon.ResponStandar"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/analitik.DTORekomendasiTindakan"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respon.ResponStandar"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analitik/ringkasan_ng": {
             "get": {
                 "description": "Mengembalikan ringkasan produksi dan defect (Total Produksi, OK, Defect, Rasio NG).",
@@ -2313,6 +2386,27 @@
         }
     },
     "definitions": {
+        "analitik.DTODetailRekomendasiTindakan": {
+            "type": "object",
+            "properties": {
+                "alasan": {
+                    "type": "string",
+                    "example": "Rasio NG melebihi ambang kritis."
+                },
+                "prioritas": {
+                    "type": "string",
+                    "example": "TINGGI"
+                },
+                "target": {
+                    "type": "string",
+                    "example": "QA"
+                },
+                "tindakan": {
+                    "type": "string",
+                    "example": "Lakukan investigasi defect dominan pada line terkait."
+                }
+            }
+        },
         "analitik.DTOHistogramDefect": {
             "type": "object",
             "properties": {
@@ -2325,6 +2419,57 @@
                     "description": "Kategori grouping (contoh: slot waktu, tanggal, kode)",
                     "type": "string",
                     "example": "08:00-12:00"
+                }
+            }
+        },
+        "analitik.DTOIndikatorRekomendasiTindakan": {
+            "type": "object",
+            "properties": {
+                "defect_dominan": {
+                    "type": "string",
+                    "example": "LAMINATING BOLONG"
+                },
+                "rasio_ng": {
+                    "type": "number",
+                    "example": 5
+                },
+                "total_defect": {
+                    "type": "number",
+                    "example": 50
+                },
+                "total_ok": {
+                    "type": "number",
+                    "example": 950
+                },
+                "total_produksi": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "trend_7_hari": {
+                    "type": "string",
+                    "example": "NAIK"
+                }
+            }
+        },
+        "analitik.DTORekomendasiTindakan": {
+            "type": "object",
+            "properties": {
+                "indikator": {
+                    "$ref": "#/definitions/analitik.DTOIndikatorRekomendasiTindakan"
+                },
+                "rekomendasi": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analitik.DTODetailRekomendasiTindakan"
+                    }
+                },
+                "ringkasan": {
+                    "type": "string",
+                    "example": "Rasio NG berada pada level waspada."
+                },
+                "status": {
+                    "type": "string",
+                    "example": "WASPADA"
                 }
             }
         },

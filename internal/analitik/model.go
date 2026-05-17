@@ -56,3 +56,29 @@ type DTOSinyalKualitas struct {
 	Alasan    string  `json:"alasan" example:"Rasio NG di bawah 2%"` // Penjelasan status
 	Indikator float64 `json:"indikator" example:"1.5"`               // Metrik utama yang diukur (contoh: rasio NG)
 }
+
+// DTORekomendasiTindakan mewakili response dari Decision Support System (DSS)
+type DTORekomendasiTindakan struct {
+	Status      string                          `json:"status" example:"WASPADA"`
+	Ringkasan   string                          `json:"ringkasan" example:"Rasio NG berada pada level waspada."`
+	Indikator   DTOIndikatorRekomendasiTindakan `json:"indikator"`
+	Rekomendasi []DTODetailRekomendasiTindakan  `json:"rekomendasi"`
+}
+
+// DTOIndikatorRekomendasiTindakan mewakili metrik dasar untuk rekomendasi DSS
+type DTOIndikatorRekomendasiTindakan struct {
+	TotalProduksi float64 `json:"total_produksi" example:"1000"`
+	TotalOK       float64 `json:"total_ok" example:"950"`
+	TotalDefect   float64 `json:"total_defect" example:"50"`
+	RasioNG       float64 `json:"rasio_ng" example:"5.0"`
+	DefectDominan string  `json:"defect_dominan" example:"LAMINATING BOLONG"`
+	Trend7Hari    string  `json:"trend_7_hari" example:"NAIK"`
+}
+
+// DTODetailRekomendasiTindakan mewakili satu item tindakan saran dari DSS
+type DTODetailRekomendasiTindakan struct {
+	Target    string `json:"target" example:"QA"`
+	Prioritas string `json:"prioritas" example:"TINGGI"`
+	Tindakan  string `json:"tindakan" example:"Lakukan investigasi defect dominan pada line terkait."`
+	Alasan    string `json:"alasan" example:"Rasio NG melebihi ambang kritis."`
+}

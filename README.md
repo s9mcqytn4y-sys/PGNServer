@@ -200,6 +200,15 @@ Seluruh endpoint API berjalan di bawah routing group `/api/v1` dan mengembalikan
 | `GET` | `/api/v1/analitik/metrik_pareto_bulanan` | Public | Public | Query: `bulan` (1-12, default saat ini) | Array kontribusi defect 80/20 terurut kumulatif |
 | `GET` | `/api/v1/analitik/pareto` | Public | Public | Query: `limit`, `offset` | Data pareto analitik umum |
 | `GET` | `/api/v1/analitik/lacak` | Public | Public | Query: `material_id` (Wajib) | Struktur pohon kegagalan (Trace Tree) rekursif |
+| `GET` | `/api/v1/analitik/rekomendasi_tindakan` | Public | Public | Query: `start_date`, `end_date`, `line` | Rekomendasi operasional DSS berbasis rule |
+
+> [!TIP]
+> **DSS Rules & Thresholds:**
+> - **Kritis:** Rasio NG >= 5.0% -> Hentikan Line (Target: Management/QA)
+> - **Waspada:** Rasio NG >= 2.0% -> Perketat Pemantauan (Target: QA/QC)
+> - **Pareto Material (>50%):** Kirim feedback ke Supplier & Evaluasi stok (Target: Supplier/PCD)
+> - **Pareto Proses (>50%):** Kalibrasi mesin & Pelatihan operator (Target: QC)
+> - **Trend Naik (7 Hari):** Tingkatkan prioritas ke waspada (Target: QA)
 
 ### 5. Modul Media & Attachment Inspeksi (Dual-Default Protection)
 
