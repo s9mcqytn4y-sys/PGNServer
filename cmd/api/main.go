@@ -124,6 +124,7 @@ func main() {
 	rute.SetTrustedProxies(nil) // Mengamankan peringatan 'trusted all proxies'
 
 	// Middleware Keamanan Global
+	rute.Use(infrastruktur.MiddlewareCorrelationID())
 	rute.Use(infrastruktur.MiddlewarePenangkapPanic())
 	rute.Use(infrastruktur.MiddlewareRateLimiter(10, 20)) // 10 rps, 20 kapasitas
 

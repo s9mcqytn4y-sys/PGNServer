@@ -1,8 +1,9 @@
 package respon
 
 import (
-	"log"
 	"net/http"
+
+	"pgn-server/pkg/pencatatan_log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,7 @@ func Sukses(k *gin.Context, pesan string, data interface{}) {
 // Stack trace error sesungguhnya HANYA di-log di sisi backend (tidak bocor ke klien).
 func Galat_Server(k *gin.Context, pesan string, err error) {
 	if err != nil {
-		log.Printf("[CRITICAL ERROR] 500 Server Error: %v | Konteks: %s\n", err, pesan)
+		pencatatan_log.Kritis(k, "500 Server Error: %v | Konteks: %s", err, pesan)
 	}
 	k.JSON(http.StatusInternalServerError, ResponStandar{
 		Status: "error",

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"pgn-server/pkg/pencatatan_log"
 	"pgn-server/pkg/respon"
 
 	"github.com/gin-gonic/gin"
@@ -94,3 +95,28 @@ func PenjagaRole(rolesLolos ...string) gin.HandlerFunc {
 		k.Next()
 	}
 }
+
+// MiddlewareCorrelationID menginjeksi X-Request-ID (Correlation ID) di header request dan response
+func MiddlewareCorrelationID() gin.HandlerFunc {
+	return func(k *gin.Context) {
+		requestID := k.GetHeader("X-Request-ID")
+		if requestID == "" {
+			requestID = pencatatan_log.HasilkanUUIDv4()
+		}
+
+		// Set di konteks Gin agar bisa diakses oleh logger/handler
+		k.Set("RequestID", requestID)
+
+		// Set di header respons agar klien bisa memverifikasi
+		k.Writer.Header().Set("X-Request-ID", requestID)
+
+		// Log kedatangan request
+		pencatatan_log.Info(k, "Permintaan masuk: %s %s dari %s", k.Request.Method, k.Request.URL.Path, k.ClientIP())
+
+		k.Next()
+
+		// Log keluar request
+		pencatatan_log.Info(k, "Permintaan selesai: %s %s -> Status %d", k.Request.Method, k.Request.URL.Path, k.Writer.Status())
+	}
+}
+

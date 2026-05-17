@@ -20,3 +20,14 @@ tmp/
 
 # Vendor & Dependensi (Jika tidak di-commit)
 # vendor/
+
+# Konfigurasi & Kredensial Sensitif
+.env
+.env.*
+!.env.example
+
+# Database Lokal / Temp SQLite
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
