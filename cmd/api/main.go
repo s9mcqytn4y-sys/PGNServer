@@ -12,12 +12,15 @@ import (
 	"gorm.io/gorm"
 
 	"pgn-server/internal/infrastruktur"
+	"pgn-server/internal/kualitas"
 	"pgn-server/internal/otentikasi"
 	"pgn-server/pkg/respon"
 )
 
 func main() {
 	// Inisialisasi pengenalan cgroup limit di Go 1.25.x
+	// Meskipun Go 1.25.x memiliki peningkatan otomatisasi, menetapkan GOMAXPROCS
+	// sesuai jumlah CPU sistem yang dialokasikan di dalam kontainer masih merupakan praktik yang baik.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Memuat konfigurasi
@@ -60,6 +63,11 @@ func main() {
 	layananOtentikasi := otentikasi.KonstruksiLayananBaru(repoOtentikasi)
 	handlerOtentikasi := otentikasi.KonstruksiPenangananBaru(layananOtentikasi)
 
+	// Setup Dependensi Kualitas
+	repoKualitas := kualitas.KonstruksiRepositoriBaru()
+	layananKualitas := kualitas.KonstruksiLayananBaru(repoKualitas, db)
+	handlerKualitas := kualitas.KonstruksiPenangananBaru(layananKualitas)
+
 	// Konfigurasi layanan router web Gin
 	rute := gin.Default()
 
@@ -82,6 +90,13 @@ func main() {
 			auth.POST("/daftar", handlerOtentikasi.TanganiRegistrasi)
 			auth.POST("/masuk", handlerOtentikasi.TanganiLogin)
 			auth.POST("/lupa-sandi", handlerOtentikasi.TanganiLupaSandi)
+		}
+
+		// Endpoint Operasi Internal (Perlu JWT)
+		operasi := api.Group("/operasi")
+		operasi.Use(infrastruktur.PenjagaSesiJWT())
+		{
+			operasi.POST("/rekam_lembar_periksa", handlerKualitas.TanganiRekamLembarPeriksa)
 		}
 	}
 

@@ -3,6 +3,7 @@ package infrastruktur
 import (
 	"log"
 
+	"pgn-server/internal/kualitas"
 	"pgn-server/internal/manufaktur"
 	"pgn-server/internal/otentikasi"
 
@@ -19,6 +20,9 @@ func PelaksanaanAutoMigrasi(db *gorm.DB) error {
 		&manufaktur.Pemasok{},
 		&manufaktur.Material{},
 		&manufaktur.KomposisiMaterialBOM{},
+		&kualitas.LembarPeriksa{},
+		&kualitas.DetailInspeksi{},
+		&kualitas.BukuBesarCacat{},
 	)
 
 	if err != nil {
